@@ -23,8 +23,8 @@ Then, log out of `root` and log in as this user
 ## clone the repo
 
 ```sh
-git clone https://github.com/PlebeiusGaragicus/PlebbyIntelligence.git
-cd PlebbyIntelligence
+git clone https://github.com/PlebeiusGaragicus/PlebChat.git
+cd PlebChat
 ```
 
 ## configure the Python virtual environment
@@ -95,15 +95,15 @@ Note: This will need `root` access.  Log in as `root` for these next steps.
 
 
 ```sh
-cat << EOF > /etc/systemd/system/plebbyintelligence.service
+cat << EOF > /etc/systemd/system/plebchat.service
 [Unit]
-Description=Plebby Intelligence Streamlit Application
+Description=PlebChat Service
 After=network.target
 
 [Service]
 User=satoshi
-WorkingDirectory=/home/satoshi/PlebbyIntelligence
-ExecStart=/bin/bash -c "/home/satoshi/PlebbyIntelligence/launch_production"
+WorkingDirectory=/home/satoshi/PlebChat
+ExecStart=/bin/bash -c "/home/satoshi/PlebChat/launch_production"
 Restart=on-failure
 RestartSec=5s
 
@@ -111,7 +111,7 @@ RestartSec=5s
 WantedBy=multi-user.target
 EOF
 
-nano /etc/systemd/system/plebbyintelligence.service
+nano /etc/systemd/system/plebchat.service
 ```
 
 Also, replace `satoshi` with the non-root Linux username that you created earlier.
@@ -119,14 +119,14 @@ Also, replace `satoshi` with the non-root Linux username that you created earlie
 ## start the service and monitor for errors
 
 ```sh
-systemctl start plebbyintelligence
-systemctl status plebbyintelligence
+systemctl start plebchat
+systemctl status plebchat
 
 # works..?  If so:
-systemctl enable plebbyintelligence
+systemctl enable plebchat
 
 # watch it run via:
-journalctl -u plebbyintelligence -f # hitting 'q' will exit
+journalctl -u plebchat -f # hitting 'q' will exit
 ```
 
 ## Visit the application

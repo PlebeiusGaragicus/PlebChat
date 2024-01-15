@@ -21,7 +21,6 @@ class ChatThread:
         self.session_start_time = time.strftime("%Y%m%d_%H%M%S", time.localtime())
         self.description = None
         self.messages: list[ChatMessage] = []
-        # self.incomplete_stream = None
         self.not_yet_saved = True
 
 
@@ -141,7 +140,7 @@ class ChatAppVars:
                     # TODO ################################################################## fix the None
             # st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
             self.chat_history.append((description, runlog))
-            print(self.chat_history)
+            # print(self.chat_history)
         if truncated:
             st.caption("Only showing last 40 conversations")
 
@@ -206,7 +205,7 @@ def get_description():
         model="mistral-small",
         messages=messages,
     )
-    print(chat_response)
+    # print(chat_response)
     # st.stop()
     return chat_response.choices[0].message.content
 

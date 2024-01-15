@@ -19,8 +19,12 @@ def main():
         # menu_items={"About": "https://plebby.me/"} # TODO
     )
 
-    with open("./auth.yaml") as file:
-        config = yaml.load(file, Loader=yaml.loader.SafeLoader)
+    try:
+        with open("./auth.yaml") as file:
+            config = yaml.load(file, Loader=yaml.loader.SafeLoader)
+    except FileNotFoundError:
+        st.error("This instance of PlebChat has not been configured.  Missing `auth.yaml` file.")
+        st.stop()
 
     st.session_state.authenticator = stauth.Authenticate(
         config["credentials"],
