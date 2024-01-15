@@ -11,7 +11,7 @@ from mistralai.models.chat_completion import ChatMessage
 
 # OPENAI_VOICES = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
 OPENAI_TTS_MODELS = ["echo", "nova", "onyx"]
-TTS_VOICE_CHOICES = ["Male", "Female", "Male (deep)"]
+TTS_VOICE_CHOICES = ["Male1", "Female", "Male2"]
 
 
 
@@ -22,6 +22,7 @@ class ChatThread:
         self.description = None
         self.messages: list[ChatMessage] = []
         self.incomplete_stream = None
+        self.not_yet_saved = True
 
 
 
@@ -43,6 +44,8 @@ class ChatAppVars:
         # self.session_start_time = time.strftime("%Y%m%d_%H%M%S", time.localtime())
 
         self.chat = ChatThread()
+        self.chat_history = None
+        self.load_chat_history()
 
         # SETTINGS
         self.debug = os.getenv("DEBUG", False)
@@ -71,34 +74,76 @@ class ChatAppVars:
             self.api_key_assemblyai = config["credentials"]["usernames"][self.username]["api_key_assemblyai"]
         except KeyError:
             self.api_key_assemblyai = None
-        
-        print(f"api_key_openai: {self.api_key_openai}")
-        print(f"api_key_mistral: {self.api_key_mistral}")
-        print(f"api_key_assemblyai: {self.api_key_assemblyai}")
 
+        # print(f"api_key_openai: {self.api_key_openai}")
+        # print(f"api_key_mistral: {self.api_key_mistral}")
+        # print(f"api_key_assemblyai: {self.api_key_assemblyai}")
+
+
+    def get_debug_generator(self):
+        time.sleep(0.5)
+        # output = [
+        #     DeltaContentChunk("hello "),
+        #     DeltaContentChunk("world! "),
+        #     DeltaContentChunk("I am"),
+        #     DeltaContentChunk(" a chatbot.")
+        # ]
+        # for o in output:
+        #     time.sleep(0.3)
+        #     yield o
+        echo = st.session_state.appstate.chat.messages[-1].content
+
+        # split the message into words
+        echo = echo.split(" ")
+        for e in echo:
+            yield DeltaContentChunk(f" {e}")
+            time.sleep(0.2)
 
     def get_client(self):
         if self.debug:
-            output = [
-                DeltaContentChunk("hello "),
-                DeltaContentChunk("world! "),
-                DeltaContentChunk("I am"),
-                DeltaContentChunk(" a chatbot.")
-            ]
-            for o in output:
-                time.sleep(0.5)
-                yield o
+            # output = [
+            #     DeltaContentChunk("hello "),
+            #     DeltaContentChunk("world! "),
+            #     DeltaContentChunk("I am"),
+            #     DeltaContentChunk(" a chatbot.")
+            # ]
+            # for o in output:
+            #     time.sleep(0.5)
+            #     yield o
+            return self.get_debug_generator()
         else:
-            yield self.client.chat_stream(
-                model=self.mistrel_model, #TODO NOPE THIS WON'T WORK
-                messages=self.messages,
-                safe_mode=self.mistrel_safemode
+            return self.client.chat_stream(
+                model=st.session_state.mistrel_model,
+                messages=self.chat.messages,
+                safe_mode=st.session_state.mistrel_safemode
             )
-    
+
     def new_thread(self):
         self.chat = ChatThread()
 
-
+    def load_chat_history(self):
+        self.chat_history = []
+        runlogs = os.listdir(self.runlog_dir)
+        runlogs.sort(reverse=True)
+        truncated = len(runlogs) > 40
+        if truncated:
+            runlogs = runlogs[:40]
+        for runlog in runlogs:
+            with open(os.path.join(self.runlog_dir, runlog), "r") as f:
+                try:
+                    file_contents = json.load(f)
+                    description = file_contents["description"]
+                except json.decoder.JSONDecodeError:
+                    continue
+                # except KeyError:
+                    # description = "no description"
+                    # TODO ##################################################################
+                    # TODO ################################################################## fix the None
+            # st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
+            self.chat_history.append((description, runlog))
+            print(self.chat_history)
+        if truncated:
+            st.caption("Only showing last 40 conversations")
 
 
 
@@ -116,21 +161,21 @@ def load_convo(runlog):
     st.toast(f"Loading {runlog}...")
 
     # load the runlog file
-    with open(os.path.join(st.session_state.runlog_dir, runlog), "r") as f:
+    with open(os.path.join(st.session_state.appstate.runlog_dir, runlog), "r") as f:
         file_contents = json.load(f)
 
         messages = file_contents["messages"]
-        st.session_state.messages = [deserialize_messages(m) for m in messages]
+        st.session_state.appstate.chat.messages = [deserialize_messages(m) for m in messages]
 
-        st.session_state["session_start_time"] = file_contents["session_start_time"]
-        st.session_state["description"] = file_contents["description"]
+        st.session_state.appstate.chat.session_start_time = file_contents["session_start_time"]
+        st.session_state.appstate.chat.description = file_contents["description"]
 
 
 
 def delete_this_chat():
     """ Delete the current chat history """
 
-    runlog_file = os.path.join(st.session_state.runlog_dir, f'{st.session_state["session_start_time"]}.txt')
+    runlog_file = os.path.join(st.session_state.appstate.runlog_dir, f'{st.session_state.appstate.chat.session_start_time}.txt')
     os.remove(runlog_file)
 
     # setup()
@@ -139,14 +184,18 @@ def delete_this_chat():
 
 
 def get_description():
+    if st.session_state.appstate.debug:
+        return "A friendly chat."
+
     # call the API to get the description
 
-    client = MistralClient(api_key=st.session_state.api_key_mistral)
+    # client = MistralClient(api_key=st.session_state.api_key_mistral)
+    client = MistralClient(api_key=st.session_state.appstate.api_key_mistral)
 
     messages = [
         ChatMessage(
             role="user",
-            content=f"List at most 5 key words from the following: `{st.session_state.messages[0].content}`\nReply should be no more than 5 words."
+            content=f"Reduce the following into 3 or 4 words: `{st.session_state.appstate.chat.messages[0].content}`\nReply should be no more than 4 words."
         )
     ]
 
@@ -159,48 +208,30 @@ def get_description():
     return chat_response.choices[0].message.content
 
 
+
 def save_chat_history():
     """ Save the chat history to a file """
 
-    if st.session_state['description'] == None:
+    # if st.session_state['description'] == None:
+    if st.session_state.appstate.chat.description == None:
         desc = get_description()
 
 
     # serialize the messages
-    messages = [serialize_messages(m) for m in st.session_state.messages]
+    messages = [serialize_messages(m) for m in st.session_state.appstate.chat.messages]
 
     # save the chat history to a file
-    runlog_file = os.path.join(st.session_state.runlog_dir, f'{st.session_state["session_start_time"]}.txt')
+    runlog_file = os.path.join(st.session_state.appstate.runlog_dir, f'{st.session_state.appstate.chat.session_start_time}.txt')
     with open(runlog_file, "w") as f:
         json.dump(
             {
                 "description": desc,
-                "session_start_time": st.session_state["session_start_time"],
+                "session_start_time": st.session_state.appstate.chat.session_start_time,
                 "messages": messages
             },
             f,
             indent=4
         )
-
-
-
-
-
-
-
-# def get_api_key(key: API_KEY):
-#     with open("./auth.yaml") as file:
-#         config = yaml.load(file, Loader=SafeLoader)
-    
-#     try:
-#         ret = config["credentials"]["usernames"][st.session_state["username"]][key]
-#         if ret == "":
-#             return None
-#         else:
-#             return ret
-#     except KeyError:
-#         return None
-
 
 
 
