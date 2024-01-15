@@ -21,6 +21,15 @@ COLUMN_FIX_CSS = """<style>
 }
 </style>"""
 
+def column_fix():
+    st.write(COLUMN_FIX_CSS, unsafe_allow_html=True)
+
+
+class PageRoute:
+    MAIN = "main"
+    SETTINGS = "settings"
+    ABOUT = "about"
+
 
 class ChatThread:
     def __init__(self):
@@ -274,3 +283,18 @@ def serialize_messages(msg: ChatMessage):
 def deserialize_messages(msg):
     d = ChatMessage(role=msg["role"], content=msg["content"])
     return d
+
+
+
+def init_if_needed():
+    # initialize the appstate on first run
+    if 'appstate' not in st.session_state:
+        try:
+            st.session_state['appstate']: ChatAppVars = ChatAppVars()
+        except Exception as e:
+            st.warning("No Mistral API key found.  Enter one in the settings page.")
+            st.error(e)
+            st.stop()
+        
+        ### SETUP STARTING ROUTE
+        st.session_state["route"] = PageRoute.MAIN

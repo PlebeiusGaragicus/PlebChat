@@ -6,8 +6,9 @@ import streamlit_authenticator as stauth
 import logging
 log = logging.getLogger()
 
+from src.common import init_if_needed, PageRoute
 from src.main_page import main_page
-
+from src.settings_page import settings_page
 
 
 
@@ -42,4 +43,15 @@ def main():
     st.session_state.authenticator.login("ACCESS RESTRICTED", "main")
 
     if st.session_state["authentication_status"]:
-        main_page()
+        ### PAGE ROUTING GOES HERE ###
+        init_if_needed()
+
+        appstate = st.session_state.appstate
+        if st.session_state["route"] == PageRoute.MAIN:
+            main_page(appstate)
+
+        elif st.session_state["route"] == PageRoute.SETTINGS:
+            settings_page(appstate, None)
+
+        elif st.session_state["route"] == PageRoute.ABOUT:
+            st.write("About")

@@ -23,7 +23,8 @@ from src.common import (
     save_chat_history,
     load_convo,
     delete_this_chat,
-    COLUMN_FIX_CSS
+    COLUMN_FIX_CSS,
+    PageRoute,
 )
 
 print("\n\nLOADING AND RUNNING TOP-LEVEL CODE FOR EACH USER ACTION?!\n\n")
@@ -36,17 +37,7 @@ def center_text(type, text):
     st.write(f"<{type} style='text-align: center;'>{text}</{type}>", unsafe_allow_html=True)
 
 
-def main_page():
-    # initialize the appstate on first run
-    if 'appstate' not in st.session_state:
-        try:
-            st.session_state['appstate']: ChatAppVars = ChatAppVars()
-        except Exception as e:
-            st.warning("No Mistral API key found.  Enter one in the settings page.")
-            st.error(e)
-            st.stop()
-
-    appstate = st.session_state.appstate
+def main_page(appstate: ChatAppVars):
 
     ###### HEADER ######
     st.write("""<p style="text-align: center; font-size: 60px;">🗣️🤖💬</p>""", unsafe_allow_html=True)
@@ -57,7 +48,6 @@ def main_page():
             st.text_input("OpenAI API key", appstate.api_key_openai, key="api_key_openai", disabled=True)
             st.write(f"Description: `{appstate.chat.description}`")
             st.write(appstate.chat.messages)
-    st.write("---")
 
     sidebar(appstate)
 
@@ -67,7 +57,8 @@ def main_page():
     top_buttons = st.columns((2, 1))
     with top_buttons[0]:
         # st.button("New chat +", on_click=lambda: appstate.new_thread())
-        st.button("🌱 New chat", on_click=lambda: appstate.new_thread(), use_container_width=True)
+        st.empty()
+        # st.button("🌱 New chat", on_click=lambda: appstate.new_thread(), use_container_width=True)
     # with top_buttons[1]:
     #     if appstate.chat.messages != []:
     #         st.button("Delete 🗑️", on_click=delete_this_chat)
@@ -75,6 +66,7 @@ def main_page():
     # newbutton, deletebutton= st.columns((1, 1))
     # newbutton.button("New chat +", on_click=lambda: appstate.new_thread(), use_container_width=True, key="button_new")
 
+    # st.write("---")
 
     ####### CONVERSATION #######
     for message in appstate.chat.messages:
@@ -107,13 +99,16 @@ def main_page():
         appstate.load_chat_history()
 
     with st.sidebar:
-        # with st.expander("# Past conversations", expanded=True):
         st.write("---")
-        center_text("h3", "Past conversations")
-        for description, runlog in appstate.chat_history:
-            st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
+        # center_text("h3", "Past conversations")
+        # with st.expander("Past conversations", expanded=not appstate.debug):
+        with st.expander("Past conversations", expanded=False):
+            for description, runlog in appstate.chat_history:
+                st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
 
     if len(appstate.chat.messages) > 0:
+        with top_buttons[0]:
+            st.button("🌱 New chat", on_click=lambda: appstate.new_thread(), use_container_width=True)
         with top_buttons[1]:
             st.button("🗑️ Delete", on_click=delete_this_chat, key="button_delete")
 
@@ -127,7 +122,8 @@ def main_page():
 
 
 def settings():
-    st.toast("Settings not yet implemented", icon="🚧")
+    # st.toast("Settings not yet implemented", icon="🚧")
+    st.session_state.route = PageRoute.SETTINGS
 
 
 
