@@ -194,7 +194,10 @@ def sidebar(appstate):
             cols[0].radio("Voice model", TTS_VOICE_CHOICES, index=1, key="openai_voice")
             cols[1].radio("Talking speed", [1.0, 1.2, 1.5], index=1, key="tts_rate")
         st.write("---")
-        st.radio("Model", appstate.mistral_models, index=2, key="mistrel_model")
+        st.radio("Model",
+                 appstate.mistral_models,
+                 index=0 if os.getenv("DEBUG", False) else 2,
+                 key="mistrel_model")
         st.checkbox("Safe mode", key="mistrel_safemode", value=False, help="Safe mode is not yet implemented by mistral ai", disabled=True)
 
         # if appstate.debug:
