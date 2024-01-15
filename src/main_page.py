@@ -196,7 +196,7 @@ def sidebar(appstate):
         st.write("---")
         st.radio("Model",
                  appstate.mistral_models,
-                 index=0 if os.getenv("DEBUG", False) else 2,
+                 index=2 if appstate.debug else 0,
                  key="mistrel_model")
         st.checkbox("Safe mode", key="mistrel_safemode", value=False, help="Safe mode is not yet implemented by mistral ai", disabled=True)
 
