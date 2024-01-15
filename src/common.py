@@ -21,7 +21,7 @@ class ChatThread:
         self.session_start_time = time.strftime("%Y%m%d_%H%M%S", time.localtime())
         self.description = None
         self.messages: list[ChatMessage] = []
-        self.incomplete_stream = None
+        # self.incomplete_stream = None
         self.not_yet_saved = True
 
 
@@ -97,7 +97,7 @@ class ChatAppVars:
         echo = echo.split(" ")
         for e in echo:
             yield DeltaContentChunk(f" {e}")
-            time.sleep(0.2)
+            time.sleep(0.05)
 
     def get_client(self):
         if self.debug:
@@ -185,7 +185,10 @@ def delete_this_chat():
 
 def get_description():
     if st.session_state.appstate.debug:
-        return "A friendly chat."
+        # return "A friendly chat."
+        content = st.session_state.appstate.chat.messages[0].content
+        # return first 3 words, at most
+        return " ".join(content.split(" ")[:3])
 
     # call the API to get the description
 
@@ -215,6 +218,8 @@ def save_chat_history():
     # if st.session_state['description'] == None:
     if st.session_state.appstate.chat.description == None:
         desc = get_description()
+    else:
+        desc = st.session_state.appstate.chat.description
 
 
     # serialize the messages

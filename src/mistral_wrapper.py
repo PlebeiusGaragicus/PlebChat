@@ -94,7 +94,7 @@ def mistral_wrapper():
         # with st.spinner("Loading speech-to-text..."):
         # TODO - naive thinking that let me to think having us import here would increase page performance... lol, oh well
         from streamlit_mic_recorder import speech_to_text
-        prompt = speech_to_text( language='en', use_container_width=True, just_once=False, key='STT')
+        prompt = speech_to_text( language='en', use_container_width=True, just_once=True, key='STT')
 
     if prompt:
         my_next_prompt.chat_message("user").markdown(prompt)
@@ -110,12 +110,16 @@ def mistral_wrapper():
         st.write("---")
         center_text("h3", "Past conversations")
         for description, runlog in appstate.chat_history:
-            print(runlog, description)
             st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
 
     if len(appstate.chat.messages) > 0:
         deletebutton.button("Delete 🗑️", on_click=delete_this_chat)
 
+    with st.sidebar:
+        st.write("---")
+        # st.button(f"{st.session_state.authenticator.username}", on_click=None)
+        st.button(f"Profile Settings ⚙️", on_click=settings, use_container_width=True)
+    # st.session_state.authenticator.logout("Logout", "sidebar")
 
     ####### SIDEBAR #######
     # sidebar(appstate)
@@ -123,6 +127,9 @@ def mistral_wrapper():
 
     ### outside of the if prompt block
 
+
+def settings():
+    st.toast("Settings not yet implemented", icon="🚧")
 
 
 
@@ -237,7 +244,11 @@ def run_prompt(prompt, bots_reply):
 
     # if st.session_state.output_method == "Voice":
     if 'read_to_me' in st.session_state and st.session_state.read_to_me == True:
+        # try:
         TTS(reply)
+        # except gTTSError as e:
+        #     st.error(e)
+        #     st.stop()
     
     # st.info("Done! 🎉")
 
@@ -269,20 +280,25 @@ def TTS(text, language='en', slow=False):
         if os.getenv("DEBUG", False):
             # Create a gTTS object
             # TODO - attempting to do delayed imports for speed (not sure if this works)
-            from gtts import gTTS
-            tts = gTTS(text=text, lang=language, slow=slow)
+            try:
+                from gtts import gTTS, gTTSError
+                tts = gTTS(text=text, lang=language, slow=slow)
 
-            # Create a BytesIO object
-            with io.BytesIO() as file_stream:
-                # Write the speech data to the file stream
-                tts.write_to_fp(file_stream)
+                # Create a BytesIO object
+                with io.BytesIO() as file_stream:
+                    # Write the speech data to the file stream
+                    tts.write_to_fp(file_stream)
 
-                # Move to the beginning of the file stream
-                file_stream.seek(0)
+                    # Move to the beginning of the file stream
+                    file_stream.seek(0)
 
-                # Read the audio data and encode it in base64
-                audio_base64 = base64.b64encode(file_stream.read()).decode('utf-8')
-            autoplay_audio(audio_base64)
+                    # Read the audio data and encode it in base64
+                    audio_base64 = base64.b64encode(file_stream.read()).decode('utf-8')
+                autoplay_audio(audio_base64)
+            except gTTSError as e:
+                st.error(e)
+                st.error(f"Could not create audio: ")
+                # st.stop()
 
 
         else:
