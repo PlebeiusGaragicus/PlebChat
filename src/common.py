@@ -198,7 +198,7 @@ def get_description():
     messages = [
         ChatMessage(
             role="user",
-            content=f"Reduce the following into 3 or 4 words: `{st.session_state.appstate.chat.messages[0].content}`\nReply should be no more than 4 words."
+            content=f"Reduce the following user query into 3 to 4 key words: `{st.session_state.appstate.chat.messages[0].content}`\nDo not answer questions. Your reply MUST be no more than 4 words!"
         )
     ]
 

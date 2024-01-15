@@ -6,8 +6,7 @@ import streamlit_authenticator as stauth
 import logging
 log = logging.getLogger()
 
-from src.VERSION import VERSION
-from src.mistral_wrapper import mistral_wrapper
+from src.main_page import main_page
 
 
 
@@ -31,14 +30,12 @@ def main():
         config["preauthorized"],
     )
 
-    # if st.session_state["authentication_status"] is False:
-    #     st.error("Username/password is incorrect")
+    if st.session_state["authentication_status"] is False:
+        st.error("Username/password is incorrect")
 
     # https://blog.streamlit.io/streamlit-authenticator-part-1-adding-an-authentication-component-to-your-app/
     # https://github.com/mkhorasani/Streamlit-Authenticator?ref=blog.streamlit.io
     st.session_state.authenticator.login("ACCESS RESTRICTED", "main")
 
     if st.session_state["authentication_status"]:
-        mistral_wrapper()
-
-    # st.caption(f"running version: {VERSION}")
+        main_page()

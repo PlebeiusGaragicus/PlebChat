@@ -35,7 +35,7 @@ def center_text(type, text):
     st.write(f"<{type} style='text-align: center;'>{text}</{type}>", unsafe_allow_html=True)
 
 
-def mistral_wrapper():
+def main_page():
     # initialize the appstate on first run
     if 'appstate' not in st.session_state:
         try:
