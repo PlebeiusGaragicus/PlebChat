@@ -13,6 +13,13 @@ from mistralai.models.chat_completion import ChatMessage
 OPENAI_TTS_MODELS = ["echo", "nova", "onyx"]
 TTS_VOICE_CHOICES = ["Male1", "Female", "Male2"]
 
+COLUMN_FIX_CSS = """<style>
+[data-testid="column"] {
+    width: calc(33.3333% - 1rem) !important;
+    flex: 1 1 calc(33.3333% - 1rem) !important;
+    min-width: calc(33% - 1rem) !important;
+}
+</style>"""
 
 
 class ChatThread:

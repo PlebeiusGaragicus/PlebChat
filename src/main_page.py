@@ -22,7 +22,8 @@ from src.common import (
     TTS_VOICE_CHOICES,
     save_chat_history,
     load_convo,
-    delete_this_chat
+    delete_this_chat,
+    COLUMN_FIX_CSS
 )
 
 print("\n\nLOADING AND RUNNING TOP-LEVEL CODE FOR EACH USER ACTION?!\n\n")
@@ -60,17 +61,20 @@ def main_page():
 
     sidebar(appstate)
 
-    # sidecol = st.columns((1, 1))
-    # with sidecol[0]:
-    #     st.button("New chat +", on_click=lambda: appstate.new_thread())
-    # with sidecol[1]:
+    ###### TOP BUTTONS ######
+    st.write(COLUMN_FIX_CSS, unsafe_allow_html=True)
+
+    top_buttons = st.columns((2, 1))
+    with top_buttons[0]:
+        # st.button("New chat +", on_click=lambda: appstate.new_thread())
+        st.button("🌱 New chat", on_click=lambda: appstate.new_thread(), use_container_width=True)
+    # with top_buttons[1]:
     #     if appstate.chat.messages != []:
     #         st.button("Delete 🗑️", on_click=delete_this_chat)
-    newbutton, deletebutton, emptyspace = st.columns((1, 1, 4))
-    newbutton.button("New chat +", on_click=lambda: appstate.new_thread())
-    # if appstate.chat.messages != []:
-    # if len(appstate.chat.messages) > 0:
-    #     deletebutton.button("Delete 🗑️", on_click=delete_this_chat)
+
+    # newbutton, deletebutton= st.columns((1, 1))
+    # newbutton.button("New chat +", on_click=lambda: appstate.new_thread(), use_container_width=True, key="button_new")
+
 
     ####### CONVERSATION #######
     for message in appstate.chat.messages:
@@ -83,15 +87,12 @@ def main_page():
 
 
     #### USER PROMPT AND ASSOCIATED LOGIC
-    # if 'input_method' not in st.session_state or "Text" in st.session_state["input_method"]:
     prompt = None
 
     if "Text" in st.session_state["input_method"]:
         # if prompt := st.chat_input("Ask a question."):
         prompt = st.chat_input("Ask a question.")
     else:
-        # if prompt := speech_to_text( language='en', use_container_width=True, just_once=False, key='STT'):
-        # with st.spinner("Loading speech-to-text..."):
         # TODO - naive thinking that let me to think having us import here would increase page performance... lol, oh well
         from streamlit_mic_recorder import speech_to_text
         prompt = speech_to_text( language='en', use_container_width=True, just_once=True, key='STT')
@@ -113,16 +114,13 @@ def main_page():
             st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
 
     if len(appstate.chat.messages) > 0:
-        deletebutton.button("Delete 🗑️", on_click=delete_this_chat)
+        with top_buttons[1]:
+            st.button("🗑️ Delete", on_click=delete_this_chat, key="button_delete")
 
     with st.sidebar:
         st.write("---")
-        # st.button(f"{st.session_state.authenticator.username}", on_click=None)
         st.button(f"Profile Settings ⚙️", on_click=settings, use_container_width=True)
-    # st.session_state.authenticator.logout("Logout", "sidebar")
-
-    ####### SIDEBAR #######
-    # sidebar(appstate)
+        st.caption(f"Logged in as: `{st.session_state.appstate.username}`")
 
 
     ### outside of the if prompt block
@@ -136,52 +134,6 @@ def settings():
 def sidebar(appstate):
     #Note: we do this at the end so that a new chat history will be displayed after the users first message
     with st.sidebar:
-        # TODO ########################################################################################################################
-        # TODO ########################################################################################################################
-        # sidecol = st.columns((1, 1))
-        # with sidecol[0]:
-        #     st.button("New chat +", on_click=lambda: appstate.new_thread())
-        # with sidecol[1]:
-        #     if appstate.chat.messages != []:
-        #         st.button("Delete 🗑️", on_click=delete_this_chat)
-
-        # display a list of past runlogs
-        # past_convos = st.empty()
-        # with past_convos.expander("# Past conversations"):
-        # with st.expander("# Past conversations"):
-            # # TODO - wish I could only run this code if the expander is open... would save compute.
-            # runlogs = os.listdir(appstate.runlog_dir)
-            # runlogs.sort(reverse=True)
-            # truncated = len(runlogs) > 40
-            # if truncated:
-            #     runlogs = runlogs[:40]
-            # for runlog in runlogs:
-            #     with open(os.path.join(appstate.runlog_dir, runlog), "r") as f:
-            #         try:
-            #             file_contents = json.load(f)
-            #             description = file_contents["description"]
-            #         except json.decoder.JSONDecodeError:
-            #             continue
-            #         # except KeyError:
-            #             # description = "no description"
-            #             # TODO ##################################################################
-            #             # TODO ################################################################## fix the None
-            #     st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
-            # if truncated:
-            #     st.caption("Only showing last 40 conversations")
-            # for description, runlog in appstate.chat_history:
-            #     print(runlog, description)
-            #     # st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
-            #     # add an element to the past_convos object
-            #     st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
-
-
-        # st.write("---")
-        # st.write("# Settings")
-        # center_text("h3", "Settings")
-
-
-        # st.radio("", ["Text ⌨️", "Voice 🗣️"], index=0, key="input_method")
         st.radio("Input method:", ["Text ⌨️", "Voice 🗣️"], index=0, key="input_method")
         if appstate.api_key_openai in [None, ""]:
             st.info("Enter OpenAI key in settings to enable text-to-speech")
@@ -200,13 +152,6 @@ def sidebar(appstate):
                  key="mistrel_model")
         st.checkbox("Safe mode", key="mistrel_safemode", value=False, help="Safe mode is not yet implemented by mistral ai", disabled=True)
 
-        # if appstate.debug:
-        #     st.write("---")
-        #     with st.expander("# Debugging", expanded=True):
-        #         st.text_input("mistral API key", appstate.api_key_mistral, key="api_key_mistral", disabled=True)
-        #         st.text_input("OpenAI API key", appstate.api_key_openai, key="api_key_openai", disabled=True)
-        #         st.write(f"Description: `{appstate.chat.description}`")
-        #         st.write(appstate.chat.messages)
 
 
 
@@ -239,21 +184,9 @@ def run_prompt(prompt, bots_reply):
 
     st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
 
-    # TODO ########################################################################################################################
-    # TODO ########################################################################################################################
-    # TODO ########################################################################################################################
-    # save the chat history to a file
-    # save_chat_history()
-
     # if st.session_state.output_method == "Voice":
     if 'read_to_me' in st.session_state and st.session_state.read_to_me == True:
-        # try:
-        TTS(reply)
-        # except gTTSError as e:
-        #     st.error(e)
-        #     st.stop()
-    
-    # st.info("Done! 🎉")
+        TTS(reply) # may throw an exception
 
 
 

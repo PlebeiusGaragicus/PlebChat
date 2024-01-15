@@ -14,7 +14,7 @@ from src.main_page import main_page
 def main():
     st.set_page_config(
         page_title="Pleb Chat",
-        layout="centered",
+        layout="centered", # vs wide
         initial_sidebar_state="auto",
         # menu_items={"About": "https://plebby.me/"} # TODO
     )
