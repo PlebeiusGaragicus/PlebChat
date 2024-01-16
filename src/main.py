@@ -20,7 +20,7 @@ ASSETS_PATH = pathlib.Path(__file__).parent.parent / "assets"
 
 def main():
     st.set_page_config(
-        page_title="Pleb Chat",
+        page_title="DEBUG!" if os.getenv("DEBUG", False) else "Pleb Chat",
         page_icon=os.path.join(ASSETS_PATH, "favicon.ico"),
         layout="centered", # vs wide
         initial_sidebar_state="auto",
@@ -43,6 +43,11 @@ def main():
         config["cookie"]["expiry_days"],
         config["preauthorized"],
     )
+
+    if st.session_state["authentication_status"] is None:
+        if 'appstate' in st.session_state:
+            del st.session_state['appstate']
+            st.error("Application state has been cleared!")
 
     if st.session_state["authentication_status"] is False:
         st.error("Username/password is incorrect")

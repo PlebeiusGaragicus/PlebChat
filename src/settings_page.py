@@ -63,11 +63,22 @@ def save_api_keys():
 
 
 def centered_button_trick():
+    """ Use this in a `with` statement to center a button.
+    
+    Example:
+    ```python
+    with centered_button_trick():
+        st.button(
+            "👈 back",
+            on_click=go_to_main_page,
+            use_container_width=True)
+    ```
+    """
     columns = st.columns((1, 2, 1))
     with columns[0]:
         st.empty()
     # with columns[1]:
-        # 
+        # normally the button logic would go here
     with columns[2]:
         st.empty()
 
@@ -76,26 +87,20 @@ def centered_button_trick():
 
 def settings_page(appstate: ChatAppVars, authenticator: stauth.Authenticate):
     def go_to_main_page():
+        if 'appstate' in st.session_state:
+            # This will force a reload of the appstate so we'll load the new API keys
+            del st.session_state.appstate
         st.session_state.route = PageRoute.MAIN
-
-    # st.write("# Settings")
-    center_text("h1", "Settings", 60)
+    
     column_fix()
 
-    # st.button("👈 back", on_click=go_to_main_page, use_container_width=True)
-    # top_buttons = st.columns((1, 2, 1))
-    # with top_buttons[0]:
-    #     st.empty()
-    # with top_buttons[1]:
-    #     st.button("👈 back", on_click=go_to_main_page, use_container_width=True)
-    # with top_buttons[2]:
-    #     st.empty()
+    center_text("h1", "⚙️", 60)
     with centered_button_trick():
         st.button("👈 back", on_click=go_to_main_page, use_container_width=True)
-
-
-
+    # st.write("")
     st.write("---")
+    # center_text("h1", "🧰 ⌥ ⚙️", 60)
+
 
     if not st.session_state.username == "demo":
         show_api_keys_entry()
@@ -104,14 +109,15 @@ def settings_page(appstate: ChatAppVars, authenticator: stauth.Authenticate):
 
     st.markdown("---")
     st.caption(f"username: `{st.session_state['username']}`")
-    st.session_state.authenticator.logout("🚪 Logout", "main")
+    with centered_button_trick():
+        st.session_state.authenticator.logout("Logout", "main")
     st.caption(f"running version {VERSION}")
 
     if appstate.debug:
-        with st.expander("Debugging", expanded=True):
-            st.write(f"username: `{st.session_state['username']}`")
-            st.write(appstate)
+        # with st.expander("Debugging", expanded=True):
+        #     st.write(f"username: `{st.session_state['username']}`")
+        #     st.write(appstate)
 
-        # st.warning("Running in debug mode.")
+        st.warning("Running in debug mode.")
     else:
         st.caption("Running in production mode.")

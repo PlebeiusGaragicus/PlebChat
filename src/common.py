@@ -48,7 +48,7 @@ class ChatThread:
         self.session_start_time = time.strftime("%Y%m%d_%H%M%S", time.localtime())
         self.description = None
         self.messages: list[ChatMessage] = []
-        self.not_yet_saved = True
+        # self.not_yet_saved = True
 
 
 
@@ -101,11 +101,6 @@ class ChatAppVars:
         except KeyError:
             self.api_key_assemblyai = None
 
-        # print(f"api_key_openai: {self.api_key_openai}")
-        # print(f"api_key_mistral: {self.api_key_mistral}")
-        # print(f"api_key_assemblyai: {self.api_key_assemblyai}")
-
-
     def get_debug_generator(self):
         time.sleep(0.5)
         # output = [
@@ -126,18 +121,12 @@ class ChatAppVars:
             time.sleep(0.05)
 
     def get_client(self):
-        if self.debug:
-            # output = [
-            #     DeltaContentChunk("hello "),
-            #     DeltaContentChunk("world! "),
-            #     DeltaContentChunk("I am"),
-            #     DeltaContentChunk(" a chatbot.")
-            # ]
-            # for o in output:
-            #     time.sleep(0.5)
-            #     yield o
+        if st.session_state.get('echobot', False):
             return self.get_debug_generator()
         else:
+            if self.api_key_mistral in [None, ""]:
+                raise Exception("Mistral API key not found.")
+
             return self.client.chat_stream(
                 model=st.session_state.mistrel_model,
                 messages=self.chat.messages,
@@ -204,13 +193,13 @@ def delete_this_chat():
     runlog_file = os.path.join(st.session_state.appstate.runlog_dir, f'{st.session_state.appstate.chat.session_start_time}.txt')
     os.remove(runlog_file)
 
-    # setup()
     st.session_state.appstate.new_thread()
+    st.session_state.appstate.load_chat_history()
 
 
 
 def get_description():
-    if st.session_state.appstate.debug:
+    if st.session_state.appstate.debug and st.session_state.echobot:
         # return "A friendly chat."
         content = st.session_state.appstate.chat.messages[0].content
         # return first 3 words, at most
@@ -238,12 +227,17 @@ def get_description():
 
 
 
-def save_chat_history():
+def save_chat_history() -> bool:
     """ Save the chat history to a file """
+
+    new_chat_first_save = False
 
     # if st.session_state['description'] == None:
     if st.session_state.appstate.chat.description == None:
+        new_chat_first_save = True
         desc = get_description()
+        #ensure desc is no more than n words
+        desc = " ".join(desc.split(" ")[:6]) # n=6
     else:
         desc = st.session_state.appstate.chat.description
 
@@ -263,6 +257,8 @@ def save_chat_history():
             f,
             indent=4
         )
+    
+    return new_chat_first_save
 
 
 

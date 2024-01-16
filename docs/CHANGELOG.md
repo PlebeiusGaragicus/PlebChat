@@ -2,7 +2,11 @@
 
 *NEXT RELEASE* -> soon...™️
 
-- 
+*0.0.8*
+
+- interrupt button!
+- UI tidying - toggles, containers, rainbow header
+- bugfixes
 
 
 *0.0.7*
