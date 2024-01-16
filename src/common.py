@@ -11,7 +11,7 @@ from mistralai.models.chat_completion import ChatMessage
 
 # OPENAI_VOICES = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
 OPENAI_TTS_MODELS = ["echo", "nova", "onyx"]
-TTS_VOICE_CHOICES = ["Male1", "Female", "Male2"]
+TTS_VOICE_CHOICES = ["👱🏼‍♂️", "👱🏻‍♀️", "🧔🏻‍♂️"]
 
 COLUMN_FIX_CSS = """<style>
 [data-testid="column"] {
@@ -305,3 +305,27 @@ def init_if_needed():
         
         ### SETUP STARTING ROUTE
         st.session_state["route"] = PageRoute.MAIN
+
+
+
+def centered_button_trick():
+    """ Use this in a `with` statement to center a button.
+    
+    Example:
+    ```python
+    with centered_button_trick():
+        st.button(
+            "👈 back",
+            on_click=go_to_main_page,
+            use_container_width=True)
+    ```
+    """
+    columns = st.columns((1, 2, 1))
+    with columns[0]:
+        st.empty()
+    # with columns[1]:
+        # normally the button logic would go here
+    with columns[2]:
+        st.empty()
+
+    return columns[1]

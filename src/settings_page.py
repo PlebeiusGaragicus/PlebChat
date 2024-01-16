@@ -14,6 +14,7 @@ from src.common import (
     PageRoute,
     column_fix,
     center_text,
+    centered_button_trick,
 )
 
 
@@ -62,27 +63,7 @@ def save_api_keys():
     st.toast("API keys saved!", icon="🔑")
 
 
-def centered_button_trick():
-    """ Use this in a `with` statement to center a button.
-    
-    Example:
-    ```python
-    with centered_button_trick():
-        st.button(
-            "👈 back",
-            on_click=go_to_main_page,
-            use_container_width=True)
-    ```
-    """
-    columns = st.columns((1, 2, 1))
-    with columns[0]:
-        st.empty()
-    # with columns[1]:
-        # normally the button logic would go here
-    with columns[2]:
-        st.empty()
 
-    return columns[1]
 
 
 def settings_page(appstate: ChatAppVars, authenticator: stauth.Authenticate):
