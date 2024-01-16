@@ -25,16 +25,10 @@ from src.common import (
     delete_this_chat,
     COLUMN_FIX_CSS,
     PageRoute,
+    center_text,
 )
 
 print("\n\nLOADING AND RUNNING TOP-LEVEL CODE FOR EACH USER ACTION?!\n\n")
-
-
-def center_text(type, text, size):
-    st.write(f"<{type} style='text-align: center; font-size: {size}px;'>{text}</{type}>", unsafe_allow_html=True)
-
-def center_text(type, text):
-    st.write(f"<{type} style='text-align: center;'>{text}</{type}>", unsafe_allow_html=True)
 
 
 def main_page(appstate: ChatAppVars):
@@ -114,7 +108,7 @@ def main_page(appstate: ChatAppVars):
 
     with st.sidebar:
         st.write("---")
-        st.button(f"Profile Settings ⚙️", on_click=settings, use_container_width=True)
+        st.button(f"⚙️ Configure", on_click=settings, use_container_width=True)
         st.caption(f"Logged in as: `{st.session_state.appstate.username}`")
 
 

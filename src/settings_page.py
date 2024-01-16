@@ -8,11 +8,12 @@ from yaml.loader import SafeLoader
 import logging
 log = logging.getLogger()
 
-from src.VERSION import VERSION, CHANGELOG
+from src.VERSION import VERSION
 from src.common import (
     ChatAppVars,
     PageRoute,
-    column_fix
+    column_fix,
+    center_text,
 )
 
 
@@ -61,21 +62,37 @@ def save_api_keys():
     st.toast("API keys saved!", icon="🔑")
 
 
+def centered_button_trick():
+    columns = st.columns((1, 2, 1))
+    with columns[0]:
+        st.empty()
+    # with columns[1]:
+        # 
+    with columns[2]:
+        st.empty()
+
+    return columns[1]
+
 
 def settings_page(appstate: ChatAppVars, authenticator: stauth.Authenticate):
     def go_to_main_page():
         st.session_state.route = PageRoute.MAIN
 
-    st.write("# Settings")
+    # st.write("# Settings")
+    center_text("h1", "Settings", 60)
     column_fix()
 
-    st.button("👈 back", on_click=go_to_main_page, use_container_width=True)
-    # top_buttons = st.columns((2, 1))
+    # st.button("👈 back", on_click=go_to_main_page, use_container_width=True)
+    # top_buttons = st.columns((1, 2, 1))
     # with top_buttons[0]:
-    #     st.button("👈 back", on_click=go_to_main_page, use_container_width=True)
+    #     st.empty()
     # with top_buttons[1]:
-    #     # authenticator.logout_button("🚪 Logout")
-    #     st.session_state.authenticator.logout("🚪 Logout", "main")
+    #     st.button("👈 back", on_click=go_to_main_page, use_container_width=True)
+    # with top_buttons[2]:
+    #     st.empty()
+    with centered_button_trick():
+        st.button("👈 back", on_click=go_to_main_page, use_container_width=True)
+
 
 
     st.write("---")
@@ -98,5 +115,3 @@ def settings_page(appstate: ChatAppVars, authenticator: stauth.Authenticate):
         # st.warning("Running in debug mode.")
     else:
         st.caption("Running in production mode.")
-
-        st.write(CHANGELOG)
