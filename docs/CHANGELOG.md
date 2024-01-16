@@ -5,8 +5,9 @@
 *0.0.8*
 
 - interrupt button!
-- UI tidying - toggles, containers, rainbow header
+- speak button always appears below last bot reply
 - bugfixes
+- UI tidying - toggles, containers, rainbow header
 
 
 *0.0.7*
