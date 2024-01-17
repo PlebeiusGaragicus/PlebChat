@@ -20,8 +20,15 @@ This is still a work-in-progress, obvi.
 **Version 0.0.8** is a simple wrapper over the Mistral API.  You'll need your own API keys.  Also, the Text-to-Speech run off of either Google's TTS (gTTS) which is free, or OpenAI's TTS which requires an API key.
 
 <!-- ![A friendly chatbot.](./assets/assistant2sm.png) -->
-<img src="./docs/0.0.8.png" alt="0.0.8" height="400px">
-<img src="./docs/0.0.8sidebar.png" alt="0.0.8 settings" height="400px">
+<figure>
+    <img src="./assets/0.0.8.png" alt="0.0.8" height="400px">
+    <img src="./assets/0.0.8sidebar.png" alt="0.0.8 settings" height="400px">
+    <figcaption>Version 0.0.8</figcaption>
+</figure>
+
+<figure>
+    <img src="./assets/enable-auto-play.png" alt="enable auto play" height="400px">
+    <figcaption>If you're running in safari you need to enable auto-play media and give microphone access.</figcaption>
 
 ## About this project
 
