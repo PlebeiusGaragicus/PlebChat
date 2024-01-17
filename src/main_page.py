@@ -49,16 +49,19 @@ def main_page(appstate: ChatAppVars):
     ###### TOP BUTTONS ######
     st.write(COLUMN_FIX_CSS, unsafe_allow_html=True)
 
-    top_buttons = st.columns((2, 1, 1))
+    # top_buttons = st.columns((2, 1, 1))
+    top_buttons = st.columns((4, 1))
     with top_buttons[0]:
         # st.empty()
-        st.toggle("⌨️", key="speech_input", value=True)
-    with top_buttons[1]:
-        st.toggle("🗣️", key="read_to_me", value=False)
+        # st.toggle("🗣️🎙️", key="speech_input", value=True)
+        st.toggle("🗣️🤖", key="speech_input", value=False)
+        st.toggle("🤖💬", key="read_to_me", value=False)
+    # with top_buttons[1]:
 
     if len(appstate.chat.messages) > 0:
-        with top_buttons[2]:
-            st.button("🗑️", on_click=delete_this_chat, key="button_delete", use_container_width=True)
+        # with top_buttons[2]:
+        with top_buttons[1]:
+            st.button("🗑️ Delete Chat", on_click=delete_this_chat, key="button_delete", use_container_width=True)
     
     st.header("", divider="rainbow")
 
@@ -80,7 +83,7 @@ def main_page(appstate: ChatAppVars):
     prompt = None
 
     # if "Text" in st.session_state["input_method"]:
-    if st.session_state.get("speech_input", False):
+    if not st.session_state.get("speech_input", False):
         # if prompt := st.chat_input("Ask a question."):
         prompt = st.chat_input("Ask a question.")
     else:
@@ -113,34 +116,19 @@ def main_page(appstate: ChatAppVars):
     if 'tts' not in st.session_state:
         st.session_state.tts = None
 
-    # if st.session_state.tts is not None:
-    #     TTS(st.session_state.tts)
-    #     st.session_state.tts = None
-        # TTS(reply) # may throw an exception
 
     #### AFTER-PROMPT PROCESSING ####
     # put things here to update the UI _AFTER_ the prompt has been run
 
     def on_click_read_to_me():
         st.session_state.tts = appstate.chat.messages[-1].content
-        # st.rerun()
 
-    # st.toggle("testing", key="testing", value=False, on_change=None)
 
     if len(appstate.chat.messages) > 0:
-
         # if last message was from the bot, then we can read it aloud
         if appstate.chat.messages[-1].role == "assistant":
             col2 = st.columns((1, 1))
             # centered_button_trick().button("🗣️ Speak", on_click=on_click_read_to_me, key="button_read_to_me", use_container_width=True)
-            print("............................")
-            print("............................")
-            print("............................")
-            print("............................")
-            print("............................")
-            print("............................")
-            print("............................")
-            print(st.session_state.speech_input is False)
             if st.session_state.read_to_me is False:
                 col2[0].button("🗣️ read it", on_click=on_click_read_to_me, key="button_read_to_me", use_container_width=True)
             col2[1].button("🌱 New", on_click=lambda: appstate.new_thread(), use_container_width=True)
@@ -195,9 +183,8 @@ def sidebar(appstate, place_holder):
             if appstate.api_key_openai in [None, ""]:
                 st.info("Enter OpenAI key in settings to enable text-to-speech")
             # else:
-                # st.toggle("Read aloud 👂", key="read_to_me", value=False, on_change=None) #on_change must be None or else a re-run of last prompt happens
-
-            # if 'read_to_me' in st.session_state and st.session_state.read_to_me == True:
+                #on_change must be None or else a re-run of last prompt happens
+                # st.toggle("Read aloud 👂", key="read_to_me", value=False, on_change=None)
 
             st.toggle("gTTS", key="gtts", value=appstate.debug, help="Use gTTS (Google Text to Speech) instead of OpenAI's TTS")
 
