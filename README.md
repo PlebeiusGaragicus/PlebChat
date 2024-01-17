@@ -1,13 +1,29 @@
 # PlebChat
 
-![A friendly chatbot.](./assets/assistant2sm.png)
+<figure>
+    <img src="./assets/assistant2sm.png" alt="a friendly assistant" height="300px">
+    <figcaption>Yes, you can have your own personal chatbot!</figcaption>
+</figure>
 
 The __purpose__ of this project is to:
--  Teach myself to build custom AI applications. 🧠
--  Build a portfolio of _useful_ AI applications. 💼
--  Use these applications to improve my own productivity. 📈
--  Implement open-source AI models and run them on my own hardware. 🖥️
--  Have fun 💕 and inspire others! ✨
+- Teach myself to build custom AI applications. 🧠
+- Build a portfolio of _useful_ AI applications. 💼
+- Use these applications to improve my own productivity. 📈
+- Implement open-source AI models and run them on my own hardware. 🖥️
+- Have fun 💕 and inspire others! ✨
+- Empower humans 💪
+
+## Current version
+
+This is still a work-in-progress, obvi.
+
+**Version 0.0.8** is a simple wrapper over the Mistral API.  You'll need your own API keys.  Also, the Text-to-Speech run off of either Google's TTS (gTTS) which is free, or OpenAI's TTS which requires an API key.
+
+<!-- ![A friendly chatbot.](./assets/assistant2sm.png) -->
+<img src="./docs/0.0.8.png" alt="0.0.8" height="400px">
+<img src="./docs/0.0.8sidebar.png" alt="0.0.8 settings" height="400px">
+
+## About this project
 
 
 The pace of Artificial Intelligence research is accelerating and products from the field have the potential to exponentially increase human productivity.  For-profit organizations are likely to use this technology to create closed-source, pay-walled, and morally bent (read "safe") models to dominate the market.  If expertise of integrating machine learning remains centralized we will create that future.
