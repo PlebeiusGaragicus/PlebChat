@@ -61,7 +61,7 @@ def main_page(appstate: ChatAppVars):
     if len(appstate.chat.messages) > 0:
         with top_buttons[2]:
         # with top_buttons[1]:
-            st.button("🗑️ Delete Chat", on_click=delete_this_chat, key="button_delete", use_container_width=True)
+            st.button("🗑️ Delete", on_click=delete_this_chat, key="button_delete", use_container_width=True)
     
     st.header("", divider="rainbow")
 
@@ -74,8 +74,8 @@ def main_page(appstate: ChatAppVars):
 
     # This is so that we can later populate with the users' next prompt and the bots reply and allows the input field (or start recording button) to be at the bottom of the page
     my_next_prompt = st.empty()
-    bots_reply = st.empty()
     interrupt_button = st.empty()
+    bots_reply = st.empty()
     # read_to_me_button = st.empty()
 
 
@@ -126,12 +126,12 @@ def main_page(appstate: ChatAppVars):
 
     if len(appstate.chat.messages) > 0:
         # if last message was from the bot, then we can read it aloud
+        col2 = st.columns((1, 1))
+        col2[1].button("🌱 New", on_click=lambda: appstate.new_thread(), use_container_width=True)
         if appstate.chat.messages[-1].role == "assistant":
-            col2 = st.columns((1, 1))
             # centered_button_trick().button("🗣️ Speak", on_click=on_click_read_to_me, key="button_read_to_me", use_container_width=True)
             if st.session_state.read_to_me is False:
                 col2[0].button("🗣️ read it", on_click=on_click_read_to_me, key="button_read_to_me", use_container_width=True)
-            col2[1].button("🌱 New", on_click=lambda: appstate.new_thread(), use_container_width=True)
 
 
     if st.session_state.tts is not None:
