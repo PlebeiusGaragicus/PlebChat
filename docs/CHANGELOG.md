@@ -9,6 +9,8 @@
 - bugfixes
 - UI tidying - toggles, containers, rainbow header
 
+<img src="./0.0.8.png" alt="0.0.8" height="400px">
+<img src="./0.0.8sidebar.png" alt="0.0.8 settings" height="400px">
 
 *0.0.7*
 - error message when auth.yaml is missing
@@ -28,3 +30,9 @@
 
 - forked project into a new repository
 - reworked st.session_state, now using an appstate class to handle app state
+
+---
+
+*0.0.1*
+
+<img src="./0.0.1.png" alt="First version" height="400px">
