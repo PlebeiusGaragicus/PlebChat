@@ -2,6 +2,10 @@
 
 *NEXT RELEASE* -> soon...™️
 
+## 0.0.9
+
+- Moved settings to main chat area and off of the sidebar!
+
 ## 0.0.8
 
 - interrupt button!
