@@ -49,18 +49,18 @@ def main_page(appstate: ChatAppVars):
     ###### TOP BUTTONS ######
     st.write(COLUMN_FIX_CSS, unsafe_allow_html=True)
 
-    # top_buttons = st.columns((2, 1, 1))
-    top_buttons = st.columns((4, 1))
+    top_buttons = st.columns((2, 1, 1))
+    # top_buttons = st.columns((4, 1))
     with top_buttons[0]:
         # st.empty()
         # st.toggle("🗣️🎙️", key="speech_input", value=True)
         st.toggle("🗣️🤖", key="speech_input", value=False)
+    with top_buttons[1]:
         st.toggle("🤖💬", key="read_to_me", value=False)
-    # with top_buttons[1]:
 
     if len(appstate.chat.messages) > 0:
-        # with top_buttons[2]:
-        with top_buttons[1]:
+        with top_buttons[2]:
+        # with top_buttons[1]:
             st.button("🗑️ Delete Chat", on_click=delete_this_chat, key="button_delete", use_container_width=True)
     
     st.header("", divider="rainbow")
