@@ -133,7 +133,15 @@ def main_page(appstate: ChatAppVars):
         if appstate.chat.messages[-1].role == "assistant":
             col2 = st.columns((1, 1))
             # centered_button_trick().button("🗣️ Speak", on_click=on_click_read_to_me, key="button_read_to_me", use_container_width=True)
-            if not st.session_state.speech_input:
+            print("............................")
+            print("............................")
+            print("............................")
+            print("............................")
+            print("............................")
+            print("............................")
+            print("............................")
+            print(st.session_state.speech_input is False)
+            if st.session_state.read_to_me is False:
                 col2[0].button("🗣️ read it", on_click=on_click_read_to_me, key="button_read_to_me", use_container_width=True)
             col2[1].button("🌱 New", on_click=lambda: appstate.new_thread(), use_container_width=True)
 
