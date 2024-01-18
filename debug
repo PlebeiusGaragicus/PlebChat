@@ -3,7 +3,7 @@
 source venv/bin/activate
 
 # args="--server.runOnSave true --logger.level debug"
-args="--server.runOnSave true --logger.level debug --server.headless true"
+args="--server.runOnSave true --logger.level info --server.headless true"
 
 export DEBUG=true
 streamlit run $args run_streamlit.py

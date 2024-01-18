@@ -53,6 +53,25 @@ def load_settings():
             st.error("user preferences yaml file not found. Creating a new one with default settings.")
             with open(preferences_file, "w") as f:
                 yaml.dump(appstate.user_preferences, f)
+# if 'user_preferences' not in st.session_state:
+# #     appstate.user_preferences = load_user_preferences(appstate.username)
+#     try:
+#         appstate.user_preferences = yaml.load(open("user_preferences.yaml"), Loader=SafeLoader)
+#     except FileNotFoundError:
+#         user_preferences = {}
+#         # write to file
+#         with open("user_preferences.yaml", "w") as f:
+#             yaml.dump(user_preferences, f)
+#         st.error("user_preferences.yaml not found.  Creating a new one.")
+# if 'user_preferences' not in st.session_state:
+#     try:
+#         preferences_file = PREFERENCES_PATH / f"{appstate.username}.yaml"
+#         appstate.user_preferences = yaml.load(open(preferences_file), Loader=SafeLoader)
+#     except FileNotFoundError:
+#         appstate.user_preferences = DEFAULT_USER_PREFERENCES  # Use default preferences
+#         st.error("user preferences yaml file not found. Creating a new one with default settings.")
+#         with open(preferences_file, "w") as f:
+#             yaml.dump(appstate.user_preferences, f)
 
 
 
@@ -63,6 +82,7 @@ def main_page():
     center_text("p", "🗣️🤖💬", size=60) # or h1, whichever
 
     load_settings()
+    sidebar_new_button_placeholder = st.sidebar.empty()
 
     ### SETTINGS EXPANDER
     if st.session_state.user_preferences["settings_on_sidebar"]:
@@ -70,9 +90,14 @@ def main_page():
     else:
         settings_placeholder = st.empty()
 
-    with settings_placeholder.expander("Settings", expanded=False):
-        model_settings()
+    with settings_placeholder.expander("Settings",
+                                       # expand the settings expander if the settings are on the sidebar
+                                       expanded=st.session_state.user_preferences["settings_on_sidebar"]):
+        settings_llm()
+        settings_stt()
+        settings_tts()
 
+        settings_bottom_buttons()
 
     ### INPUT BUTTONS
     top_buttons = st.columns((2, 1, 1))
@@ -88,6 +113,8 @@ def main_page():
 
     ### RAINBOW DIVIDER
     st.header("", divider="rainbow")
+    # st.caption(f"LLM: {st.session_state.user_preferences['language_model']}, STT: {st.session_state.user_preferences['stt']}, TTS: {st.session_state.user_preferences['tts']}")
+    st.caption(f"Using: `{st.session_state.user_preferences['language_model']}`")
 
 
 
@@ -192,17 +219,12 @@ def main_page():
                     col2[0].button("🗣️ read it", on_click=on_click_read_to_me, key="button_read_to_me", use_container_width=True)
 
 
-    ### THE AUDIO PLAYER FOR TTS
-    if st.session_state.speak_this is not None:
-        # on reload, if `tts` is set, then we speak it
-        TTS(st.session_state.speak_this)
-        st.session_state.speak_this = None
-
 
     ### SIDEBAR WITH CONVERSATION HISTORY
     with st.sidebar:
         if len(appstate.chat.messages) > 0:
-            st.button("🌱 New", on_click=lambda: appstate.new_thread(), use_container_width=True, key="newbutton2")
+            # with centered_button_trick():
+            sidebar_new_button_placeholder.button("🌱 New", on_click=lambda: appstate.new_thread(), use_container_width=True, key="newbutton2")
         st.write("## Past Conversations")
         # with st.container(border=True):
         for description, runlog in appstate.chat_history:
@@ -212,7 +234,15 @@ def main_page():
         if os.getenv("DEBUG", False) == False:
             st.caption("Running in production mode.")
 
-    st.caption(".") # I was trying to do this so that the page scrolls to the bottom... but I don't think it works.
+
+
+    ### THE AUDIO PLAYER FOR TTS
+    if st.session_state.speak_this is not None:
+        # on reload, if `tts` is set, then we speak it
+        TTS(st.session_state.speak_this)
+        st.session_state.speak_this = None
+
+    # st.caption(".") # I was trying to do this so that the page scrolls to the bottom... but I don't think it works.
 
 
 
@@ -241,62 +271,57 @@ def load_user_preferences(username):
         return DEFAULT_USER_PREFERENCES
 
 
-def save_user_preferences(key_to_save=None):
+def save_user_preferences(update_key=None, toggle_key=None):
     # appstate = st.session_state.appstate
-    appstate = st.session_state
-    preferences_file = PREFERENCES_PATH / f"{appstate.username}.yaml"
+    # appstate = st.session_state
+    print(f"save_user_preferences({update_key}, {toggle_key})")
 
-    if key_to_save is None:
-        user_preferences = {
-            "settings_on_sidebar": st.session_state.user_preferences["settings_on_sidebar"], # This one is unique because we use a button and not a widget with a state
-            "language_model": st.session_state.language_model,
-            "stt": st.session_state.stt,
-            "tts": st.session_state.tts,
-            "mistral_safemode": st.session_state.mistral_safemode,
-            "mistral_model": st.session_state.mistral_model,
-            "mistral_api_key": st.session_state.mistral_api_key,
-            "openai_api_key": st.session_state.openai_api_key,
-            "openai_voice": st.session_state.openai_voice,
-            "openai_tts_rate": st.session_state.openai_tts_rate,
-        }
-    else:
-        user_preferences = appstate.user_preferences
-        user_preferences[key_to_save] = st.session_state[key_to_save]
+    if update_key is None and toggle_key is None:
+        raise ValueError("Either key_to_save or toggle_key must be set")
 
+    print("CURRENT STATE:")
+    print(st.session_state.user_preferences)
+
+    if toggle_key is not None:
+        print(f"Toggling: {toggle_key}")
+        st.session_state.user_preferences[toggle_key] = False if st.session_state.user_preferences[toggle_key] is True else True
+        # print(st.session_state.user_preferences)
+        
+
+    if update_key is not None:
+        # user_preferences = {
+        #     "settings_on_sidebar": st.session_state.user_preferences["settings_on_sidebar"], # This one is unique because we use a button and not a widget with a state
+        #     "language_model": st.session_state.language_model,
+        #     "stt": st.session_state.stt,
+        #     "tts": st.session_state.tts,
+        #     "mistral_safemode": st.session_state.mistral_safemode,
+        #     "mistral_model": st.session_state.mistral_model,
+        #     "mistral_api_key": st.session_state.mistral_api_key,
+        #     "openai_api_key": st.session_state.openai_api_key,
+        #     "openai_voice": st.session_state.openai_voice,
+        #     "openai_tts_rate": st.session_state.openai_tts_rate,
+        # }
+    # else:
+        # user_preferences = st.session_state.user_preferences
+        # user_preferences[key_to_save] = st.session_state[key_to_save]
+        st.session_state.user_preferences[update_key] = st.session_state[update_key]
+
+    # print(user_preferences)
+    print("SAVING THIS STATE:")
+    print(st.session_state.user_preferences)
+
+    preferences_file = PREFERENCES_PATH / f"{st.session_state.appstate.username}.yaml"
     with open(preferences_file, "w") as f:
-        yaml.dump(user_preferences, f)
+        yaml.dump(st.session_state.user_preferences, f)
 
-    del appstate.user_preferences
+    del st.session_state.user_preferences
     # load_user_preferences.clear_cache()
     st.toast("User preferences saved!")
     # st.balloons()
 
 
-def model_settings():
-    # appstate = st.session_state.appstate
-    appstate = st.session_state
 
-    # if 'user_preferences' not in st.session_state:
-    # #     appstate.user_preferences = load_user_preferences(appstate.username)
-    #     try:
-    #         appstate.user_preferences = yaml.load(open("user_preferences.yaml"), Loader=SafeLoader)
-    #     except FileNotFoundError:
-    #         user_preferences = {}
-    #         # write to file
-    #         with open("user_preferences.yaml", "w") as f:
-    #             yaml.dump(user_preferences, f)
-    #         st.error("user_preferences.yaml not found.  Creating a new one.")
-    # if 'user_preferences' not in st.session_state:
-    #     try:
-    #         preferences_file = PREFERENCES_PATH / f"{appstate.username}.yaml"
-    #         appstate.user_preferences = yaml.load(open(preferences_file), Loader=SafeLoader)
-    #     except FileNotFoundError:
-    #         appstate.user_preferences = DEFAULT_USER_PREFERENCES  # Use default preferences
-    #         st.error("user preferences yaml file not found. Creating a new one with default settings.")
-    #         with open(preferences_file, "w") as f:
-    #             yaml.dump(appstate.user_preferences, f)
-
-
+def settings_llm():
     ### LANGUAGE MODEL ###
     llm_options = [
         LLM_OPTIONS.MISTRAL_API,
@@ -304,10 +329,7 @@ def model_settings():
         LLM_OPTIONS.GPT3_5,
         LLM_OPTIONS.ECHOBOT,
     ]
-    # if appstate.debug:
-    # if os.getenv("DEBUG", False):
-        # llm_options.append(LLM_OPTIONS.ECHOBOT)
-    selected_llm_index = llm_options.index(appstate.user_preferences["language_model"])
+    selected_llm_index = llm_options.index(st.session_state.user_preferences["language_model"])
     with st.container(border=True):
         st.selectbox("🧠 Language Model",
                     options=llm_options,
@@ -317,28 +339,27 @@ def model_settings():
                     args=("language_model",)
                 )
 
-        if appstate.user_preferences["language_model"] == LLM_OPTIONS.ECHOBOT:
+        if st.session_state.user_preferences["language_model"] == LLM_OPTIONS.ECHOBOT:
             st.write("no settings for `echobot`")
 
-        elif appstate.user_preferences["language_model"] == LLM_OPTIONS.GPT3_5:
+        elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.GPT3_5:
             st.write("no settings yet")
 
-        elif appstate.user_preferences["language_model"] == LLM_OPTIONS.MISTRAL_API:
+        elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.MISTRAL_API:
             st.toggle(
                 "Safe mode",
                 key="mistral_safemode",
                 value=True,
                 on_change=save_user_preferences,
                 args=("mistral_safemode",),
-                # help="This turns mistral into a little bitch... you don't like bitches, do you?",
-                help="Safe mode is not yet implemented by mistral ai",
+                help="Safe mode is not yet implemented by mistral ai.  It also turns mistral into a little bitch... you don't want that, do you?",
                 # disabled=True
             )
 
             st.radio("Mistral model select",
                 key="mistral_model",
                 options=MISTRAL_MODELS,
-                index=MISTRAL_MODELS.index(appstate.user_preferences["mistral_model"]),
+                index=MISTRAL_MODELS.index(st.session_state.user_preferences["mistral_model"]),
                 on_change=save_user_preferences,
                 args=("mistral_model",)
             )
@@ -346,19 +367,19 @@ def model_settings():
             st.text_input(
                 "Mistral API key",
                 key="mistral_api_key",
-                value=appstate.user_preferences["mistral_api_key"],
+                value=st.session_state.user_preferences["mistral_api_key"],
                 on_change=save_user_preferences,
                 args=("mistral_api_key",),
-                disabled=(appstate.username == 'demo'),
-                type='password' if appstate.username == 'demo' else 'default'
+                disabled=(st.session_state.appstate.username == 'demo'),
+                type='password' if st.session_state.appstate.username == 'demo' else 'default'
             )
 
 
-
+def settings_stt():
     ### SPEECH TO TEXT ###
     with st.container(border=True):
         stt_options = [STT_OPTIONS.PYTHON, STT_OPTIONS.ASSEMBLYAI]
-        selected_stt = stt_options.index(appstate.user_preferences["stt"])
+        selected_stt = stt_options.index(st.session_state.user_preferences["stt"])
         st.selectbox(
                 label="🗣️🤖 Voice transcription",
                 options=stt_options,
@@ -369,11 +390,11 @@ def model_settings():
             )
 
 
-
+def settings_tts():
     ### TEXT TO SPEECH ###
     with st.container(border=True):
         tts_options = [TTS_OPTIONS.GOOGLE, TTS_OPTIONS.OPENAI]
-        selected_tts = tts_options.index(appstate.user_preferences["tts"])
+        selected_tts = tts_options.index(st.session_state.user_preferences["tts"])
         st.selectbox(
             label="🤖💬 Text to speech",
             options=tts_options,
@@ -388,9 +409,6 @@ def model_settings():
             st.caption("No settings for Google TTS.  It's free and it works ;)")
 
         if st.session_state.get("tts") == "OpenAI TTS":
-            # if st.session_state.openai_api_key in [None, ""]:
-            #     st.info("Enter OpenAI key in settings to enable text-to-speech")
-
             cols = st.columns((1, 1))
             cols[0].radio("Voice model", TTS_VOICE_CHOICES, index=1, key="openai_voice")
             cols[1].radio("Talking speed", [1.0, 1.2, 1.5], index=1, key="openai_tts_rate")
@@ -398,28 +416,29 @@ def model_settings():
             st.text_input(
                 "OpenAI API key",
                 key="openai_api_key",
-                value=appstate.user_preferences["openai_api_key"],
+                value=st.session_state.user_preferences["openai_api_key"],
                 on_change=save_user_preferences,
                 args=("openai_api_key",),
-                disabled=(appstate.username == 'demo'),
-                type='password' if appstate.username == 'demo' else 'default'
+                disabled=(st.session_state.username == 'demo'),
+                type='password' if st.session_state.username == 'demo' else 'default'
             )
 
 
-    ### LOGOUT
-    def toggle_settings_location():
-        st.session_state.user_preferences["settings_on_sidebar"] = not st.session_state.user_preferences["settings_on_sidebar"]
-        # st.session_state.settings_on_sidebar = not st.session_state.settings_on_sidebar
-        # save_user_preferences(key_to_save="settings_on_sidebar")
-        save_user_preferences() # this is a unique one... have to save all
+def settings_bottom_buttons():
     col2 = st.columns((1, 1))
+    ### LOGOUT BUTTON
     with col2[0]:
         st.session_state.authenticator.logout(f"Logout `{st.session_state['username']}`", "main")
+
+    ### SWITCH SETTINGS LOCATION BUTTON
     with col2[1]:
-        if st.session_state.user_preferences["settings_on_sidebar"]:
-            st.button(f"Move to main", on_click=toggle_settings_location, key="button_move_to_main", use_container_width=True)
-        else:
-            st.button(f"Move to sidebar", on_click=toggle_settings_location, key="button_move_to_sidebar", use_container_width=True)
+        move_button_text = f"Move to {'main' if st.session_state.user_preferences['settings_on_sidebar'] else 'sidebar'}"
+        st.button(move_button_text,
+                    on_click=save_user_preferences,
+                    kwargs={"toggle_key": "settings_on_sidebar"},
+                    key="button_move_to_main",
+                    use_container_width=True)
+
 
 
 
