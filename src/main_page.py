@@ -279,7 +279,7 @@ def model_settings():
             st.radio("Mistral model select",
                 key="mistral_model",
                 options=MISTRAL_MODELS,
-                index=appstate.mistral_models.index(appstate.user_preferences["mistral_model"]),
+                index=MISTRAL_MODELS.index(appstate.user_preferences["mistral_model"]),
                 on_change=save_user_preferences,
                 args=("mistral_model",)
             )

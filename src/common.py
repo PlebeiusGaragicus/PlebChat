@@ -143,7 +143,7 @@ class ChatAppVars:
             # if 'client' not in st.session_state.:
             #     st.session_state.client = MistralClient(api_key=self.api_key_mistral)
             if self.client is None:
-                self.client = MistralClient(api_key=self.st.session_state.mistral_api_key) # TODO add error handling here
+                self.client = MistralClient(api_key=st.session_state.mistral_api_key) # TODO add error handling here
 
             return self.client.chat_stream(
                 model=st.session_state.mistral_model,
