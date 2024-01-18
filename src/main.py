@@ -21,6 +21,7 @@ print("\n\nLOADING AND RUNNING TOP-LEVEL CODE FOR EACH USER ACTION?!\n\n")
 from src.VERSION import VERSION
 from src.common import (
     ASSETS_PATH,
+    ChatAppVars,
 )
 
 from src.chat_history import (
@@ -197,9 +198,21 @@ def main_page():
                             just_once=True,
                             key='STT'
                     )
+        if st.session_state.confirm_stt is False:
+        #     speech_draft = speech
+        # else:
+            prompt = speech_draft
+            speech_draft = None
 
         if speech_draft:
             with st.container(border=True):
+                def edit_draft(x):
+                    # st.session_state.speech_draft_edit = x
+                    st.session_state.speech_draft = x
+                    # st.session_state.speech_confirmed = False
+                    # st.session_state.speech_draft = speech_draft
+
+                # st.text_input("You said:", value=speech_draft, key="speech_draft_edit", on_change=edit_draft)
                 # st.text_input("You said:", value=speech_draft, key="speech_draft_edit")
                 st.text_area("You said:", value=speech_draft, key="speech_draft_edit")
 

@@ -244,7 +244,8 @@ def settings_tts():
 def settings_bottom_buttons():
     col2 = st.columns((1, 1))
     ### LOGOUT BUTTON
-    # with col2[0]:
+    with col2[0]:
+        st.toggle("Confirm stt", key="confirm_stt", value=False)
         # st.session_state.authenticator.logout(f"Logout `{st.session_state['username']}`", "main")
 
     ### SWITCH SETTINGS LOCATION BUTTON
