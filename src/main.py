@@ -7,9 +7,15 @@ import streamlit_authenticator as stauth
 import logging
 log = logging.getLogger()
 
-from src.common import init_if_needed, center_text, ASSETS_PATH, PREFERENCES_PATH
+from src.common import (
+    init_if_needed,
+    ASSETS_PATH
+)
+
 from src.main_page import main_page
 
+
+print("\n\nLOADING AND RUNNING TOP-LEVEL CODE FOR EACH USER ACTION?!\n\n")
 
 
 def main():
@@ -20,7 +26,6 @@ def main():
         initial_sidebar_state="auto",
         # menu_items={"About": "https://plebby.me/"} # TODO
     )
-
 
     try:
         with open("./auth.yaml") as file:
@@ -53,16 +58,7 @@ def main():
     st.session_state.authenticator.login("PlebChat login", "main")
 
     if st.session_state["authentication_status"]:
-        ### PAGE ROUTING GOES HERE ###
         init_if_needed()
 
-        # appstate = st.session_state.appstate
-        # if st.session_state["route"] == PageRoute.MAIN:
-        # main_page(appstate)
+        # from src.main_page import main_page
         main_page()
-
-        # elif st.session_state["route"] == PageRoute.SETTINGS:
-        #     settings_page(appstate, None)
-
-        # elif st.session_state["route"] == PageRoute.ABOUT:
-        #     st.write("About")

@@ -1,12 +1,13 @@
 import streamlit as st
 
 from src.common import (
-    PageRoute,
     ChatMessage,
     save_chat_history,
-    TTS_OPTIONS
 )
 
+from src.settings import (
+    TTS_OPTIONS
+)
 
 
 
@@ -63,7 +64,7 @@ def interrupt():
     # st.rerun() # not allowed in on_click handlers (callbacks)
 
 
-def settings():
-    """ callback for the configuration button """
-    # st.toast("Settings not yet implemented", icon="🚧")
-    st.session_state.route = PageRoute.SETTINGS
+# def settings():
+#     """ callback for the configuration button """
+#     # st.toast("Settings not yet implemented", icon="🚧")
+#     st.session_state.route = PageRoute.SETTINGS

@@ -1,7 +1,6 @@
 import os
 import time
 import json
-import yaml
 import pathlib
 
 import streamlit as st
@@ -9,29 +8,9 @@ import streamlit as st
 from mistralai.client import MistralClient
 from mistralai.models.chat_completion import ChatMessage
 
+from src.settings import LLM_OPTIONS
+
 ASSETS_PATH = pathlib.Path(__file__).parent.parent / "assets"
-PREFERENCES_PATH = pathlib.Path(__file__).parent.parent / "preferences"
-
-# OPENAI_VOICES = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
-OPENAI_TTS_MODELS = ["echo", "nova", "onyx"]
-TTS_VOICE_CHOICES = ["👱🏼‍♂️", "👱🏻‍♀️", "🧔🏻‍♂️"]
-
-MISTRAL_MODELS = ['mistral-medium', 'mistral-small', 'mistral-tiny']
-
-class LLM_OPTIONS:
-    MISTRAL_API = "Mistral API"
-    MISTRAL_LOCAL = "Mistral (local)"
-    GPT3_5 = "GPT-3.5"
-    ECHOBOT = "echobot" # Debug only
-
-class STT_OPTIONS:
-    PYTHON = "Python SpeechRecognition"
-    ASSEMBLYAI = "AssemblyAI"
-
-class TTS_OPTIONS:
-    GOOGLE = "Google TTS"
-    OPENAI = "OpenAI TTS"
-
 
 
 COLUMN_FIX_CSS = """<style>
@@ -57,10 +36,10 @@ def center_text(type, text, size=None):
 
 
 
-class PageRoute:
-    MAIN = "main"
-    SETTINGS = "settings"
-    ABOUT = "about"
+# class PageRoute:
+#     MAIN = "main"
+#     SETTINGS = "settings"
+#     ABOUT = "about"
 
 
 class ChatThread:
@@ -330,7 +309,7 @@ def init_if_needed():
             st.stop()
         
         ### SETUP STARTING ROUTE
-        st.session_state["route"] = PageRoute.MAIN
+        # st.session_state["route"] = PageRoute.MAIN
 
         if 'speak_this' not in st.session_state:
             st.session_state.speak_this = None
