@@ -1,9 +1,11 @@
 # PlebChat
 
+<div align="center">
 <figure>
     <img src="./assets/assistant2sm.png" alt="a friendly assistant" height="300px">
     <figcaption>Yes, you can have your own personal chatbot!</figcaption>
 </figure>
+</div>
 
 The __purpose__ of this project is to:
 - Teach myself to build custom AI applications. 🧠
@@ -19,7 +21,7 @@ This is still a work-in-progress, obvi.
 
 **Version 0.0.8** is a simple wrapper over the Mistral API.  You'll need your own API keys.  Also, the Text-to-Speech run off of either Google's TTS (gTTS) which is free, or OpenAI's TTS which requires an API key.
 
-<!-- ![A friendly chatbot.](./assets/assistant2sm.png) -->
+<div align="center">
 <figure>
     <img src="./assets/0.0.8.png" alt="0.0.8" height="400px">
     <img src="./assets/0.0.8sidebar.png" alt="0.0.8 settings" height="400px">
@@ -28,7 +30,9 @@ This is still a work-in-progress, obvi.
 
 <figure>
     <img src="./assets/enable-auto-play.png" alt="enable auto play" height="400px">
-    <figcaption>If you're running in safari you need to enable auto-play media and give microphone access.</figcaption>
+    <figcaption>If you're running in safari you need to enable auto-play media and give microphone access.
+    </figcaption>
+</div>
 
 ## About this project
 

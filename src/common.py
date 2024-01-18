@@ -306,6 +306,9 @@ def init_if_needed():
         ### SETUP STARTING ROUTE
         st.session_state["route"] = PageRoute.MAIN
 
+        if 'speak_this' not in st.session_state:
+            st.session_state.speak_this = None
+
 
 
 def centered_button_trick():

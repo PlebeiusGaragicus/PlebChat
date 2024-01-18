@@ -8,11 +8,9 @@ import streamlit_authenticator as stauth
 import logging
 log = logging.getLogger()
 
-from src.common import init_if_needed, PageRoute
+from src.common import init_if_needed, PageRoute, centered_button_trick, center_text
 from src.main_page import main_page
 from src.settings_page import settings_page
-import pathlib
-import yaml
 
 # ASSETS_PATH = pathlib.Path(__file__).parent / "assets"
 ASSETS_PATH = pathlib.Path(__file__).parent.parent / "assets"
@@ -27,7 +25,6 @@ def main():
         # menu_items={"About": "https://plebby.me/"} # TODO
     )
 
-    # st.image(os.path.join(ASSETS_PATH, "favicon.ico"))
 
     try:
         with open("./auth.yaml") as file:
@@ -45,6 +42,9 @@ def main():
     )
 
     if st.session_state["authentication_status"] is None:
+        # with centered_button_trick():
+        #     st.image(os.path.join(ASSETS_PATH, "assistant2sm.png"))
+        center_text("p", "🗣️🤖💬", size=60) # or h1, whichever
         if 'appstate' in st.session_state:
             del st.session_state['appstate']
             st.error("Application state has been cleared!")
@@ -54,18 +54,19 @@ def main():
 
     # https://blog.streamlit.io/streamlit-authenticator-part-1-adding-an-authentication-component-to-your-app/
     # https://github.com/mkhorasani/Streamlit-Authenticator?ref=blog.streamlit.io
-    st.session_state.authenticator.login("ACCESS RESTRICTED", "main")
+    st.session_state.authenticator.login("PlebChat login", "main")
 
     if st.session_state["authentication_status"]:
         ### PAGE ROUTING GOES HERE ###
         init_if_needed()
 
-        appstate = st.session_state.appstate
-        if st.session_state["route"] == PageRoute.MAIN:
-            main_page(appstate)
+        # appstate = st.session_state.appstate
+        # if st.session_state["route"] == PageRoute.MAIN:
+        # main_page(appstate)
+        main_page()
 
-        elif st.session_state["route"] == PageRoute.SETTINGS:
-            settings_page(appstate, None)
+        # elif st.session_state["route"] == PageRoute.SETTINGS:
+        #     settings_page(appstate, None)
 
-        elif st.session_state["route"] == PageRoute.ABOUT:
-            st.write("About")
+        # elif st.session_state["route"] == PageRoute.ABOUT:
+        #     st.write("About")

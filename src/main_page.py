@@ -1,16 +1,19 @@
 import base64
 import io
+import yaml
+from yaml.loader import SafeLoader
 
 import streamlit as st
 
 from mistralai.models.chat_completion import ChatMessage
 from mistralai.exceptions import MistralAPIException
-
 from openai import OpenAI
+
 
 import logging
 log = logging.getLogger(__file__)
 
+from src.VERSION import VERSION
 from src.common import (
     ChatAppVars,
     OPENAI_TTS_MODELS,
@@ -18,85 +21,83 @@ from src.common import (
     save_chat_history,
     load_convo,
     delete_this_chat,
-    COLUMN_FIX_CSS,
-    PageRoute,
     center_text,
     centered_button_trick,
+    column_fix,
+)
+
+from src.interface import (
+    autoplay_audio,
+    interrupt,
 )
 
 print("\n\nLOADING AND RUNNING TOP-LEVEL CODE FOR EACH USER ACTION?!\n\n")
 
 
-def main_page(appstate: ChatAppVars):
+def main_page():
+    appstate = st.session_state.appstate
 
-    ###### HEADER ######
-    st.write("""<p style="text-align: center; font-size: 60px;">🗣️🤖💬</p>""", unsafe_allow_html=True)
+    column_fix()
+    center_text("p", "🗣️🤖💬", size=60) # or h1, whichever
 
-    # if st.session_state.get("echobot", False):
-    #     st.caption("echobot mode")
 
-    # if appstate.debug:
-    with st.sidebar:
-        debugging_placeholder = st.empty()
-
-    # with st.sidebar:
-    #     settings_placeholder = st.empty()
+    ### SETTINGS EXPANDER
     settings_placeholder = st.empty()
+    with settings_placeholder.expander("Settings", expanded=True):
+        model_settings()
 
-    # st.header("", divider="rainbow")
 
-
-    ###### TOP BUTTONS ######
-    st.write(COLUMN_FIX_CSS, unsafe_allow_html=True)
-
+    ### INPUT BUTTONS
     top_buttons = st.columns((2, 1, 1))
-    # top_buttons = st.columns((4, 1))
     with top_buttons[0]:
-        # st.empty()
-        # st.toggle("🗣️🎙️", key="speech_input", value=True)
         st.toggle("🗣️🤖", key="speech_input", value=False)
     with top_buttons[1]:
         st.toggle("🤖💬", key="read_to_me", value=False)
 
+    ### DELETE BUTTON
     if len(appstate.chat.messages) > 0:
         with top_buttons[2]:
-        # with top_buttons[1]:
             st.button("🗑️ Delete", on_click=delete_this_chat, key="button_delete", use_container_width=True)
-    
+
+    ### RAINBOW DIVIDER
     st.header("", divider="rainbow")
 
-    sidebar(appstate, settings_placeholder)
+
 
     ####### CONVERSATION #######
     for message in appstate.chat.messages:
         with st.chat_message(message.role):
             st.markdown(message.content)
 
-    # This is so that we can later populate with the users' next prompt and the bots reply and allows the input field (or start recording button) to be at the bottom of the page
+    # This is so that we can later populate with the users' next prompt
+    # and the bots reply and allows the input field (or start recording button)
+    # to be at the bottom of the page
     my_next_prompt = st.empty()
     interrupt_button = st.empty()
     bots_reply = st.empty()
-    # read_to_me_button = st.empty()
 
 
     #### USER PROMPT AND ASSOCIATED LOGIC
     prompt = None
 
-    # if "Text" in st.session_state["input_method"]:
     if not st.session_state.get("speech_input", False):
-        # if prompt := st.chat_input("Ask a question."):
         prompt = st.chat_input("Ask a question.")
     else:
         # TODO - naive thinking that let me to think having us import here would increase page performance... lol, oh well
         from streamlit_mic_recorder import speech_to_text
-        prompt = speech_to_text( language='en', use_container_width=True, just_once=True, key='STT')
+        with centered_button_trick():
+            # https://pypi.org/project/SpeechRecognition/
+            prompt = speech_to_text(
+                            start_prompt="🎤 Speak",
+                            stop_prompt="🛑 Stop",
+                            language='en',
+                            use_container_width=True,
+                            just_once=True,
+                            key='STT'
+                    )
 
 
     if prompt:
-        settings_placeholder.empty()
-
-        # with st.sidebar:
-            #  st.markdown("`Settings disabled during interence`")
         interrupt_button.button("🛑 Interrupt", on_click=interrupt, key="button_interrupt")
 
         my_next_prompt.chat_message("user").markdown(prompt)
@@ -108,22 +109,14 @@ def main_page(appstate: ChatAppVars):
             appstate.load_chat_history()
 
         if 'read_to_me' in st.session_state and st.session_state.read_to_me == True:
-            st.session_state.tts = reply
+            st.session_state.speak_this = reply
 
-        st.rerun()
-        # sidebar(appstate, settings_sidebar) # this will cause a KeyError because of dupicate key widget keys
-
-    if 'tts' not in st.session_state:
-        st.session_state.tts = None
-
-
+        st.rerun() # we rerun the page for a reason that I forgot...
     #### AFTER-PROMPT PROCESSING ####
     # put things here to update the UI _AFTER_ the prompt has been run
 
-    def on_click_read_to_me():
-        st.session_state.tts = appstate.chat.messages[-1].content
 
-
+    ### READ IT AND NEW BUTTONS
     if len(appstate.chat.messages) > 0:
         # if last message was from the bot, then we can read it aloud
         col2 = st.columns((1, 1))
@@ -131,76 +124,114 @@ def main_page(appstate: ChatAppVars):
         if appstate.chat.messages[-1].role == "assistant":
             # centered_button_trick().button("🗣️ Speak", on_click=on_click_read_to_me, key="button_read_to_me", use_container_width=True)
             if st.session_state.read_to_me is False:
+                def on_click_read_to_me():
+                    st.session_state.speak_this = appstate.chat.messages[-1].content
                 col2[0].button("🗣️ read it", on_click=on_click_read_to_me, key="button_read_to_me", use_container_width=True)
 
 
-    if st.session_state.tts is not None:
-        TTS(st.session_state.tts)
-        st.session_state.tts = None
+    ### THE AUDIO PLAYER FOR TTS
+    if st.session_state.speak_this is not None:
+        # on reload, if `tts` is set, then we speak it
+        TTS(st.session_state.speak_this)
+        st.session_state.speak_this = None
 
 
+    ### SIDEBAR WITH CONVERSATION HISTORY
     with st.sidebar:
-        st.caption(f"Logged in as: `{st.session_state.appstate.username}`")
-        st.button(f"⚙️ Configure", on_click=settings, use_container_width=True)
-        st.write("---")
-
-        # with st.expander("Past conversations", expanded=True):
         st.write("## Past Conversations")
-        with st.container(border=True):
-            for description, runlog in appstate.chat_history:
-                st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
+        # with st.container(border=True):
+        for description, runlog in appstate.chat_history:
+            st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
+
+        st.caption(f"running version `{VERSION}`")
+        if appstate.debug == False:
+            st.caption("Running in production mode.")
 
 
+
+def model_settings():
+    appstate = st.session_state.appstate
+
+
+    LLM_options = [
+        "Mistral",
+        "GPT-3.5",
+    ]
 
     if appstate.debug:
-        with debugging_placeholder:
-            with st.expander("🛠️ Debugging"):
-                st.write(appstate)
-                st.write(appstate.chat)
-                # st.write(appstate.chat.messages)
+        LLM_options.append("echobot")
+
+    # users_preferred_llm = get_user_llm_preference()
+    users_preferred_llm = "Mistral"
+    # get index of "Mistral" in LLM_options
+    selected_llm = len(LLM_options) - 1 if appstate.debug else LLM_options.index(users_preferred_llm)
+
+    with st.container(border=True):
+        st.selectbox("🧠 Language Model",
+                    options=LLM_options,
+                    index=selected_llm,
+                    key="language_model",
+                )
+
+        if st.session_state.language_model == "echobot":
+            st.write("no settings for `echobot`")
+
+        elif st.session_state.language_model == "GPT-3.5":
+            st.write("no settings yet")
+
+        elif st.session_state.language_model == "Mistral":
+            st.toggle(
+                "Safe mode",
+                key="mistrel_safemode",
+                value=True,
+                # help="This turns mistral into a little bitch... you don't like bitches, do you?",
+                help="Safe mode is not yet implemented by mistral ai",
+                disabled=True
+            )
+
+            st.radio(
+                "Mistral",
+                options=appstate.mistral_models,
+                index=2 if appstate.debug else 0,
+                key="mistrel_model",
+            )
+            # st.text_input("API key", key="api_key_mistral", value=st.session_state["api_key_mistral"])
+
+    with st.container(border=True):
+        st.selectbox(
+                label="🗣️🤖 Voice transcription",
+                options=["Python SpeechRecognition"],
+                index=0,
+                key="stt"
+            )
+
+    with st.container(border=True):
+        # st.caption("Text to speech settings")
+        if appstate.api_key_openai in [None, ""]:
+            st.info("Enter OpenAI key in settings to enable text-to-speech")
 
 
-    ### outside of the if prompt block
+        # st.toggle("gTTS", key="gtts", value=appstate.debug, help="Use gTTS (Google Text to Speech) instead of OpenAI's TTS")
+        st.selectbox(
+            label="🤖💬 Text to speech",
+            options=["Google TTS", "OpenAI TTS"],
+            index=0,
+            key="tts"
+        )
 
 
-def settings():
-    # st.toast("Settings not yet implemented", icon="🚧")
-    st.session_state.route = PageRoute.SETTINGS
+        if st.session_state.get("tts") == "Google TTS":
+            st.caption("No settings for Google TTS.  It's free and it works ;)")
+        if st.session_state.get("tts") == "OpenAI TTS":
+            cols = st.columns((1, 1))
+            cols[0].radio("Voice model", TTS_VOICE_CHOICES, index=1, key="openai_voice")
+            cols[1].radio("Talking speed", [1.0, 1.2, 1.5], index=1, key="tts_rate")
 
 
-def sidebar(appstate, place_holder):
-    #Note: we do this at the end so that a new chat history will be displayed after the users first message
-    
-    # with st.sidebar:
-    # with settings_sidebar:
-    # with place_holder.container(border=True):
-    with place_holder.expander("Settings", expanded=False):
-        with st.container(border=True):
-            if appstate.debug:
-                st.toggle("Echobot", key="echobot", value=appstate.debug)
+    st.session_state.authenticator.logout(f"Logout `{st.session_state['username']}`", "main")
 
-            # st.radio("Input method:", ["Text ⌨️", "Voice 🗣️"], index=0, key="input_method")
-            if appstate.api_key_openai in [None, ""]:
-                st.info("Enter OpenAI key in settings to enable text-to-speech")
-            # else:
-                #on_change must be None or else a re-run of last prompt happens
-                # st.toggle("Read aloud 👂", key="read_to_me", value=False, on_change=None)
 
-            st.toggle("gTTS", key="gtts", value=appstate.debug, help="Use gTTS (Google Text to Speech) instead of OpenAI's TTS")
 
-            if not st.session_state.get("gtts", False):
-                cols = st.columns((1, 1))
-                cols[0].radio("Voice model", TTS_VOICE_CHOICES, index=1, key="openai_voice")
-                cols[1].radio("Talking speed", [1.0, 1.2, 1.5], index=1, key="tts_rate")
-            st.write("---")
-            st.toggle("Safe mode", key="mistrel_safemode", value=False, help="Safe mode is not yet implemented by mistral ai", disabled=True)
-            st.radio("Model",
-                    appstate.mistral_models,
-                    index=2 if appstate.debug else 0,
-                    key="mistrel_model")
-
-        # vanishing_sidebar = st.empty()
-    # return vanishing_sidebar
 
 
 def run_prompt(prompt, bots_reply):
@@ -242,21 +273,7 @@ def run_prompt(prompt, bots_reply):
     return reply
 
 
-# def autoplay_audio(file_path: str):
-def autoplay_audio(audio_base64: str):
-    """ https://discuss.streamlit.io/t/how-to-play-an-audio-file-automatically-generated-using-text-to-speech-in-streamlit/33201 """
 
-    md = f"""
-        <audio controls autoplay="True">
-        <source src="data:audio/mp3;base64,{audio_base64}" type="audio/mp3">
-        </audio>
-        """
-    
-    st.markdown(md, unsafe_allow_html=True)
-
-    # doesn't look so good on mobile...
-    # with centered_button_trick():
-        # st.markdown(md, unsafe_allow_html=True)
 
 
 # NOTE: you need to adjust the website setting in safari to allow auto play media
@@ -319,16 +336,3 @@ def TTS(text, language='en', slow=False):
             # Convert audio data to Base64
             audio_base64 = base64.b64encode(audio_data).decode('utf-8')
             autoplay_audio(audio_base64)
-
-
-def interrupt():
-    # st.session_state.interrupt = True
-    st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=st.session_state.incomplete_stream))
-    st.session_state.appstate.chat.messages.append(ChatMessage(role="user", content="<INTERRUPTS>"))
-    # save_chat_history()
-    # st.session_state.appstate.load_chat_history()
-
-    if save_chat_history():
-        st.session_state.appstate.load_chat_history()
-
-    # st.rerun() # not allowed in on_click handlers (callbacks)
