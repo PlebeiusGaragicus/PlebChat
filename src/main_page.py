@@ -25,7 +25,10 @@ from src.common import (
     center_text,
     centered_button_trick,
     column_fix,
-    PREFERENCES_PATH
+    PREFERENCES_PATH,
+    LLM_OPTIONS,
+    STT_OPTIONS,
+    TTS_OPTIONS,
 )
 
 from src.interface import (
@@ -45,7 +48,7 @@ def main_page():
 
     ### SETTINGS EXPANDER
     settings_placeholder = st.empty()
-    with settings_placeholder.expander("Settings", expanded=True):
+    with settings_placeholder.expander("Settings", expanded=False):
         model_settings()
 
 
@@ -140,6 +143,8 @@ def main_page():
 
     ### SIDEBAR WITH CONVERSATION HISTORY
     with st.sidebar:
+        if len(appstate.chat.messages) > 0:
+            st.button("🌱 New", on_click=lambda: appstate.new_thread(), use_container_width=True, key="newbutton2")
         st.write("## Past Conversations")
         # with st.container(border=True):
         for description, runlog in appstate.chat_history:
@@ -150,25 +155,12 @@ def main_page():
             st.caption("Running in production mode.")
 
 
-class LLM_OPTIONS:
-    MISTRAL_API = "Mistral API"
-    MISTRAL_LOCAL = "Mistral (local)"
-    GPT3_5 = "GPT-3.5"
-    ECHOBOT = "echobot" # Debug only
-
-class STT_OPTIONS:
-    PYTHON = "Python SpeechRecognition"
-    ASSEMBLYAI = "AssemblyAI"
-
-class TTS_OPTIONS:
-    GOOGLE = "Google TTS"
-    OPENAI = "OpenAI TTS"
 
 
 # Define default user preferences
 DEFAULT_USER_PREFERENCES = {
     "language_model": LLM_OPTIONS.ECHOBOT,
-    "sst": STT_OPTIONS.PYTHON,
+    "stt": STT_OPTIONS.PYTHON,
     "tts": TTS_OPTIONS.GOOGLE,
     "mistral_safemode": True,
     "mistral_model": "mistral-medium",
@@ -193,7 +185,7 @@ def save_user_preferences(key_to_save=None):
     if key_to_save is None:
         user_preferences = {
             "language_model": st.session_state.language_model,
-            "sst": st.session_state.stt,
+            "stt": st.session_state.stt,
             "tts": st.session_state.tts,
             "mistral_safemode": st.session_state.mistral_safemode,
             "mistral_model": st.session_state.mistral_model,
@@ -293,14 +285,14 @@ def model_settings():
     ### SPEECH TO TEXT ###
     with st.container(border=True):
         stt_options = [STT_OPTIONS.PYTHON, STT_OPTIONS.ASSEMBLYAI]
-        selected_stt = stt_options.index(appstate.user_preferences["sst"])
+        selected_stt = stt_options.index(appstate.user_preferences["stt"])
         st.selectbox(
                 label="🗣️🤖 Voice transcription",
                 options=stt_options,
                 index=selected_stt,
                 key="stt",
                 on_change=save_user_preferences,
-                args=("sst",)
+                args=("stt",)
             )
 
 

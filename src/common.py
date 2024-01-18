@@ -16,6 +16,23 @@ PREFERENCES_PATH = pathlib.Path(__file__).parent.parent / "preferences"
 OPENAI_TTS_MODELS = ["echo", "nova", "onyx"]
 TTS_VOICE_CHOICES = ["👱🏼‍♂️", "👱🏻‍♀️", "🧔🏻‍♂️"]
 
+
+class LLM_OPTIONS:
+    MISTRAL_API = "Mistral API"
+    MISTRAL_LOCAL = "Mistral (local)"
+    GPT3_5 = "GPT-3.5"
+    ECHOBOT = "echobot" # Debug only
+
+class STT_OPTIONS:
+    PYTHON = "Python SpeechRecognition"
+    ASSEMBLYAI = "AssemblyAI"
+
+class TTS_OPTIONS:
+    GOOGLE = "Google TTS"
+    OPENAI = "OpenAI TTS"
+
+
+
 COLUMN_FIX_CSS = """<style>
 [data-testid="column"] {
     width: calc(33.3333% - 1rem) !important;
@@ -115,17 +132,34 @@ class ChatAppVars:
             time.sleep(0.04)
 
     def get_client(self):
-        if st.session_state.get('echobot', False):
+        if st.session_state.language_model == LLM_OPTIONS.ECHOBOT:
             return self.get_debug_generator()
-        else:
+        elif st.session_state.language_model == LLM_OPTIONS.MISTRAL_API:
             if self.api_key_mistral in [None, ""]:
                 raise Exception("Mistral API key not found.")
 
             return self.client.chat_stream(
-                model=st.session_state.mistrel_model,
+                model=st.session_state.mistral_model,
                 messages=self.chat.messages,
-                safe_mode=st.session_state.mistrel_safemode
+                safe_mode=st.session_state.mistral_safemode
             )
+        elif st.session_state.language_model == LLM_OPTIONS.MISTRAL_LOCAL:
+            st.error("Not yet implemented")
+            st.stop()
+        elif st.session_state.language_model == LLM_OPTIONS.GPT3_5:
+            st.error("Not yet implemented")
+            st.stop()
+            # if self.api_key_openai in [None, ""]:
+            #     raise Exception("OpenAI API key not found.")
+
+            # return self.client.chat_stream(
+            #     model="gpt3-5",
+            #     messages=self.chat.messages,
+            #     safe_mode=st.session_state.mistral_safemode
+            # )
+        else:
+            st.error("Invalid language model")
+            st.stop()
 
     def new_thread(self):
         self.chat = ChatThread()
@@ -193,7 +227,7 @@ def delete_this_chat():
 
 
 def get_description():
-    if st.session_state.appstate.debug and st.session_state.echobot:
+    if st.session_state.appstate.debug and st.session_state.language_model == LLM_OPTIONS.ECHOBOT:
         # return "A friendly chat."
         content = st.session_state.appstate.chat.messages[0].content
         # return first 3 words, at most
