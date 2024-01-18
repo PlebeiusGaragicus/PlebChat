@@ -76,12 +76,13 @@ class ChatAppVars:
     def __init__(self):
         self.username = st.session_state.username
 
-        self.api_key_mistral = None
-        self.api_key_openai = None
-        self.api_key_assemblyai = None
-        self.get_api_keys()
+        # self.api_key_mistral = None
+        # self.api_key_openai = None
+        # self.api_key_assemblyai = None
+        # self.get_api_keys()
 
-        self.client = MistralClient(self.api_key_mistral)
+        # self.client = MistralClient(self.api_key_mistral)
+        self.client = None
 
         # make sure the runlog directory exists
         self.runlog_dir = os.path.join(os.getcwd(), "runlog", self.username)
@@ -99,27 +100,27 @@ class ChatAppVars:
     
 
     
-    def get_api_keys(self):
-        with open("./auth.yaml") as file:
-            config = yaml.load(file, Loader=yaml.loader.SafeLoader)
+    # def get_api_keys(self):
+    #     with open("./auth.yaml") as file:
+    #         config = yaml.load(file, Loader=yaml.loader.SafeLoader)
 
-        # TODO find a better way?
-        try:
-            self.api_key_openai = config["credentials"]["usernames"][self.username]["api_key_openai"]
-        except KeyError:
-            self.api_key_openai = None
+    #     # TODO find a better way?
+    #     try:
+    #         self.api_key_openai = config["credentials"]["usernames"][self.username]["api_key_openai"]
+    #     except KeyError:
+    #         self.api_key_openai = None
 
-        try:
-            self.api_key_mistral = config["credentials"]["usernames"][self.username]["api_key_mistral"]
-        except KeyError:
-            # This can't be none
-            # self.api_key_mistral = None
-            raise Exception("Mistral API key not found")
+    #     try:
+    #         self.api_key_mistral = config["credentials"]["usernames"][self.username]["api_key_mistral"]
+    #     except KeyError:
+    #         # This can't be none
+    #         # self.api_key_mistral = None
+    #         raise Exception("Mistral API key not found")
 
-        try:
-            self.api_key_assemblyai = config["credentials"]["usernames"][self.username]["api_key_assemblyai"]
-        except KeyError:
-            self.api_key_assemblyai = None
+    #     try:
+    #         self.api_key_assemblyai = config["credentials"]["usernames"][self.username]["api_key_assemblyai"]
+    #     except KeyError:
+    #         self.api_key_assemblyai = None
 
     def get_debug_generator(self):
         time.sleep(0.7)
@@ -135,8 +136,13 @@ class ChatAppVars:
         if st.session_state.language_model == LLM_OPTIONS.ECHOBOT:
             return self.get_debug_generator()
         elif st.session_state.language_model == LLM_OPTIONS.MISTRAL_API:
-            if self.api_key_mistral in [None, ""]:
-                raise Exception("Mistral API key not found.")
+            if st.session_state.mistral_api_key in [None, ""]:
+                raise Exception("Mistral API key not set.")
+
+            # if 'client' not in st.session_state.:
+            #     st.session_state.client = MistralClient(api_key=self.api_key_mistral)
+            if self.client is None:
+                self.client = MistralClient(api_key=self.st.session_state.mistral_api_key) # TODO add error handling here
 
             return self.client.chat_stream(
                 model=st.session_state.mistral_model,
@@ -149,14 +155,6 @@ class ChatAppVars:
         elif st.session_state.language_model == LLM_OPTIONS.GPT3_5:
             st.error("Not yet implemented")
             st.stop()
-            # if self.api_key_openai in [None, ""]:
-            #     raise Exception("OpenAI API key not found.")
-
-            # return self.client.chat_stream(
-            #     model="gpt3-5",
-            #     messages=self.chat.messages,
-            #     safe_mode=st.session_state.mistral_safemode
-            # )
         else:
             st.error("Invalid language model")
             st.stop()
@@ -227,17 +225,16 @@ def delete_this_chat():
 
 
 def get_description():
-    if st.session_state.appstate.debug and st.session_state.language_model == LLM_OPTIONS.ECHOBOT:
+    # if st.session_state.mistral_api_key in [None, ""]:
+    # if st.session_state.user_preferences["mistral_api_key"] in [None, ""]:
+    if st.session_state.language_model == LLM_OPTIONS.ECHOBOT:
         # return "A friendly chat."
         content = st.session_state.appstate.chat.messages[0].content
         # return first 3 words, at most
         return " ".join(content.split(" ")[:3])
 
-    # call the API to get the description
-
-    # client = MistralClient(api_key=st.session_state.api_key_mistral)
-    client = MistralClient(api_key=st.session_state.appstate.api_key_mistral)
-
+    # client = MistralClient(api_key=st.session_state.mistral_api_key)
+    client = MistralClient(api_key=st.session_state.user_preferences["mistral_api_key"])
     messages = [
         ChatMessage(
             role="user",

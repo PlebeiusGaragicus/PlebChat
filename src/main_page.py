@@ -1,3 +1,4 @@
+import os
 import base64
 import time
 import io
@@ -151,7 +152,7 @@ def main_page():
             st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
 
         st.caption(f"running version `{VERSION}`")
-        if appstate.debug == False:
+        if os.getenv("DEBUG", False) == False:
             st.caption("Running in production mode.")
 
 
@@ -165,6 +166,9 @@ DEFAULT_USER_PREFERENCES = {
     "mistral_safemode": True,
     "mistral_model": "mistral-medium",
     "mistral_api_key": None,
+    "openai_api_key": None,
+    "openai_voice": TTS_VOICE_CHOICES[0],
+    "openai_tts_rate": 1.2,
 }
 
 # @st.cache_data()
@@ -179,7 +183,8 @@ def load_user_preferences(username):
 
 
 def save_user_preferences(key_to_save=None):
-    appstate = st.session_state.appstate
+    # appstate = st.session_state.appstate
+    appstate = st.session_state
     preferences_file = PREFERENCES_PATH / f"{appstate.username}.yaml"
 
     if key_to_save is None:
@@ -190,6 +195,9 @@ def save_user_preferences(key_to_save=None):
             "mistral_safemode": st.session_state.mistral_safemode,
             "mistral_model": st.session_state.mistral_model,
             "mistral_api_key": st.session_state.mistral_api_key,
+            "openai_api_key": st.session_state.openai_api_key,
+            "openai_voice": st.session_state.openai_voice,
+            "openai_tts_rate": st.session_state.openai_tts_rate,
         }
     else:
         user_preferences = appstate.user_preferences
@@ -205,7 +213,8 @@ def save_user_preferences(key_to_save=None):
 
 
 def model_settings():
-    appstate = st.session_state.appstate
+    # appstate = st.session_state.appstate
+    appstate = st.session_state
 
     # if 'user_preferences' not in st.session_state:
     # #     appstate.user_preferences = load_user_preferences(appstate.username)
@@ -234,7 +243,8 @@ def model_settings():
         LLM_OPTIONS.MISTRAL_LOCAL,
         LLM_OPTIONS.GPT3_5,
     ]
-    if appstate.debug:
+    # if appstate.debug:
+    if os.getenv("DEBUG", False):
         llm_options.append(LLM_OPTIONS.ECHOBOT)
     selected_llm_index = llm_options.index(appstate.user_preferences["language_model"])
     with st.container(border=True):
@@ -317,12 +327,22 @@ def model_settings():
             st.caption("No settings for Google TTS.  It's free and it works ;)")
 
         if st.session_state.get("tts") == "OpenAI TTS":
-            if appstate.api_key_openai in [None, ""]:
-                st.info("Enter OpenAI key in settings to enable text-to-speech")
+            # if st.session_state.openai_api_key in [None, ""]:
+            #     st.info("Enter OpenAI key in settings to enable text-to-speech")
 
             cols = st.columns((1, 1))
             cols[0].radio("Voice model", TTS_VOICE_CHOICES, index=1, key="openai_voice")
-            cols[1].radio("Talking speed", [1.0, 1.2, 1.5], index=1, key="tts_rate")
+            cols[1].radio("Talking speed", [1.0, 1.2, 1.5], index=1, key="openai_tts_rate")
+        
+            st.text_input(
+                "OpenAI API key",
+                key="openai_api_key",
+                value=appstate.user_preferences["openai_api_key"],
+                on_change=save_user_preferences,
+                args=("openai_api_key",),
+                disabled=(appstate.username == 'demo'),
+                type='password' if appstate.username == 'demo' else 'default'
+            )
 
 
     ### LOGOUT
@@ -424,7 +444,7 @@ def TTS(text, language='en', slow=False):
                     # response_format="opus",
                     response_format="mp3",
                     input=f"{text}",
-                    speed=st.session_state.tts_rate
+                    speed=st.session_state.openai_tts_rate
                 )
             # stub.empty()
 
