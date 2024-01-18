@@ -41,15 +41,35 @@ from src.interface import (
 print("\n\nLOADING AND RUNNING TOP-LEVEL CODE FOR EACH USER ACTION?!\n\n")
 
 
+def load_settings():
+    appstate = st.session_state
+
+    if 'user_preferences' not in st.session_state:
+        try:
+            preferences_file = PREFERENCES_PATH / f"{appstate.username}.yaml"
+            appstate.user_preferences = yaml.load(open(preferences_file), Loader=SafeLoader)
+        except FileNotFoundError:
+            appstate.user_preferences = DEFAULT_USER_PREFERENCES  # Use default preferences
+            st.error("user preferences yaml file not found. Creating a new one with default settings.")
+            with open(preferences_file, "w") as f:
+                yaml.dump(appstate.user_preferences, f)
+
+
+
 def main_page():
     appstate = st.session_state.appstate
 
     column_fix()
     center_text("p", "🗣️🤖💬", size=60) # or h1, whichever
 
+    load_settings()
 
     ### SETTINGS EXPANDER
-    settings_placeholder = st.empty()
+    if st.session_state.user_preferences["settings_on_sidebar"]:
+        settings_placeholder = st.sidebar.empty()
+    else:
+        settings_placeholder = st.empty()
+
     with settings_placeholder.expander("Settings", expanded=False):
         model_settings()
 
@@ -161,6 +181,7 @@ def main_page():
 
 # Define default user preferences
 DEFAULT_USER_PREFERENCES = {
+    "settings_on_sidebar": False,
     "language_model": LLM_OPTIONS.MISTRAL_API,
     "stt": STT_OPTIONS.PYTHON,
     "tts": TTS_OPTIONS.GOOGLE,
@@ -190,6 +211,7 @@ def save_user_preferences(key_to_save=None):
 
     if key_to_save is None:
         user_preferences = {
+            "settings_on_sidebar": st.session_state.user_preferences["settings_on_sidebar"], # This one is unique because we use a button and not a widget with a state
             "language_model": st.session_state.language_model,
             "stt": st.session_state.stt,
             "tts": st.session_state.tts,
@@ -227,15 +249,15 @@ def model_settings():
     #         with open("user_preferences.yaml", "w") as f:
     #             yaml.dump(user_preferences, f)
     #         st.error("user_preferences.yaml not found.  Creating a new one.")
-    if 'user_preferences' not in st.session_state:
-        try:
-            preferences_file = PREFERENCES_PATH / f"{appstate.username}.yaml"
-            appstate.user_preferences = yaml.load(open(preferences_file), Loader=SafeLoader)
-        except FileNotFoundError:
-            appstate.user_preferences = DEFAULT_USER_PREFERENCES  # Use default preferences
-            st.error("user preferences yaml file not found. Creating a new one with default settings.")
-            with open(preferences_file, "w") as f:
-                yaml.dump(appstate.user_preferences, f)
+    # if 'user_preferences' not in st.session_state:
+    #     try:
+    #         preferences_file = PREFERENCES_PATH / f"{appstate.username}.yaml"
+    #         appstate.user_preferences = yaml.load(open(preferences_file), Loader=SafeLoader)
+    #     except FileNotFoundError:
+    #         appstate.user_preferences = DEFAULT_USER_PREFERENCES  # Use default preferences
+    #         st.error("user preferences yaml file not found. Creating a new one with default settings.")
+    #         with open(preferences_file, "w") as f:
+    #             yaml.dump(appstate.user_preferences, f)
 
 
     ### LANGUAGE MODEL ###
@@ -348,9 +370,19 @@ def model_settings():
 
 
     ### LOGOUT
-    st.session_state.authenticator.logout(f"Logout `{st.session_state['username']}`", "main")
-
-
+    def toggle_settings_location():
+        st.session_state.user_preferences["settings_on_sidebar"] = not st.session_state.user_preferences["settings_on_sidebar"]
+        # st.session_state.settings_on_sidebar = not st.session_state.settings_on_sidebar
+        # save_user_preferences(key_to_save="settings_on_sidebar")
+        save_user_preferences() # this is a unique one... have to save all
+    col2 = st.columns((1, 1))
+    with col2[0]:
+        st.session_state.authenticator.logout(f"Logout `{st.session_state['username']}`", "main")
+    with col2[1]:
+        if st.session_state.user_preferences["settings_on_sidebar"]:
+            st.button(f"Move to main", on_click=toggle_settings_location, key="button_move_to_main", use_container_width=True)
+        else:
+            st.button(f"Move to sidebar", on_click=toggle_settings_location, key="button_move_to_sidebar", use_container_width=True)
 
 
 
