@@ -102,19 +102,27 @@ def main_page():
     my_next_prompt = st.empty()
     interrupt_button = st.empty()
     bots_reply = st.empty()
+    before_speech_placeholder = st.empty()
+
+    if len(appstate.chat.messages) > 0:
+        st.header("", divider="rainbow")
 
 
     #### USER PROMPT AND ASSOCIATED LOGIC
     prompt = None
+    if 'speech_draft' not in st.session_state:
+        st.session_state.speech_draft = None
+        st.session_state.speech_confirmed = False
 
     if not st.session_state.get("speech_input", False):
         prompt = st.chat_input("Ask a question.")
     else:
         # TODO - naive thinking that let me to think having us import here would increase page performance... lol, oh well
         from streamlit_mic_recorder import speech_to_text
+        # if not appstate.speech_confirmed:
         with centered_button_trick():
             # https://pypi.org/project/SpeechRecognition/
-            prompt = speech_to_text(
+            speech_draft = speech_to_text(
                             start_prompt="🎤 Speak",
                             stop_prompt="🛑 Stop",
                             language='en',
@@ -123,8 +131,34 @@ def main_page():
                             key='STT'
                     )
 
+        if speech_draft:
+            with st.container(border=True):
+                st.text_input("You said:", value=speech_draft, key="speech_draft_edit")
+
+                def user_confirms_speech():
+                    st.session_state.speech_confirmed = True
+                    st.session_state.speech_draft = st.session_state.speech_draft_edit
+
+                def user_cancels_speech():
+                    st.session_state.speech_confirmed = False
+                    st.session_state.speech_draft = None
+
+                confirms = st.columns((2, 1, 1))
+                confirms[0].button("✅", on_click=user_confirms_speech, use_container_width=True)
+                confirms[2].button("❌", on_click=user_cancels_speech, use_container_width=True)
+
+                # if st.button("Confirm"):
+                #     st.session_state.speech_confirmed = True
+                #     st.session_state.speech_draft = speech_draft
+
+
+
+    if st.session_state.speech_confirmed:
+        prompt = st.session_state.speech_draft
+        st.session_state.speech_draft = None
 
     if prompt:
+        st.session_state.speech_confirmed = False
         interrupt_button.button("🛑 Interrupt", on_click=interrupt, key="button_interrupt")
 
         my_next_prompt.chat_message("user").markdown(prompt)
@@ -144,16 +178,17 @@ def main_page():
 
 
     ### READ IT AND NEW BUTTONS
-    if len(appstate.chat.messages) > 0:
-        # if last message was from the bot, then we can read it aloud
-        col2 = st.columns((1, 1))
-        col2[1].button("🌱 New", on_click=lambda: appstate.new_thread(), use_container_width=True)
-        if appstate.chat.messages[-1].role == "assistant":
-            # centered_button_trick().button("🗣️ Speak", on_click=on_click_read_to_me, key="button_read_to_me", use_container_width=True)
-            if st.session_state.read_to_me is False:
-                def on_click_read_to_me():
-                    st.session_state.speak_this = appstate.chat.messages[-1].content
-                col2[0].button("🗣️ read it", on_click=on_click_read_to_me, key="button_read_to_me", use_container_width=True)
+    with before_speech_placeholder:
+        if len(appstate.chat.messages) > 0:
+            # if last message was from the bot, then we can read it aloud
+            col2 = st.columns((1, 1))
+            col2[1].button("🌱 New", on_click=lambda: appstate.new_thread(), use_container_width=True)
+            if appstate.chat.messages[-1].role == "assistant":
+                # centered_button_trick().button("🗣️ Speak", on_click=on_click_read_to_me, key="button_read_to_me", use_container_width=True)
+                if st.session_state.read_to_me is False:
+                    def on_click_read_to_me():
+                        st.session_state.speak_this = appstate.chat.messages[-1].content
+                    col2[0].button("🗣️ read it", on_click=on_click_read_to_me, key="button_read_to_me", use_container_width=True)
 
 
     ### THE AUDIO PLAYER FOR TTS
@@ -176,6 +211,7 @@ def main_page():
         if os.getenv("DEBUG", False) == False:
             st.caption("Running in production mode.")
 
+    st.caption(".")
 
 
 
