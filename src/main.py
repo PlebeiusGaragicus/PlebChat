@@ -40,7 +40,7 @@ def main():
     if st.session_state["authentication_status"] is None:
         # with centered_button_trick():
         #     st.image(os.path.join(ASSETS_PATH, "assistant2sm.png"))
-        center_text("p", "🗣️🤖💬", size=60) # or h1, whichever
+        # center_text("p", "🗣️🤖💬", size=60) # or h1, whichever
         if 'appstate' in st.session_state:
             del st.session_state['appstate']
             st.error("Application state has been cleared!")
