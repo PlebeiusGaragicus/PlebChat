@@ -230,6 +230,8 @@ def main_page():
         for description, runlog in appstate.chat_history:
             st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
 
+        st.write("---")
+        st.session_state.authenticator.logout(f"Logout `{st.session_state['username']}`", "main")
         st.caption(f"running version `{VERSION}`")
         if os.getenv("DEBUG", False) == False:
             st.caption("Running in production mode.")
@@ -336,7 +338,8 @@ def settings_llm():
                     index=selected_llm_index,
                     key="language_model",
                     on_change=save_user_preferences,
-                    args=("language_model",)
+                    # args=("language_model",)
+                    kwargs={"update_key": "language_model"},
                 )
 
         if st.session_state.user_preferences["language_model"] == LLM_OPTIONS.ECHOBOT:
@@ -349,9 +352,10 @@ def settings_llm():
             st.toggle(
                 "Safe mode",
                 key="mistral_safemode",
-                value=True,
+                value=st.session_state.user_preferences["mistral_safemode"],
                 on_change=save_user_preferences,
-                args=("mistral_safemode",),
+                # args=("mistral_safemode",),
+                kwargs={"toggle_key": "mistral_safemode"},
                 help="Safe mode is not yet implemented by mistral ai.  It also turns mistral into a little bitch... you don't want that, do you?",
                 # disabled=True
             )
@@ -361,7 +365,9 @@ def settings_llm():
                 options=MISTRAL_MODELS,
                 index=MISTRAL_MODELS.index(st.session_state.user_preferences["mistral_model"]),
                 on_change=save_user_preferences,
-                args=("mistral_model",)
+                # args=("mistral_model",)
+                kwargs={"update_key": "mistral_model"},
+
             )
 
             st.text_input(
@@ -369,7 +375,8 @@ def settings_llm():
                 key="mistral_api_key",
                 value=st.session_state.user_preferences["mistral_api_key"],
                 on_change=save_user_preferences,
-                args=("mistral_api_key",),
+                # args=("mistral_api_key",),
+                kwargs={"update_key": "mistral_api_key"},
                 disabled=(st.session_state.appstate.username == 'demo'),
                 type='password' if st.session_state.appstate.username == 'demo' else 'default'
             )
@@ -386,7 +393,8 @@ def settings_stt():
                 index=selected_stt,
                 key="stt",
                 on_change=save_user_preferences,
-                args=("stt",)
+                # args=("stt",)
+                kwargs={"update_key": "stt"},
             )
 
 
@@ -401,7 +409,8 @@ def settings_tts():
             index=selected_tts,
             key="tts",
             on_change=save_user_preferences,
-            args=("tts",)
+            # args=("tts",)
+            kwargs={"update_key": "tts"},
         )
 
 
@@ -410,15 +419,32 @@ def settings_tts():
 
         if st.session_state.get("tts") == "OpenAI TTS":
             cols = st.columns((1, 1))
-            cols[0].radio("Voice model", TTS_VOICE_CHOICES, index=1, key="openai_voice")
-            cols[1].radio("Talking speed", [1.0, 1.2, 1.5], index=1, key="openai_tts_rate")
+            cols[0].radio(
+                "Voice model",
+                options=TTS_VOICE_CHOICES,
+                index=TTS_VOICE_CHOICES.index(st.session_state.user_preferences['openai_voice']),
+                on_change=save_user_preferences,
+                # args=("openai_voice",),
+                kwargs={"update_key": "openai_voice"},
+                key="openai_voice")
+
+            talking_speed_options = [1.0, 1.2, 1.5]
+            cols[1].radio(
+                "Talking speed",
+                options=talking_speed_options,
+                index=talking_speed_options.index(st.session_state.user_preferences['openai_tts_rate']),
+                on_change=save_user_preferences,
+                # args=("openai_tts_rate",),
+                kwargs={"update_key": "openai_tts_rate"},
+                key="openai_tts_rate")
         
             st.text_input(
                 "OpenAI API key",
                 key="openai_api_key",
                 value=st.session_state.user_preferences["openai_api_key"],
                 on_change=save_user_preferences,
-                args=("openai_api_key",),
+                # args=("openai_api_key",),
+                kwargs={"update_key": "openai_api_key"},
                 disabled=(st.session_state.username == 'demo'),
                 type='password' if st.session_state.username == 'demo' else 'default'
             )
@@ -427,8 +453,8 @@ def settings_tts():
 def settings_bottom_buttons():
     col2 = st.columns((1, 1))
     ### LOGOUT BUTTON
-    with col2[0]:
-        st.session_state.authenticator.logout(f"Logout `{st.session_state['username']}`", "main")
+    # with col2[0]:
+        # st.session_state.authenticator.logout(f"Logout `{st.session_state['username']}`", "main")
 
     ### SWITCH SETTINGS LOCATION BUTTON
     with col2[1]:
