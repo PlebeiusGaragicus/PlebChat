@@ -159,7 +159,7 @@ def main_page():
 
 # Define default user preferences
 DEFAULT_USER_PREFERENCES = {
-    "language_model": LLM_OPTIONS.ECHOBOT,
+    "language_model": LLM_OPTIONS.MISTRAL_API,
     "stt": STT_OPTIONS.PYTHON,
     "tts": TTS_OPTIONS.GOOGLE,
     "mistral_safemode": True,
