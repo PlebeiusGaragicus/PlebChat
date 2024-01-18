@@ -30,6 +30,7 @@ from src.common import (
     LLM_OPTIONS,
     STT_OPTIONS,
     TTS_OPTIONS,
+    MISTRAL_MODELS
 )
 
 from src.interface import (
@@ -242,10 +243,11 @@ def model_settings():
         LLM_OPTIONS.MISTRAL_API,
         LLM_OPTIONS.MISTRAL_LOCAL,
         LLM_OPTIONS.GPT3_5,
+        LLM_OPTIONS.ECHOBOT,
     ]
     # if appstate.debug:
-    if os.getenv("DEBUG", False):
-        llm_options.append(LLM_OPTIONS.ECHOBOT)
+    # if os.getenv("DEBUG", False):
+        # llm_options.append(LLM_OPTIONS.ECHOBOT)
     selected_llm_index = llm_options.index(appstate.user_preferences["language_model"])
     with st.container(border=True):
         st.selectbox("🧠 Language Model",
@@ -276,7 +278,7 @@ def model_settings():
 
             st.radio("Mistral model select",
                 key="mistral_model",
-                options=appstate.mistral_models,
+                options=MISTRAL_MODELS,
                 index=appstate.mistral_models.index(appstate.user_preferences["mistral_model"]),
                 on_change=save_user_preferences,
                 args=("mistral_model",)

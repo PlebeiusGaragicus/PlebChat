@@ -16,6 +16,7 @@ PREFERENCES_PATH = pathlib.Path(__file__).parent.parent / "preferences"
 OPENAI_TTS_MODELS = ["echo", "nova", "onyx"]
 TTS_VOICE_CHOICES = ["👱🏼‍♂️", "👱🏻‍♀️", "🧔🏻‍♂️"]
 
+MISTRAL_MODELS = ['mistral-medium', 'mistral-small', 'mistral-tiny']
 
 class LLM_OPTIONS:
     MISTRAL_API = "Mistral API"
