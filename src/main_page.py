@@ -277,7 +277,9 @@ def model_settings():
                 key="mistral_api_key",
                 value=appstate.user_preferences["mistral_api_key"],
                 on_change=save_user_preferences,
-                args=("mistral_api_key",)
+                args=("mistral_api_key",),
+                disabled=(appstate.username == 'demo'),
+                type='password' if appstate.username == 'demo' else 'default'
             )
 
 
