@@ -133,7 +133,8 @@ def main_page():
 
         if speech_draft:
             with st.container(border=True):
-                st.text_input("You said:", value=speech_draft, key="speech_draft_edit")
+                # st.text_input("You said:", value=speech_draft, key="speech_draft_edit")
+                st.text_area("You said:", value=speech_draft, key="speech_draft_edit")
 
                 def user_confirms_speech():
                     st.session_state.speech_confirmed = True
@@ -211,7 +212,7 @@ def main_page():
         if os.getenv("DEBUG", False) == False:
             st.caption("Running in production mode.")
 
-    st.caption(".")
+    st.caption(".") # I was trying to do this so that the page scrolls to the bottom... but I don't think it works.
 
 
 
