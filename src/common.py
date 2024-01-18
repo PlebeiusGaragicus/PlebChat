@@ -2,12 +2,15 @@ import os
 import time
 import json
 import yaml
+import pathlib
 
 import streamlit as st
 
 from mistralai.client import MistralClient
 from mistralai.models.chat_completion import ChatMessage
 
+ASSETS_PATH = pathlib.Path(__file__).parent.parent / "assets"
+PREFERENCES_PATH = pathlib.Path(__file__).parent.parent / "preferences"
 
 # OPENAI_VOICES = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
 OPENAI_TTS_MODELS = ["echo", "nova", "onyx"]
@@ -102,23 +105,14 @@ class ChatAppVars:
             self.api_key_assemblyai = None
 
     def get_debug_generator(self):
-        time.sleep(0.5)
-        # output = [
-        #     DeltaContentChunk("hello "),
-        #     DeltaContentChunk("world! "),
-        #     DeltaContentChunk("I am"),
-        #     DeltaContentChunk(" a chatbot.")
-        # ]
-        # for o in output:
-        #     time.sleep(0.3)
-        #     yield o
+        time.sleep(0.7)
         echo = st.session_state.appstate.chat.messages[-1].content
 
         # split the message into words
         echo = echo.split(" ")
         for e in echo:
             yield DeltaContentChunk(f" {e}")
-            time.sleep(0.05)
+            time.sleep(0.04)
 
     def get_client(self):
         if st.session_state.get('echobot', False):

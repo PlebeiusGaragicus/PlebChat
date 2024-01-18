@@ -1,5 +1,4 @@
 import os
-import pathlib
 import yaml
 
 import streamlit as st
@@ -8,12 +7,9 @@ import streamlit_authenticator as stauth
 import logging
 log = logging.getLogger()
 
-from src.common import init_if_needed, PageRoute, centered_button_trick, center_text
+from src.common import init_if_needed, center_text, ASSETS_PATH, PREFERENCES_PATH
 from src.main_page import main_page
-from src.settings_page import settings_page
 
-# ASSETS_PATH = pathlib.Path(__file__).parent / "assets"
-ASSETS_PATH = pathlib.Path(__file__).parent.parent / "assets"
 
 
 def main():

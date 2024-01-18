@@ -1,4 +1,5 @@
 import base64
+import time
 import io
 import yaml
 from yaml.loader import SafeLoader
@@ -24,6 +25,7 @@ from src.common import (
     center_text,
     centered_button_trick,
     column_fix,
+    PREFERENCES_PATH
 )
 
 from src.interface import (
@@ -148,86 +150,188 @@ def main_page():
             st.caption("Running in production mode.")
 
 
+class LLM_OPTIONS:
+    MISTRAL_API = "Mistral API"
+    MISTRAL_LOCAL = "Mistral (local)"
+    GPT3_5 = "GPT-3.5"
+    ECHOBOT = "echobot" # Debug only
+
+class STT_OPTIONS:
+    PYTHON = "Python SpeechRecognition"
+    ASSEMBLYAI = "AssemblyAI"
+
+class TTS_OPTIONS:
+    GOOGLE = "Google TTS"
+    OPENAI = "OpenAI TTS"
+
+
+# Define default user preferences
+DEFAULT_USER_PREFERENCES = {
+    "language_model": LLM_OPTIONS.ECHOBOT,
+    "sst": STT_OPTIONS.PYTHON,
+    "tts": TTS_OPTIONS.GOOGLE,
+    "mistral_safemode": True,
+    "mistral_model": "mistral-medium",
+    "mistral_api_key": None,
+}
+
+# @st.cache_data()
+def load_user_preferences(username):
+    preferences_file = PREFERENCES_PATH / f"{username}.yaml"
+    try:
+        with open(preferences_file) as f:
+            return yaml.load(f, Loader=SafeLoader)
+    except FileNotFoundError:
+
+        return DEFAULT_USER_PREFERENCES
+
+
+def save_user_preferences(key_to_save=None):
+    appstate = st.session_state.appstate
+    preferences_file = PREFERENCES_PATH / f"{appstate.username}.yaml"
+
+    if key_to_save is None:
+        user_preferences = {
+            "language_model": st.session_state.language_model,
+            "sst": st.session_state.stt,
+            "tts": st.session_state.tts,
+            "mistral_safemode": st.session_state.mistral_safemode,
+            "mistral_model": st.session_state.mistral_model,
+            "mistral_api_key": st.session_state.mistral_api_key,
+        }
+    else:
+        user_preferences = appstate.user_preferences
+        user_preferences[key_to_save] = st.session_state[key_to_save]
+
+    with open(preferences_file, "w") as f:
+        yaml.dump(user_preferences, f)
+
+    del appstate.user_preferences
+    # load_user_preferences.clear_cache()
+    st.toast("User preferences saved!")
+    # st.balloons()
+
 
 def model_settings():
     appstate = st.session_state.appstate
 
+    # if 'user_preferences' not in st.session_state:
+    # #     appstate.user_preferences = load_user_preferences(appstate.username)
+    #     try:
+    #         appstate.user_preferences = yaml.load(open("user_preferences.yaml"), Loader=SafeLoader)
+    #     except FileNotFoundError:
+    #         user_preferences = {}
+    #         # write to file
+    #         with open("user_preferences.yaml", "w") as f:
+    #             yaml.dump(user_preferences, f)
+    #         st.error("user_preferences.yaml not found.  Creating a new one.")
+    if 'user_preferences' not in st.session_state:
+        try:
+            preferences_file = PREFERENCES_PATH / f"{appstate.username}.yaml"
+            appstate.user_preferences = yaml.load(open(preferences_file), Loader=SafeLoader)
+        except FileNotFoundError:
+            appstate.user_preferences = DEFAULT_USER_PREFERENCES  # Use default preferences
+            st.error("user preferences yaml file not found. Creating a new one with default settings.")
+            with open(preferences_file, "w") as f:
+                yaml.dump(appstate.user_preferences, f)
 
-    LLM_options = [
-        "Mistral",
-        "GPT-3.5",
+
+    ### LANGUAGE MODEL ###
+    llm_options = [
+        LLM_OPTIONS.MISTRAL_API,
+        LLM_OPTIONS.MISTRAL_LOCAL,
+        LLM_OPTIONS.GPT3_5,
     ]
-
     if appstate.debug:
-        LLM_options.append("echobot")
-
-    # users_preferred_llm = get_user_llm_preference()
-    users_preferred_llm = "Mistral"
-    # get index of "Mistral" in LLM_options
-    selected_llm = len(LLM_options) - 1 if appstate.debug else LLM_options.index(users_preferred_llm)
-
+        llm_options.append(LLM_OPTIONS.ECHOBOT)
+    selected_llm_index = llm_options.index(appstate.user_preferences["language_model"])
     with st.container(border=True):
         st.selectbox("🧠 Language Model",
-                    options=LLM_options,
-                    index=selected_llm,
+                    options=llm_options,
+                    index=selected_llm_index,
                     key="language_model",
+                    on_change=save_user_preferences,
+                    args=("language_model",)
                 )
 
-        if st.session_state.language_model == "echobot":
+        if appstate.user_preferences["language_model"] == LLM_OPTIONS.ECHOBOT:
             st.write("no settings for `echobot`")
 
-        elif st.session_state.language_model == "GPT-3.5":
+        elif appstate.user_preferences["language_model"] == LLM_OPTIONS.GPT3_5:
             st.write("no settings yet")
 
-        elif st.session_state.language_model == "Mistral":
+        elif appstate.user_preferences["language_model"] == LLM_OPTIONS.MISTRAL_API:
             st.toggle(
                 "Safe mode",
-                key="mistrel_safemode",
+                key="mistral_safemode",
                 value=True,
+                on_change=save_user_preferences,
+                args=("mistral_safemode",),
                 # help="This turns mistral into a little bitch... you don't like bitches, do you?",
                 help="Safe mode is not yet implemented by mistral ai",
-                disabled=True
+                # disabled=True
             )
 
-            st.radio(
-                "Mistral",
+            st.radio("Mistral model select",
+                key="mistral_model",
                 options=appstate.mistral_models,
-                index=2 if appstate.debug else 0,
-                key="mistrel_model",
+                index=appstate.mistral_models.index(appstate.user_preferences["mistral_model"]),
+                on_change=save_user_preferences,
+                args=("mistral_model",)
             )
-            # st.text_input("API key", key="api_key_mistral", value=st.session_state["api_key_mistral"])
 
+            st.text_input(
+                "Mistral API key",
+                key="mistral_api_key",
+                value=appstate.user_preferences["mistral_api_key"],
+                on_change=save_user_preferences,
+                args=("mistral_api_key",)
+            )
+
+
+
+    ### SPEECH TO TEXT ###
     with st.container(border=True):
+        stt_options = [STT_OPTIONS.PYTHON, STT_OPTIONS.ASSEMBLYAI]
+        selected_stt = stt_options.index(appstate.user_preferences["sst"])
         st.selectbox(
                 label="🗣️🤖 Voice transcription",
-                options=["Python SpeechRecognition"],
-                index=0,
-                key="stt"
+                options=stt_options,
+                index=selected_stt,
+                key="stt",
+                on_change=save_user_preferences,
+                args=("sst",)
             )
 
+
+
+    ### TEXT TO SPEECH ###
     with st.container(border=True):
-        # st.caption("Text to speech settings")
-        if appstate.api_key_openai in [None, ""]:
-            st.info("Enter OpenAI key in settings to enable text-to-speech")
-
-
-        # st.toggle("gTTS", key="gtts", value=appstate.debug, help="Use gTTS (Google Text to Speech) instead of OpenAI's TTS")
+        tts_options = [TTS_OPTIONS.GOOGLE, TTS_OPTIONS.OPENAI]
+        selected_tts = tts_options.index(appstate.user_preferences["tts"])
         st.selectbox(
             label="🤖💬 Text to speech",
-            options=["Google TTS", "OpenAI TTS"],
-            index=0,
-            key="tts"
+            options=tts_options,
+            index=selected_tts,
+            key="tts",
+            on_change=save_user_preferences,
+            args=("tts",)
         )
 
 
         if st.session_state.get("tts") == "Google TTS":
             st.caption("No settings for Google TTS.  It's free and it works ;)")
+
         if st.session_state.get("tts") == "OpenAI TTS":
+            if appstate.api_key_openai in [None, ""]:
+                st.info("Enter OpenAI key in settings to enable text-to-speech")
+
             cols = st.columns((1, 1))
             cols[0].radio("Voice model", TTS_VOICE_CHOICES, index=1, key="openai_voice")
             cols[1].radio("Talking speed", [1.0, 1.2, 1.5], index=1, key="tts_rate")
 
 
+    ### LOGOUT
     st.session_state.authenticator.logout(f"Logout `{st.session_state['username']}`", "main")
 
 
