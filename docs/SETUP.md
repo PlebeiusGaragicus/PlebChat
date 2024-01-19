@@ -42,31 +42,28 @@ pip install -r requirements.txt
 cat << EOF > auth.yaml
 credentials:
   usernames:
-    satoshi:
-      email: satoshi@nothing.nowhere
-      name: Satoshi Nakamoto
-      password: $2b$12$PuMoR5TPJUbvIA9tIAG03O4MaYyQhCzGq61MtVQ7.Hi4W5isFo.3S
-    another_user:
-      email: hello@nothing.nowhere
-      name: Another User
-      password: $2b$12$E/D/AFoBnmk66ryLjTFePuND9JI8BfBMxyAinwCycM4YMgujBvOhu
+    root:
+      email: root@plebby.me
+      name: root
+      password: $2b$12$4bvXCx.ioRuuZi.tTwlKh./5IfyMox/gEC4JbAkjT72XYpuDquVB6
 cookie:
   expiry_days: 7
-  key: my_streamlit_user_auth_key
-  name: my_streamlit_user_auth
+  key: plebchat_auth_widget_key
+  name: plebchat_auth
 preauthorized:
   emails:
-    - satoshi@nothing.nowhere
+    - root@plebby.me
 EOF
 
 nano auth.yaml
 ```
+**Note:** A default `root` user is created with a password of `eatyourveggies`.  Log in to root and (1) change this default password as well as (2) create additional users.  If you create a `demo` user account then API keys will not be able to be edited or viewed and you can safety allow others to user your app.  Editing of these API keys by root is not yet enabled.  soon...
 
-Note: The passwords are actually "salted" hashes.  Do not put the actual password in the .yaml file.
+The passwords are actually "salted" hashes.  Do not put the actual password in the .yaml file.
 
 To save an exit - use Ctrl-X, accept changes with 'y' and press 'Enter'
 
-## How do I determine the password hash?
+*How do I generated the salted password hash?*
 
 Good question - run a Python REPL session and enter this code:
 
