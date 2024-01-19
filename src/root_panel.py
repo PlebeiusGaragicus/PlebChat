@@ -1,3 +1,6 @@
+# Streamlit-Authenticator, Part 2: Adding advanced features to your authentication component
+# https://blog.streamlit.io/streamlit-authenticator-part-2-adding-advanced-features-to-your-authentication-component/
+
 import os
 import json
 import yaml
@@ -7,23 +10,15 @@ from src.chat_history import (
     deserialize_messages
 )
 
-# from src.interface import centered_button_trick
-
-# Streamlit-Authenticator, Part 2: Adding advanced features to your authentication component
-# https://blog.streamlit.io/streamlit-authenticator-part-2-adding-advanced-features-to-your-authentication-component/
-
-
 
 def root_panel():
-    # with centered_button_trick():
-    # st.write("# 🌲 I am groot!")
     st.write("# 🤴🏻 ROOT PANEL")
     st.session_state.authenticator.logout(f"Logout `{st.session_state.username}`", "main")
     st.header("", divider="rainbow")
 
     if 'toast_message' in st.session_state:
+        # st.toast(st.session_state.toast_message)
         st.toast(st.session_state.toast_message)
-
 
     with open("./auth.yaml") as file:
         config = yaml.safe_load(file)
@@ -33,6 +28,8 @@ def root_panel():
     with st.container(border=True, height=400):
         st.write(list_of_usernames)
 
+
+
     ### CREATE USER
     with st.form("new_user_form", clear_on_submit=True, border=True):
         st.write("## Create user")
@@ -41,13 +38,25 @@ def root_panel():
         st.text_input("Password", key="new_password")
 
         if st.form_submit_button("🐣 CREATE USER"):
-            if st.session_state.new_username in [None, ""] or \
-                st.session_state.new_password in [None, ""]:
-                    st.error("Enter a username and password")
-            else:
-                 create_new_user(list_of_usernames=list_of_usernames,
-                                 username=st.session_state.new_username,
-                                 password=st.session_state.new_password)
+            create_new_user(list_of_usernames=list_of_usernames,
+                            username=st.session_state.new_username,
+                            password=st.session_state.new_password)
+
+    ### CHANGE PASSWORD
+    with st.form("change_password", clear_on_submit=True, border=True):
+        st.write("## Change a password")
+
+        st.selectbox("Username", options=list_of_usernames, key="user_to_change", index=None)
+        # user a password type so that autocorrect doesn't kick in.. lame I know...
+        st.text_input("Password", key="chpass_password", type="password")
+
+        if st.form_submit_button("🔐 CHANGE PASSWORD"):
+            create_new_user(list_of_usernames=list_of_usernames,
+                            username=st.session_state.user_to_change,
+                            password=st.session_state.chpass_password,
+                            force_for_password_change=True)
+
+    del list_of_usernames['root'] # DO NOT show the root user in the following selectboxes
 
     ### DELETE USER
     with st.form("delete_user", clear_on_submit=True, border=True):
@@ -60,13 +69,9 @@ def root_panel():
                 else:
                     delete_user(st.session_state.user_to_delete)
 
-    ### READ USER CHATS
-    # with st.form("read_user_chats", clear_on_submit=True, border=True):
-    #     st.write("## Read user's chat history")
-    #     st.selectbox("Username", options=list_of_usernames, key="user_to_snoop", index=None)
 
-    #     if st.form_submit_button(f"🤓 Load user's chats"):
-    #         load_user_chat_history(st.session_state.user_to_snoop)
+    ### READ USER CHATS
+    # Note: we create the form in this manner to prevent errors that occur when we "nest" elements
     read_user_chats_form = st.form("read_user_chats", clear_on_submit=True, border=True)
     read_user_chats_form.write("## Read user's chat history")
     read_user_chats_form.selectbox("Username", options=list_of_usernames, key="user_to_snoop", index=None)
@@ -79,12 +84,21 @@ def root_panel():
 
 
 
-def create_new_user(list_of_usernames, username: str, password: str):
-    # check if username is unique
-    if username in list_of_usernames:
-         st.error(f"User: `{username}` already exists")
-         return
-    
+def create_new_user(list_of_usernames, username: str, password: str, force_for_password_change=False):
+    if force_for_password_change is False:
+        if st.session_state.new_username == 'root':
+            st.error("Can't create a `root` user, dummy!")
+            return
+
+        if username in [None, ""] or st.session_state.new_password in [None, ""]:
+            st.error("Enter a username and password")
+            return
+
+        # check if username is unique
+        if username in list_of_usernames:
+            st.error(f"User: `{username}` already exists")
+            return
+
     import streamlit_authenticator as stauth
     password_hash = stauth.Hasher([password]).generate()[0]
 
@@ -93,11 +107,16 @@ def create_new_user(list_of_usernames, username: str, password: str):
 
     # add user to list and save to file
     config['credentials']['usernames'][username] = {'password': password_hash}
+    config['credentials']['usernames'][username]['email'] = f"{username}@plebby.me"
+    config['credentials']['usernames'][username]['name'] = f"{username}"
 
     with open("./auth.yaml", 'w') as file:
         yaml.dump(config, file)
-    
-    st.session_state.toast_message = f"created user: `{username}`"
+
+    if force_for_password_change:
+        st.session_state.toast_message = f"changed password for: `{username}`"
+    else:
+        st.session_state.toast_message = f"created user: `{username}`"
     st.rerun()
 
 
@@ -118,7 +137,6 @@ def delete_user(username: str):
 
 
 
-
 def load_user_chat_history(username: str):
     if username in [None, ""]:
         st.session_state.toast_message = "Select a user"
@@ -127,14 +145,10 @@ def load_user_chat_history(username: str):
 
     runlog_dir = os.path.join(os.getcwd(), "runlog", username)
     st.write(f"`{runlog_dir}`")
-    # os.makedirs(runlog_dir, exist_ok=True)
 
     chat_history = []
     runlogs = os.listdir(runlog_dir)
     runlogs.sort(reverse=True)
-    # truncated = len(runlogs) > chat_history_depth
-    # if truncated:
-    #     runlogs = runlogs[:self.chat_history_depth]
     for runlog in runlogs:
         with open(os.path.join(runlog_dir, runlog), "r") as f:
             try:
@@ -149,21 +163,10 @@ def load_user_chat_history(username: str):
         for ch in chat_history:
             with st.expander(ch[0], expanded=False):
                 load_user_chat(runlog_dir=runlog_dir, chat_filename=ch[1])
-                # st.button(f"Load `{ch[1]}`", on_click=load_user_chat, args=(runlog_dir, ch[1],))
 
-        # for ch in chat_history:
-        #     # st.write(description, runlog)
-        #     st.button(f"Chat: {ch[0]}")
 
 
 def load_user_chat(runlog_dir, chat_filename):
-    with open(os.path.join(runlog_dir, chat_filename), "r") as f:
-        file_contents = f.read()
-
-    """ Load a previous conversation from a runlog file"""
-
-    # load the runlog file
-    # os.path.join(os.getcwd(), "runlog", st.session_state.username)
     with open(os.path.join(runlog_dir, chat_filename), "r") as f:
         file_contents = json.load(f)
 
