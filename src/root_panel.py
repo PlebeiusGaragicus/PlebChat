@@ -3,7 +3,16 @@ import json
 import yaml
 import streamlit as st
 
-from src.interface import centered_button_trick
+from src.chat_history import (
+    deserialize_messages
+)
+
+# from src.interface import centered_button_trick
+
+# Streamlit-Authenticator, Part 2: Adding advanced features to your authentication component
+# https://blog.streamlit.io/streamlit-authenticator-part-2-adding-advanced-features-to-your-authentication-component/
+
+
 
 def root_panel():
     # with centered_button_trick():
@@ -139,8 +148,28 @@ def load_user_chat_history(username: str):
     with st.container(border=True):
         for ch in chat_history:
             with st.expander(ch[0], expanded=False):
-                st.write("chat history here...")
+                load_user_chat(runlog_dir=runlog_dir, chat_filename=ch[1])
+                # st.button(f"Load `{ch[1]}`", on_click=load_user_chat, args=(runlog_dir, ch[1],))
 
         # for ch in chat_history:
         #     # st.write(description, runlog)
         #     st.button(f"Chat: {ch[0]}")
+
+
+def load_user_chat(runlog_dir, chat_filename):
+    with open(os.path.join(runlog_dir, chat_filename), "r") as f:
+        file_contents = f.read()
+
+    """ Load a previous conversation from a runlog file"""
+
+    # load the runlog file
+    # os.path.join(os.getcwd(), "runlog", st.session_state.username)
+    with open(os.path.join(runlog_dir, chat_filename), "r") as f:
+        file_contents = json.load(f)
+
+        messages = file_contents["messages"]
+        messages = [deserialize_messages(m) for m in messages]
+
+        for message in messages:
+            with st.chat_message(message.role):
+                st.markdown(message.content)
