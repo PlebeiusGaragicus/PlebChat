@@ -28,6 +28,7 @@ class ChatAppVars:
         self.username = st.session_state.username
 
         self.client = None
+        self.chat_history_depth = 20
 
         # make sure the runlog directory exists
         self.runlog_dir = os.path.join(os.getcwd(), "runlog", self.username)
@@ -84,29 +85,31 @@ class ChatAppVars:
     def new_thread(self):
         self.chat = ChatThread()
 
+    def increase_chat_history_depth(self):
+        self.chat_history_depth += 20
+        self.load_chat_history()
+
     def load_chat_history(self):
         self.chat_history = []
         runlogs = os.listdir(self.runlog_dir)
         runlogs.sort(reverse=True)
-        truncated = len(runlogs) > 40
-        if truncated:
-            runlogs = runlogs[:40]
+        self.truncated = len(runlogs) > self.chat_history_depth
+        if self.truncated:
+            runlogs = runlogs[:self.chat_history_depth]
         for runlog in runlogs:
             with open(os.path.join(self.runlog_dir, runlog), "r") as f:
                 try:
                     file_contents = json.load(f)
                     description = file_contents["description"]
                 except json.decoder.JSONDecodeError:
+                    # file load error - skip this file
                     continue
-                # except KeyError:
-                    # description = "no description"
-                    # TODO ##################################################################
-                    # TODO ################################################################## fix the None
             # st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
             self.chat_history.append((description, runlog))
-            # print(self.chat_history)
-        if truncated:
-            st.caption("Only showing last 40 conversations")
+        # if self.truncated:
+        #     with st.sidebar:
+        #         # st.caption("Only showing last 20 conversations")
+        #         st.button("Show more")
 
 
 

@@ -282,6 +282,9 @@ def main_page():
         # with st.container(border=True):
         for description, runlog in appstate.chat_history:
             st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
+        if appstate.truncated:
+            st.caption(f"Only showing last {appstate.chat_history_depth} conversations")
+            st.button("Load more...", use_container_width=True, key="load_more_button", on_click=appstate.increase_chat_history_depth)
 
         st.write("---")
         st.session_state.authenticator.logout(f"Logout `{st.session_state['username']}`", "main")
