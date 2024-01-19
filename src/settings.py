@@ -103,7 +103,7 @@ def save_user_preferences(update_key=None, toggle_key=None):
     if update_key is not None:
         st.session_state.user_preferences[update_key] = st.session_state[update_key]
 
-    preferences_file = PREFERENCES_PATH / f"{st.session_state.appstate.username}.yaml"
+    preferences_file = PREFERENCES_PATH / f"{st.session_state.username}.yaml"
     with open(preferences_file, "w") as f:
         yaml.dump(st.session_state.user_preferences, f)
 
@@ -161,8 +161,8 @@ def settings_llm():
             value=st.session_state.user_preferences["mistral_api_key"],
             on_change=save_user_preferences,
             kwargs={"update_key": "mistral_api_key"},
-            disabled=(st.session_state.appstate.username == 'demo'),
-            type='password' if st.session_state.appstate.username == 'demo' else 'default'
+            disabled=(st.session_state.username == 'demo'),
+            type='password' if st.session_state.username == 'demo' else 'default'
         )
 
 
@@ -246,7 +246,6 @@ def settings_bottom_buttons():
     ### LOGOUT BUTTON
     with col2[0]:
         st.toggle("Confirm stt", key="confirm_stt", value=False)
-        # st.session_state.authenticator.logout(f"Logout `{st.session_state['username']}`", "main")
 
     ### SWITCH SETTINGS LOCATION BUTTON
     with col2[1]:

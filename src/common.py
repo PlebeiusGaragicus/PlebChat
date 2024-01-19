@@ -15,34 +15,21 @@ ASSETS_PATH = pathlib.Path(__file__).parent.parent / "assets"
 
 class ChatThread:
     def __init__(self):
-        # self.session_start_time = None
         self.session_start_time = time.strftime("%Y%m%d_%H%M%S", time.localtime())
         self.description = None
         self.messages: list[ChatMessage] = []
-        # self.not_yet_saved = True
 
 
 
 class ChatAppVars:
     def __init__(self):
-        self.username = st.session_state.username
-
         self.client = None
-        self.chat_history_depth = 20
-
-        # make sure the runlog directory exists
-        self.runlog_dir = os.path.join(os.getcwd(), "runlog", self.username)
-        os.makedirs(self.runlog_dir, exist_ok=True)
-
-        # self.session_start_time = time.strftime("%Y%m%d_%H%M%S", time.localtime())
 
         self.chat = ChatThread()
-        self.chat_history = None
-        self.load_chat_history()
 
-        # SETTINGS
-        self.debug = os.getenv("DEBUG", False)
-        self.mistral_models = ['mistral-medium', 'mistral-small', 'mistral-tiny']
+        self.chat_history_depth = 20
+        self.chat_history = None # the list of past conversations list of (description, runlog file name)
+        self.load_chat_history()
 
 
     def get_debug_generator(self):
@@ -62,8 +49,6 @@ class ChatAppVars:
             if st.session_state.mistral_api_key in [None, ""]:
                 raise Exception("Mistral API key not set.")
 
-            # if 'client' not in st.session_state.:
-            #     st.session_state.client = MistralClient(api_key=self.api_key_mistral)
             if self.client is None:
                 self.client = MistralClient(api_key=st.session_state.mistral_api_key) # TODO add error handling here
 
@@ -90,28 +75,25 @@ class ChatAppVars:
         self.load_chat_history()
 
     def load_chat_history(self):
+        # runlog_dir = os.path.join(os.getcwd(), "runlog", st.session_state.username)
+        # make sure the runlog directory exists
+        os.makedirs(st.session_state.runlog_dir, exist_ok=True)
+
         self.chat_history = []
-        runlogs = os.listdir(self.runlog_dir)
+        runlogs = os.listdir(st.session_state.runlog_dir)
         runlogs.sort(reverse=True)
         self.truncated = len(runlogs) > self.chat_history_depth
         if self.truncated:
             runlogs = runlogs[:self.chat_history_depth]
         for runlog in runlogs:
-            with open(os.path.join(self.runlog_dir, runlog), "r") as f:
+            with open(os.path.join(st.session_state.runlog_dir, runlog), "r") as f:
                 try:
                     file_contents = json.load(f)
                     description = file_contents["description"]
                 except json.decoder.JSONDecodeError:
                     # file load error - skip this file
                     continue
-            # st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
             self.chat_history.append((description, runlog))
-        # if self.truncated:
-        #     with st.sidebar:
-        #         # st.caption("Only showing last 20 conversations")
-        #         st.button("Show more")
-
-
 
 
 
@@ -126,6 +108,4 @@ class Delta:
 
 class DeltaContentChunk:
     def __init__(self, word_chunk):
-        self.choices = [
-                Delta(word_chunk),
-            ]
+        self.choices = [ Delta(word_chunk) ]

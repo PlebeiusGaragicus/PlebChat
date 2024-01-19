@@ -58,24 +58,16 @@ def TTS(text, language='en', slow=False):
                 from gtts import gTTS, gTTSError
                 tts = gTTS(text=text, lang=language, slow=slow)
 
-                # Create a BytesIO object
                 with io.BytesIO() as file_stream:
-                    # Write the speech data to the file stream
-                    tts.write_to_fp(file_stream)
-
-                    # Move to the beginning of the file stream
-                    file_stream.seek(0)
-
-                    # Read the audio data and encode it in base64
-                    audio_base64 = base64.b64encode(file_stream.read()).decode('utf-8')
+                    tts.write_to_fp(file_stream) # Write the speech data to the file stream
+                    file_stream.seek(0) # Move to the beginning of the file stream
+                    audio_base64 = base64.b64encode(file_stream.read()).decode('utf-8') # Read the audio data and encode it in base64
                 autoplay_audio(audio_base64)
             except gTTSError as e:
                 st.error(e)
                 st.error(f"Could not create audio: ")
 
         else:
-            # if "openai_client" not in st.session_state:
-            #     st.session_state.openai_client = 
             openai_client = OpenAI(api_key=st.session_state.appstate.api_key_openai)
 
 

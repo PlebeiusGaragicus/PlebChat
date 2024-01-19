@@ -2,7 +2,7 @@ if __name__ == "__main__":
     import dotenv
     dotenv.load_dotenv()
 
-    from src.main import home_page
+    from src.login import login_router_page
 
     from src import logger
     logger.setup_logging()
@@ -11,4 +11,4 @@ if __name__ == "__main__":
     # logging.getLogger("matplotlib").setLevel(logging.WARNING)
 
     # import pdb; pdb.set_trace()
-    home_page()
+    login_router_page()

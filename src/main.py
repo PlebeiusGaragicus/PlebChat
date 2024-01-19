@@ -48,68 +48,24 @@ from src.interface import (
 from src.tts import TTS
 
 
-def home_page():
-    st.set_page_config(
-        page_title="DEBUG!" if os.getenv("DEBUG", False) else "Pleb Chat",
-        page_icon=os.path.join(ASSETS_PATH, "favicon.ico"),
-        layout="centered", # vs wide
-        initial_sidebar_state="auto",
-        # menu_items={"About": "https://plebby.me/"} # TODO
-    )
-
-    try:
-        with open("./auth.yaml") as file:
-            config = yaml.safe_load(file)
-    except FileNotFoundError:
-        st.error("This instance of PlebChat has not been configured.  Missing `auth.yaml` file.")
-        st.stop()
-
-    st.session_state.authenticator = stauth.Authenticate(
-        config["credentials"],
-        config["cookie"]["name"],
-        config["cookie"]["key"],
-        config["cookie"]["expiry_days"],
-        config["preauthorized"],
-    )
-
-    if st.session_state["authentication_status"] is None:
-        # with centered_button_trick():
-        #     st.image(os.path.join(ASSETS_PATH, "assistant2sm.png"))
-        # center_text("p", "🗣️🤖💬", size=60) # or h1, whichever
-        if 'appstate' in st.session_state:
-            del st.session_state['appstate']
-            st.error("Application state has been cleared!")
-
-    if st.session_state["authentication_status"] is False:
-        st.error("Username/password is incorrect")
-
-    # https://blog.streamlit.io/streamlit-authenticator-part-1-adding-an-authentication-component-to-your-app/
-    # https://github.com/mkhorasani/Streamlit-Authenticator?ref=blog.streamlit.io
-    st.session_state.authenticator.login("PlebChat login", "main")
-
-    if st.session_state["authentication_status"]:
-        init_if_needed()
-
-        # from src.main_page import main_page
-        main_page()
 
 
 
 def init_if_needed():
+    st.session_state.runlog_dir = os.path.join(os.getcwd(), "runlog", st.session_state.username)
+
     # initialize the appstate on first run
     if 'appstate' not in st.session_state:
         try:
             st.session_state['appstate']: ChatAppVars = ChatAppVars()
         except Exception as e:
-            st.warning("No Mistral API key found.  Enter one in the settings page.")
             st.error(e)
+            st.exception(e)
             st.stop()
-        
-        ### SETUP STARTING ROUTE
-        # st.session_state["route"] = PageRoute.MAIN
 
-        if 'speak_this' not in st.session_state:
-            st.session_state.speak_this = None
+
+    if 'speak_this' not in st.session_state:
+        st.session_state.speak_this = None
 
 
 
@@ -287,7 +243,7 @@ def main_page():
             st.button("Load more...", use_container_width=True, key="load_more_button", on_click=appstate.increase_chat_history_depth)
 
         st.write("---")
-        st.session_state.authenticator.logout(f"Logout `{st.session_state['username']}`", "main")
+        st.session_state.authenticator.logout(f"Logout `{st.session_state.username}`", "main")
         st.caption(f"running version `{VERSION}`")
         if os.getenv("DEBUG", False) == False:
             st.caption("Running in production mode.")

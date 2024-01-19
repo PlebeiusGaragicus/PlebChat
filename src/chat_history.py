@@ -11,16 +11,14 @@ from src.settings import LLM_OPTIONS
 
 
 def serialize_messages(msg: ChatMessage):
-    s = {
-            "role": msg.role,
-            "content": msg.content
-        }
-    return s
+    return {
+        "role": msg.role,
+        "content": msg.content
+    }
 
 
 def deserialize_messages(msg):
-    d = ChatMessage(role=msg["role"], content=msg["content"])
-    return d
+    return ChatMessage(role=msg["role"], content=msg["content"])
 
 
 
@@ -30,7 +28,8 @@ def load_convo(runlog):
     st.toast(f"Loading {runlog}...")
 
     # load the runlog file
-    with open(os.path.join(st.session_state.appstate.runlog_dir, runlog), "r") as f:
+    os.path.join(os.getcwd(), "runlog", st.session_state.username)
+    with open(os.path.join(st.session_state.runlog_dir, runlog), "r") as f:
         file_contents = json.load(f)
 
         messages = file_contents["messages"]
@@ -44,7 +43,7 @@ def load_convo(runlog):
 def delete_this_chat():
     """ Delete the current chat history """
 
-    runlog_file = os.path.join(st.session_state.appstate.runlog_dir, f'{st.session_state.appstate.chat.session_start_time}.txt')
+    runlog_file = os.path.join(st.session_state.runlog_dir, f'{st.session_state.appstate.chat.session_start_time}.txt')
     os.remove(runlog_file)
 
     st.session_state.appstate.new_thread()
@@ -85,7 +84,6 @@ def save_chat_history() -> bool:
 
     new_chat_first_save = False
 
-    # if st.session_state['description'] == None:
     if st.session_state.appstate.chat.description == None:
         new_chat_first_save = True
         desc = get_description()
@@ -99,7 +97,7 @@ def save_chat_history() -> bool:
     messages = [serialize_messages(m) for m in st.session_state.appstate.chat.messages]
 
     # save the chat history to a file
-    runlog_file = os.path.join(st.session_state.appstate.runlog_dir, f'{st.session_state.appstate.chat.session_start_time}.txt')
+    runlog_file = os.path.join(st.session_state.runlog_dir, f'{st.session_state.appstate.chat.session_start_time}.txt')
     with open(runlog_file, "w") as f:
         json.dump(
             {
