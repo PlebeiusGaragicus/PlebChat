@@ -98,6 +98,11 @@ def create_new_user(list_of_usernames, username: str, password: str, force_for_p
         if username in list_of_usernames:
             st.error(f"User: `{username}` already exists")
             return
+    else:
+        # we are forcing a password change on an existing user
+        if username not in list_of_usernames:
+            st.error(f"User: `{username}` does not exist")
+            return
 
     import streamlit_authenticator as stauth
     password_hash = stauth.Hasher([password]).generate()[0]
@@ -147,7 +152,12 @@ def load_user_chat_history(username: str):
     st.write(f"`{runlog_dir}`")
 
     chat_history = []
-    runlogs = os.listdir(runlog_dir)
+    try:
+        runlogs = os.listdir(runlog_dir)
+    except FileNotFoundError:
+        st.error(f"No chat history for user: `{username}`")
+        return
+
     runlogs.sort(reverse=True)
     for runlog in runlogs:
         with open(os.path.join(runlog_dir, runlog), "r") as f:
@@ -158,6 +168,10 @@ def load_user_chat_history(username: str):
                 # file load error - skip this file
                 continue
         chat_history.append((description, runlog))
+
+    if len(chat_history) == 0:
+        st.error(f"No chat history for user: `{username}`")
+        return
 
     with st.container(border=True):
         for ch in chat_history:
