@@ -51,7 +51,8 @@ def TTS(text, language='en', slow=False):
 
     with st.spinner("💬 Generating speech..."):
         # if os.getenv("DEBUG", False):
-        if st.session_state.get("gtts", True):
+        if st.session_state.user_preferences["tts"] == TTS_OPTIONS.GOOGLE:
+        # if st.session_state.get("gtts", True):
             # Create a gTTS object
             # TODO - attempting to do delayed imports for speed (not sure if this works)
             try:
@@ -67,9 +68,12 @@ def TTS(text, language='en', slow=False):
                 st.error(e)
                 st.error(f"Could not create audio: ")
 
-        else:
-            openai_client = OpenAI(api_key=st.session_state.appstate.api_key_openai)
 
+        if st.session_state.user_preferences["tts"] == TTS_OPTIONS.OPENAI:
+            if st.session_state.user_preferences["openai_api_key"] in [None, ""]:
+                raise Exception("OpenAI API key not set.")
+
+            openai_client = OpenAI(api_key=st.session_state.user_preferences["openai_api_key"])
 
             voice = st.session_state.openai_voice
             # OPENAI_TTS_MODELS = ["echo", "onyx", "nova"]
