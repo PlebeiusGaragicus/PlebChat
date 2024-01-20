@@ -135,9 +135,7 @@ class MistralAPI(AbstractModel):
 class MistralLocal(AbstractModel):
     def __init__(self):
         super().__init__("Mistral Local")
-        # import ollama # TODO why the fuck doesn't it work here?
         self.client = None
-
 
     def get_client(self):
         import ollama
@@ -148,16 +146,41 @@ class MistralLocal(AbstractModel):
                 stream=True
             )
 
+    @classmethod
+    def get_streamed_tokens(cls, chunk):
+        for c in chunk:
+            yield c['message']['content']
+
+    def get_description(self):
+        content = st.session_state.appstate.chat.messages[0].content
+        return " ".join(content.split(" ")[:4])
+
+
+
+class Llama2Local(AbstractModel):
+    def __init__(self):
+        super().__init__("Llama2 Local")
+        self.client = None
+
+    def get_client(self):
+        import ollama
+        smsg = [serialize_messages(m) for m in st.session_state.appstate.chat.messages]
+        return ollama.chat(
+                model='llama2',
+                messages=smsg,
+                stream=True
+            )
 
     @classmethod
     def get_streamed_tokens(cls, chunk):
         for c in chunk:
             yield c['message']['content']
 
-
     def get_description(self):
         content = st.session_state.appstate.chat.messages[0].content
         return " ".join(content.split(" ")[:4])
+
+
 
 
 

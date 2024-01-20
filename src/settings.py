@@ -2,8 +2,17 @@ import os
 import yaml
 import pathlib
 
-
 import streamlit as st
+
+from src.abstract_model import (
+    Echobot,
+    UppercaseBot,
+    MistralAPI,
+    MistralLocal,
+    Llama2Local,
+    OpenAIAPI
+)
+
 
 PREFERENCES_PATH = pathlib.Path(__file__).parent.parent / "preferences"
 
@@ -16,6 +25,7 @@ MISTRAL_MODELS = ['mistral-medium', 'mistral-small', 'mistral-tiny']
 class LLM_OPTIONS:
     MISTRAL_API = "Mistral API"
     MISTRAL_LOCAL = "Mistral (local)"
+    LLAMA2_LOCAL = "Llama2 (local)"
     OPENAI = "OpenAI"
     ECHOBOT = "echobot" # Debug only
     UPPERCASEBOT = "uppercasebot" # Debug only
@@ -104,6 +114,7 @@ def settings_llm():
             LLM_OPTIONS.ECHOBOT,
             LLM_OPTIONS.UPPERCASEBOT,
             LLM_OPTIONS.MISTRAL_LOCAL,
+            LLM_OPTIONS.LLAMA2_LOCAL,
             LLM_OPTIONS.MISTRAL_API,
             LLM_OPTIONS.OPENAI,
         ]
@@ -139,6 +150,9 @@ def settings_llm():
 
     elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.MISTRAL_LOCAL:
         st.caption("no settings for local `mistral` - good luck!")
+
+    elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.LLAMA2_LOCAL:
+        st.caption("no settings for local `llama2` - good luck!")
 
     elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.MISTRAL_API:
         st.toggle(
@@ -264,8 +278,6 @@ def settings_bottom_buttons():
 
 
 def init_model():
-    from src.abstract_model import Echobot, UppercaseBot, MistralAPI, MistralLocal, OpenAIAPI
-
     if 'model' in st.session_state:
         return
 
@@ -280,6 +292,9 @@ def init_model():
 
     if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.MISTRAL_LOCAL:
         st.session_state.model = MistralLocal()
+
+    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.LLAMA2_LOCAL:
+        st.session_state.model = Llama2Local()
 
     if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.OPENAI:
         st.session_state.model = OpenAIAPI()
