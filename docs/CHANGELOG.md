@@ -1,10 +1,18 @@
 # CHANGE LOG
 
-*NEXT RELEASE* -> soon...™️
+## 0.2.0
+
+- Ollama integration.  Hard-coded mistral and llama models.  (Only enabled in debug mode, as my server is a weak little toy)
+- refactored code to create model classes
+
+## 0.1.0
+
+- root panel: a default `root` user is created with a password of `eatyourveggies`.  You can manage all users from here, but not their settings (yet)
+- refactored settings and tidied code
 
 ## 0.0.9
 
-- Moved settings to main chat area and off of the sidebar!
+- settings panel can be toggled between the main chat area and the sidebar!
 
 ## 0.0.8
 
