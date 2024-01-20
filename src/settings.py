@@ -1,3 +1,4 @@
+import os
 import yaml
 import pathlib
 
@@ -118,13 +119,20 @@ def save_user_preferences(update_key=None, toggle_key=None):
 
 
 def settings_llm():
-    llm_options = [
-        LLM_OPTIONS.MISTRAL_API,
-        LLM_OPTIONS.MISTRAL_LOCAL,
-        LLM_OPTIONS.GPT3_5,
-        LLM_OPTIONS.ECHOBOT,
-        LLM_OPTIONS.UPPERCASEBOT,
-    ]
+    if os.getenv("DEBUG", False):
+        llm_options = [
+            LLM_OPTIONS.MISTRAL_API,
+            LLM_OPTIONS.MISTRAL_LOCAL,
+            LLM_OPTIONS.GPT3_5,
+            LLM_OPTIONS.ECHOBOT,
+            LLM_OPTIONS.UPPERCASEBOT,
+        ]
+    else:
+        llm_options = [
+            LLM_OPTIONS.MISTRAL_API,
+            LLM_OPTIONS.ECHOBOT,
+        ]
+
     selected_llm_index = llm_options.index(st.session_state.user_preferences["language_model"])
     # with st.container(border=True):
     st.selectbox("🧠 Language Model",
