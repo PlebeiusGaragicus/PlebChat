@@ -30,31 +30,6 @@ class ChatAppVars:
         self.load_chat_history()
 
 
-    # def get_client(self):
-    #     if st.session_state.language_model == LLM_OPTIONS.ECHOBOT:
-    #         return self.get_debug_generator()
-    #     elif st.session_state.language_model == LLM_OPTIONS.MISTRAL_API:
-    #         if st.session_state.mistral_api_key in [None, ""]:
-    #             raise Exception("Mistral API key not set.")
-
-    #         if self.client is None:
-    #             self.client = MistralClient(api_key=st.session_state.mistral_api_key) # TODO add error handling here
-
-    #         return self.client.chat_stream(
-    #             model=st.session_state.mistral_model,
-    #             messages=self.chat.messages,
-    #             safe_mode=st.session_state.mistral_safemode
-    #         )
-    #     elif st.session_state.language_model == LLM_OPTIONS.MISTRAL_LOCAL:
-    #         st.error("Not yet implemented")
-    #         st.stop()
-    #     elif st.session_state.language_model == LLM_OPTIONS.GPT3_5:
-    #         st.error("Not yet implemented")
-    #         st.stop()
-    #     else:
-    #         st.error("Invalid language model")
-    #         st.stop()
-
     def new_thread(self):
         self.chat = ChatThread()
 
@@ -63,7 +38,6 @@ class ChatAppVars:
         self.load_chat_history()
 
     def load_chat_history(self):
-        # runlog_dir = os.path.join(os.getcwd(), "runlog", st.session_state.username)
         # make sure the runlog directory exists
         os.makedirs(st.session_state.runlog_dir, exist_ok=True)
 

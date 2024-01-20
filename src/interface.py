@@ -8,23 +8,15 @@ from src.chat_history import (
     save_chat_history,
 )
 
-from src.settings import (
-    TTS_OPTIONS
-)
 
-
-
-COLUMN_FIX_CSS = """<style>
+def column_fix():
+    st.write("""<style>
 [data-testid="column"] {
     width: calc(33.3333% - 1rem) !important;
     flex: 1 1 calc(33.3333% - 1rem) !important;
     min-width: calc(33% - 1rem) !important;
 }
-</style>"""
-
-
-def column_fix():
-    st.write(COLUMN_FIX_CSS, unsafe_allow_html=True)
+</style>""", unsafe_allow_html=True)
 
 
 
@@ -33,9 +25,6 @@ def center_text(type, text, size=None):
         st.write(f"<{type} style='text-align: center;'>{text}</{type}>", unsafe_allow_html=True)
     else:
         st.write(f"<{type} style='text-align: center; font-size: {size}px;'>{text}</{type}>", unsafe_allow_html=True)
-
-# def center_text(type, text):
-    # st.write(f"<{type} style='text-align: center;'>{text}</{type}>", unsafe_allow_html=True)
 
 
 def centered_button_trick():
@@ -63,11 +52,8 @@ def centered_button_trick():
 
 def interrupt():
     """ callback for the interrupt button """
-    # st.session_state.interrupt = True
     st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=st.session_state.incomplete_stream))
     st.session_state.appstate.chat.messages.append(ChatMessage(role="user", content="<INTERRUPTS>"))
-    # save_chat_history()
-    # st.session_state.appstate.load_chat_history()
 
     if save_chat_history():
         st.session_state.appstate.load_chat_history()

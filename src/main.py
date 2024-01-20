@@ -261,7 +261,7 @@ def main_page():
 
 
 from src.settings import LLM_OPTIONS
-from src.abstract_model import Echobot, UppercaseBot, MistralAPI
+from src.abstract_model import Echobot, UppercaseBot, MistralAPI, OpenAIAPI
 
 def init_model():
     if 'model' in st.session_state:
@@ -276,6 +276,8 @@ def init_model():
     if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.MISTRAL_API:
         st.session_state.model = MistralAPI()
 
+    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.OPENAI:
+        st.session_state.model = OpenAIAPI()
 
 
 
@@ -289,16 +291,14 @@ def run_prompt(prompt, bots_reply_placeholder):
 
         try:
             with st.spinner("🧠 Thinking..."):
-                # try:
-                #     client = st.session_state.appstate.get_client()
-                # except Exception as e:
-                #     # TODO missing API keys will throw an exception here
-                #     # WE NEED TO AVOID THIS by limiting the options in the sidebar - don't let the user pick a model that won't work!
-                #     st.error(e)
-                #     st.stop()
+                try:
+                    # TODO missing API keys will throw an exception here
+                    client = st.session_state.model.get_client()
+                except Exception as e:
+                    st.error(e)
+                    st.stop()
 
-                # for chunk in st.session_state.appstate.get_client():
-                for chunk in st.session_state.model.get_client():
+                for chunk in client:
                     try:
                         st.session_state.incomplete_stream += chunk.choices[0].delta.content
                     except TypeError:

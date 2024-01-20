@@ -2,7 +2,6 @@ import time
 import streamlit as st
 
 from mistralai.models.chat_completion import ChatMessage
-from mistralai.client import MistralClient
 
 from src.settings import LLM_OPTIONS
 
@@ -80,18 +79,21 @@ class UppercaseBot(AbstractModel):
 class MistralAPI(AbstractModel):
     def __init__(self):
         super().__init__("Mistral API")
+        from mistralai.client import MistralClient
+
+        if st.session_state.user_preferences["mistral_api_key"] in [None, ""]:
+            raise Exception("Mistral API key not set.")
 
         # TODO add error handling here
         self.client = MistralClient(api_key=st.session_state.user_preferences["mistral_api_key"])
 
 
     def get_client(self):
-        if st.session_state.mistral_api_key in [None, ""]:
-            raise Exception("Mistral API key not set.")
+        # if st.session_state.mistral_api_key in [None, ""]:
+        #     raise Exception("Mistral API key not set.")
 
         return self.client.chat_stream(
             model=st.session_state.user_preferences['mistral_model'],
-            # messages=self.chat.messages,
             messages=st.session_state.appstate.chat.messages,
             safe_mode=st.session_state.user_preferences['mistral_safemode']
         )
@@ -111,3 +113,47 @@ class MistralAPI(AbstractModel):
             messages=messages,
         )
         return chat_response.choices[0].message.content
+
+
+class OpenAIAPI(AbstractModel):
+    def __init__(self):
+        super().__init__("OpenAI API")
+
+        if st.session_state.user_preferences["openai_api_key"] in [None, ""]:
+            raise Exception("OpenAI API key not set.")
+
+        from openai import OpenAI
+
+        # TODO add error handling here
+        self.client = OpenAI(api_key=st.session_state.user_preferences["openai_api_key"])
+
+
+    def get_client(self):
+        # if st.session_state.mistral_api_key in [None, ""]:
+        #     raise Exception("Mistral API key not set.")
+
+        return self.client.chat.completions.create(
+            model="gpt-4",
+            messages=st.session_state.appstate.chat.messages,
+            stream=True,
+        )
+
+
+    def get_description(self):
+        content = st.session_state.appstate.chat.messages[0].content
+        # return first 3 words, at most
+        return " ".join(content.split(" ")[:3]).upper()
+
+        # self.client = MistralClient(api_key=st.session_state.user_preferences["mistral_api_key"])
+        # messages = [
+        #     ChatMessage(
+        #         role="user",
+        #         content=f"Reduce the following user query into 3 to 4 key words: `{st.session_state.appstate.chat.messages[0].content}`\nDo not answer questions. Your reply MUST be no more than 4 words!"
+        #     )
+        # ]
+
+        # chat_response = self.client.chat(
+        #     model="mistral-small", #TODO use medium?  The smaller ones seem to SUCK at following directions.
+        #     messages=messages,
+        # )
+        # return chat_response.choices[0].message.content

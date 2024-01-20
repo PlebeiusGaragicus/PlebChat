@@ -14,9 +14,8 @@ def login_router_page():
     st.set_page_config(
         page_title="DEBUG!" if os.getenv("DEBUG", False) else "Pleb Chat",
         page_icon=os.path.join(ASSETS_PATH, "favicon.ico"),
-        layout="centered", # vs wide
+        layout="centered",
         initial_sidebar_state="auto",
-        # menu_items={"About": "https://plebby.me/"} # TODO
     )
 
     try:
@@ -36,9 +35,6 @@ def login_router_page():
     )
 
     if st.session_state["authentication_status"] is None:
-        # with centered_button_trick():
-        #     st.image(os.path.join(ASSETS_PATH, "assistant2sm.png"))
-        # center_text("p", "🗣️🤖💬", size=60) # or h1, whichever
         if 'appstate' in st.session_state:
             del st.session_state['appstate']
             st.error("Application state has been cleared!")

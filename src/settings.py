@@ -16,7 +16,7 @@ MISTRAL_MODELS = ['mistral-medium', 'mistral-small', 'mistral-tiny']
 class LLM_OPTIONS:
     MISTRAL_API = "Mistral API"
     MISTRAL_LOCAL = "Mistral (local)"
-    GPT3_5 = "GPT-3.5"
+    OPENAI = "OpenAI"
     ECHOBOT = "echobot" # Debug only
     UPPERCASEBOT = "uppercasebot" # Debug only
 
@@ -123,7 +123,7 @@ def settings_llm():
         llm_options = [
             LLM_OPTIONS.MISTRAL_API,
             LLM_OPTIONS.MISTRAL_LOCAL,
-            LLM_OPTIONS.GPT3_5,
+            LLM_OPTIONS.OPENAI,
             LLM_OPTIONS.ECHOBOT,
             LLM_OPTIONS.UPPERCASEBOT,
         ]
@@ -146,8 +146,16 @@ def settings_llm():
     if st.session_state.user_preferences["language_model"] == LLM_OPTIONS.ECHOBOT:
         st.caption("no settings for `echobot` - it just repeats what you say mainly for testing.")
 
-    elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.GPT3_5:
-        st.write("no settings yet")
+    elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.OPENAI:
+        st.text_input(
+            "OpenAI API key",
+            key="openai_api_key",
+            value=st.session_state.user_preferences["openai_api_key"],
+            on_change=save_user_preferences,
+            kwargs={"update_key": "openai_api_key"},
+            disabled=(st.session_state.username == 'demo'),
+            type='password' if st.session_state.username == 'demo' else 'default'
+        )
 
     elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.MISTRAL_API:
         st.toggle(
