@@ -17,6 +17,7 @@ class LLM_OPTIONS:
     MISTRAL_LOCAL = "Mistral (local)"
     GPT3_5 = "GPT-3.5"
     ECHOBOT = "echobot" # Debug only
+    UPPERCASEBOT = "uppercasebot" # Debug only
 
 class STT_OPTIONS:
     PYTHON = "Python SpeechRecognition"
@@ -110,6 +111,10 @@ def save_user_preferences(update_key=None, toggle_key=None):
     del st.session_state.user_preferences
     st.toast("User preferences saved!")
 
+    # we need to ensure we destory the old client so a new one with the new settings is init'd
+    if 'model' in st.session_state:
+        del st.session_state.model
+
 
 
 def settings_llm():
@@ -118,6 +123,7 @@ def settings_llm():
         LLM_OPTIONS.MISTRAL_LOCAL,
         LLM_OPTIONS.GPT3_5,
         LLM_OPTIONS.ECHOBOT,
+        LLM_OPTIONS.UPPERCASEBOT,
     ]
     selected_llm_index = llm_options.index(st.session_state.user_preferences["language_model"])
     # with st.container(border=True):
@@ -164,6 +170,10 @@ def settings_llm():
             disabled=(st.session_state.username == 'demo'),
             type='password' if st.session_state.username == 'demo' else 'default'
         )
+    
+    # # we need to ensure we destory the old client so a new one with the new settings is init'd
+    # if 'model' in st.session_state:
+    #     del st.session_state.model
 
 
 def settings_stt():

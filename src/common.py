@@ -23,8 +23,6 @@ class ChatThread:
 
 class ChatAppVars:
     def __init__(self):
-        self.client = None
-
         self.chat = ChatThread()
 
         self.chat_history_depth = 20
@@ -32,40 +30,30 @@ class ChatAppVars:
         self.load_chat_history()
 
 
-    def get_debug_generator(self):
-        time.sleep(0.7)
-        echo = st.session_state.appstate.chat.messages[-1].content
+    # def get_client(self):
+    #     if st.session_state.language_model == LLM_OPTIONS.ECHOBOT:
+    #         return self.get_debug_generator()
+    #     elif st.session_state.language_model == LLM_OPTIONS.MISTRAL_API:
+    #         if st.session_state.mistral_api_key in [None, ""]:
+    #             raise Exception("Mistral API key not set.")
 
-        # split the message into words
-        echo = echo.split(" ")
-        for e in echo:
-            yield DeltaContentChunk(f" {e}")
-            time.sleep(0.04)
+    #         if self.client is None:
+    #             self.client = MistralClient(api_key=st.session_state.mistral_api_key) # TODO add error handling here
 
-    def get_client(self):
-        if st.session_state.language_model == LLM_OPTIONS.ECHOBOT:
-            return self.get_debug_generator()
-        elif st.session_state.language_model == LLM_OPTIONS.MISTRAL_API:
-            if st.session_state.mistral_api_key in [None, ""]:
-                raise Exception("Mistral API key not set.")
-
-            if self.client is None:
-                self.client = MistralClient(api_key=st.session_state.mistral_api_key) # TODO add error handling here
-
-            return self.client.chat_stream(
-                model=st.session_state.mistral_model,
-                messages=self.chat.messages,
-                safe_mode=st.session_state.mistral_safemode
-            )
-        elif st.session_state.language_model == LLM_OPTIONS.MISTRAL_LOCAL:
-            st.error("Not yet implemented")
-            st.stop()
-        elif st.session_state.language_model == LLM_OPTIONS.GPT3_5:
-            st.error("Not yet implemented")
-            st.stop()
-        else:
-            st.error("Invalid language model")
-            st.stop()
+    #         return self.client.chat_stream(
+    #             model=st.session_state.mistral_model,
+    #             messages=self.chat.messages,
+    #             safe_mode=st.session_state.mistral_safemode
+    #         )
+    #     elif st.session_state.language_model == LLM_OPTIONS.MISTRAL_LOCAL:
+    #         st.error("Not yet implemented")
+    #         st.stop()
+    #     elif st.session_state.language_model == LLM_OPTIONS.GPT3_5:
+    #         st.error("Not yet implemented")
+    #         st.stop()
+    #     else:
+    #         st.error("Invalid language model")
+    #         st.stop()
 
     def new_thread(self):
         self.chat = ChatThread()
@@ -94,18 +82,3 @@ class ChatAppVars:
                     # file load error - skip this file
                     continue
             self.chat_history.append((description, runlog))
-
-
-
-
-class Content:
-    def __init__(self, word_chunk):
-        self.content = word_chunk
-
-class Delta:
-    def __init__(self, word_chunk):
-        self.delta = Content(word_chunk)
-
-class DeltaContentChunk:
-    def __init__(self, word_chunk):
-        self.choices = [ Delta(word_chunk) ]

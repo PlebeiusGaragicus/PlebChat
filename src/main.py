@@ -96,6 +96,8 @@ def main_page():
 
         settings_bottom_buttons()
 
+    init_model()
+
     ### INPUT BUTTONS
     top_buttons = st.columns((2, 1, 1))
     with top_buttons[0]:
@@ -143,7 +145,7 @@ def main_page():
     else:
         # TODO - naive thinking that let me to think having us import here would increase page performance... lol, oh well
         from streamlit_mic_recorder import speech_to_text
-        # if not appstate.speech_confirmed:
+
         with centered_button_trick():
             # https://pypi.org/project/SpeechRecognition/
             speech_draft = speech_to_text(
@@ -155,21 +157,12 @@ def main_page():
                             key='STT'
                     )
         if st.session_state.confirm_stt is False:
-        #     speech_draft = speech
-        # else:
             prompt = speech_draft
             speech_draft = None
 
         if speech_draft:
             with st.container(border=True):
-                def edit_draft(x):
-                    # st.session_state.speech_draft_edit = x
-                    st.session_state.speech_draft = x
-                    # st.session_state.speech_confirmed = False
-                    # st.session_state.speech_draft = speech_draft
 
-                # st.text_input("You said:", value=speech_draft, key="speech_draft_edit", on_change=edit_draft)
-                # st.text_input("You said:", value=speech_draft, key="speech_draft_edit")
                 st.text_area("You said:", value=speech_draft, key="speech_draft_edit")
 
                 def user_confirms_speech():
@@ -184,9 +177,6 @@ def main_page():
                 confirms[0].button("✅", on_click=user_confirms_speech, use_container_width=True)
                 confirms[2].button("❌", on_click=user_cancels_speech, use_container_width=True)
 
-                # if st.button("Confirm"):
-                #     st.session_state.speech_confirmed = True
-                #     st.session_state.speech_draft = speech_draft
 
 
 
@@ -259,6 +249,22 @@ def main_page():
     # st.caption(".") # I was trying to do this so that the page scrolls to the bottom... but I don't think it works.
 
 
+from src.settings import LLM_OPTIONS
+from src.abstract_model import Echobot, UppercaseBot, MistralAPI
+
+def init_model():
+    if 'model' in st.session_state:
+        return
+
+    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.ECHOBOT:
+        st.session_state.model = Echobot()
+    
+    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.UPPERCASEBOT:
+        st.session_state.model = UppercaseBot()
+    
+    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.MISTRAL_API:
+        st.session_state.model = MistralAPI()
+
 
 
 
@@ -272,16 +278,16 @@ def run_prompt(prompt, bots_reply_placeholder):
 
         try:
             with st.spinner("🧠 Thinking..."):
-                try:
-                    client = st.session_state.appstate.get_client()
-                except Exception as e:
-                    # TODO missing API keys will throw an exception here
-                    # WE NEED TO AVOID THIS by limiting the options in the sidebar - don't let the user pick a model that won't work!
-                    st.error(e)
-                    st.stop()
+                # try:
+                #     client = st.session_state.appstate.get_client()
+                # except Exception as e:
+                #     # TODO missing API keys will throw an exception here
+                #     # WE NEED TO AVOID THIS by limiting the options in the sidebar - don't let the user pick a model that won't work!
+                #     st.error(e)
+                #     st.stop()
 
                 # for chunk in st.session_state.appstate.get_client():
-                for chunk in client:
+                for chunk in st.session_state.model.get_client():
                     try:
                         st.session_state.incomplete_stream += chunk.choices[0].delta.content
                     except TypeError:
