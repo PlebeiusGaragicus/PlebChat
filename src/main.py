@@ -76,7 +76,8 @@ def main_page():
     center_text("p", "🗣️🤖💬", size=60) # or h1, whichever
 
     load_settings()
-    sidebar_new_button_placeholder = st.sidebar.empty()
+    # sidebar_new_button_placeholder = st.sidebar.empty()
+    # sidebar_del_button_placeholder = st.sidebar.empty()
 
     ### SETTINGS EXPANDER
     if st.session_state.user_preferences["settings_on_sidebar"]:
@@ -99,16 +100,23 @@ def main_page():
     init_model()
 
     ### INPUT BUTTONS
-    top_buttons = st.columns((2, 1, 1))
+
+    ### DELETE BUTTON
+    # if len(appstate.chat.messages) > 0:
+    #     top_buttons = st.columns((2, 1, 1))
+    #     with top_buttons[1]:
+    #         st.toggle("🗣️🤖", key="speech_input", value=False)
+    #     with top_buttons[2]:
+    #         st.toggle("🤖💬", key="read_to_me", value=False)
+    #     with top_buttons[0]:
+    #         st.button("🗑️ Delete", on_click=delete_this_chat, key="button_delete", use_container_width=True)
+    # else:
+    top_buttons = st.columns((1, 1))
     with top_buttons[0]:
         st.toggle("🗣️🤖", key="speech_input", value=False)
     with top_buttons[1]:
         st.toggle("🤖💬", key="read_to_me", value=False)
 
-    ### DELETE BUTTON
-    if len(appstate.chat.messages) > 0:
-        with top_buttons[2]:
-            st.button("🗑️ Delete", on_click=delete_this_chat, key="button_delete", use_container_width=True)
 
     ### RAINBOW DIVIDER
     st.header("", divider="rainbow")
@@ -208,8 +216,9 @@ def main_page():
     with before_speech_placeholder:
         if len(appstate.chat.messages) > 0:
             # if last message was from the bot, then we can read it aloud
-            col2 = st.columns((1, 1))
-            col2[1].button("🌱 New", on_click=lambda: appstate.new_thread(), use_container_width=True)
+            col2 = st.columns((1, 1, 1))
+            col2[2].button("🌱 New", on_click=lambda: appstate.new_thread(), use_container_width=True)
+            col2[1].button("🗑️ Delete", on_click=delete_this_chat, key="button_delete", use_container_width=True)
             if appstate.chat.messages[-1].role == "assistant":
                 # centered_button_trick().button("🗣️ Speak", on_click=on_click_read_to_me, key="button_read_to_me", use_container_width=True)
                 if st.session_state.read_to_me is False:
@@ -223,7 +232,9 @@ def main_page():
     with st.sidebar:
         if len(appstate.chat.messages) > 0:
             # with centered_button_trick():
-            sidebar_new_button_placeholder.button("🌱 New", on_click=lambda: appstate.new_thread(), use_container_width=True, key="newbutton2")
+            sidebar_new_button_placeholder = st.columns((1, 1))
+            sidebar_new_button_placeholder[0].button("🗑️ Delete", on_click=delete_this_chat, key="delbutton2", use_container_width=True)
+            sidebar_new_button_placeholder[1].button("🌱 New", on_click=lambda: appstate.new_thread(), use_container_width=True, key="newbutton2")
         st.write("## Past Conversations")
         # with st.container(border=True):
         for description, runlog in appstate.chat_history:
