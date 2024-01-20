@@ -2,8 +2,11 @@ import time
 import streamlit as st
 
 from mistralai.models.chat_completion import ChatMessage
+import ollama
 
-from src.settings import LLM_OPTIONS
+from src.chat_history import serialize_messages
+
+# from src.settings import LLM_OPTIONS
 
 
 class AbstractModel:
@@ -38,20 +41,24 @@ class Echobot(AbstractModel):
         # super("Echobot")
 
     def get_client(self):
-        time.sleep(0.7)
+        time.sleep(0.5)
         echo = st.session_state.appstate.chat.messages[-1].content
 
         # split the message into words
         echo = echo.split(" ")
         for e in echo:
+            time.sleep(0.15)
             yield DeltaContentChunk(f" {e}")
-            time.sleep(0.04)
-    
+
+    @classmethod
+    def get_streamed_tokens(cls, chunk):
+        for c in chunk:
+            yield c.choices[0].delta.content
+
     def get_description(self):
         content = st.session_state.appstate.chat.messages[0].content
         # return first 3 words, at most
         return " ".join(content.split(" ")[:3])
-
 
 
 
@@ -60,14 +67,19 @@ class UppercaseBot(AbstractModel):
         super().__init__("UppercaseBot")
 
     def get_client(self):
-        time.sleep(0.7)
+        time.sleep(0.8)
         echo = st.session_state.appstate.chat.messages[-1].content
 
         # split the message into words
         echo = echo.split(" ")
         for e in echo:
-            yield DeltaContentChunk(f" {e.upper()}")
-            time.sleep(0.04)
+            time.sleep(0.3)
+            yield DeltaContentChunk(f" {e.upper()}!")
+
+    @classmethod
+    def get_streamed_tokens(cls, chunk):
+        for c in chunk:
+            yield c.choices[0].delta.content
 
     def get_description(self):
         content = st.session_state.appstate.chat.messages[0].content
@@ -89,15 +101,19 @@ class MistralAPI(AbstractModel):
 
 
     def get_client(self):
-        # if st.session_state.mistral_api_key in [None, ""]:
-        #     raise Exception("Mistral API key not set.")
-
         return self.client.chat_stream(
             model=st.session_state.user_preferences['mistral_model'],
             messages=st.session_state.appstate.chat.messages,
             safe_mode=st.session_state.user_preferences['mistral_safemode']
         )
 
+    # @classmethod
+    # def get_streamed_tokens(cls, chunk):
+    #     return chunk.choices[0].delta.content
+    @classmethod
+    def get_streamed_tokens(cls, chunk):
+        for c in chunk:
+            yield c.choices[0].delta.content
 
     def get_description(self):
         # self.client = MistralClient(api_key=st.session_state.user_preferences["mistral_api_key"])
@@ -113,6 +129,42 @@ class MistralAPI(AbstractModel):
             messages=messages,
         )
         return chat_response.choices[0].message.content
+    
+
+class MistralLocal(AbstractModel):
+    def __init__(self):
+        super().__init__("Mistral Local")
+        import ollama
+        self.client = None
+
+
+    def get_client(self):
+        # import ollama
+        smsg = [serialize_messages(m) for m in st.session_state.appstate.chat.messages]
+        # smsg = serialize_messages(st.session_state.appstate.chat)
+        print("WHAT THE FUCK")
+        print(smsg)
+        return ollama.chat(
+                model='mistral',
+                messages=smsg,
+                stream=True
+            )
+        # part['message']['content']
+
+    # @classmethod
+    # def get_streamed_tokens(cls, chunk):
+    #     return chunk['message']['content']
+    @classmethod
+    def get_streamed_tokens(cls, chunk):
+        for c in chunk:
+            yield c['message']['content']
+
+
+    def get_description(self):
+        content = st.session_state.appstate.chat.messages[0].content
+        # return first 3 words, at most
+        return " ".join(content.split(" ")[:3]).upper()
+
 
 
 class OpenAIAPI(AbstractModel):
@@ -129,14 +181,19 @@ class OpenAIAPI(AbstractModel):
 
 
     def get_client(self):
-        # if st.session_state.mistral_api_key in [None, ""]:
-        #     raise Exception("Mistral API key not set.")
-
         return self.client.chat.completions.create(
             model="gpt-4",
             messages=st.session_state.appstate.chat.messages,
             stream=True,
         )
+    
+    # @classmethod
+    # def get_streamed_tokens(cls, chunk):
+    #     return chunk.choices[0].delta.content
+    @classmethod
+    def get_streamed_tokens(cls, chunk):
+        for c in chunk:
+            yield c.choices[0].delta.content
 
 
     def get_description(self):

@@ -36,6 +36,7 @@ from src.settings import (
     settings_tts,
     settings_bottom_buttons,
     load_settings,
+    init_model,
 )
 
 from src.interface import (
@@ -99,29 +100,31 @@ def main_page():
 
     init_model()
 
-    ### INPUT BUTTONS
 
+    ### INPUT BUTTONS
     ### DELETE BUTTON
     # if len(appstate.chat.messages) > 0:
-    #     top_buttons = st.columns((2, 1, 1))
-    #     with top_buttons[1]:
-    #         st.toggle("🗣️🤖", key="speech_input", value=False)
-    #     with top_buttons[2]:
-    #         st.toggle("🤖💬", key="read_to_me", value=False)
-    #     with top_buttons[0]:
-    #         st.button("🗑️ Delete", on_click=delete_this_chat, key="button_delete", use_container_width=True)
-    # else:
-    top_buttons = st.columns((1, 1))
+    top_buttons = st.columns((1, 1, 1))
     with top_buttons[0]:
         st.toggle("🗣️🤖", key="speech_input", value=False)
     with top_buttons[1]:
         st.toggle("🤖💬", key="read_to_me", value=False)
+    with top_buttons[2]:
+        st.empty()
+    #         st.button("🗑️ Delete", on_click=delete_this_chat, key="button_delete", use_container_width=True)
+    # else:
+    # top_buttons = st.columns((1, 1))
+    # with top_buttons[0]:
+    #     st.toggle("🗣️🤖", key="speech_input", value=False)
+    # with top_buttons[1]:
+    #     st.toggle("🤖💬", key="read_to_me", value=False)
 
 
     ### RAINBOW DIVIDER
     st.header("", divider="rainbow")
     # st.caption(f"LLM: {st.session_state.user_preferences['language_model']}, STT: {st.session_state.user_preferences['stt']}, TTS: {st.session_state.user_preferences['tts']}")
-    st.caption(f"Using: `{st.session_state.user_preferences['language_model']}`")
+    # st.caption(f"Using: `{st.session_state.user_preferences['language_model']}`")
+    st.caption(f"Using: `{st.session_state.model.name}`")
 
 
 
@@ -260,24 +263,6 @@ def main_page():
     # st.caption(".") # I was trying to do this so that the page scrolls to the bottom... but I don't think it works.
 
 
-from src.settings import LLM_OPTIONS
-from src.abstract_model import Echobot, UppercaseBot, MistralAPI, OpenAIAPI
-
-def init_model():
-    if 'model' in st.session_state:
-        return
-
-    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.ECHOBOT:
-        st.session_state.model = Echobot()
-    
-    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.UPPERCASEBOT:
-        st.session_state.model = UppercaseBot()
-    
-    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.MISTRAL_API:
-        st.session_state.model = MistralAPI()
-
-    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.OPENAI:
-        st.session_state.model = OpenAIAPI()
 
 
 
@@ -296,11 +281,14 @@ def run_prompt(prompt, bots_reply_placeholder):
                     client = st.session_state.model.get_client()
                 except Exception as e:
                     st.error(e)
+                    st.exception(e)
                     st.stop()
 
-                for chunk in client:
+                # for chunk in client:
+                for chunk in st.session_state.model.get_streamed_tokens(client):
                     try:
-                        st.session_state.incomplete_stream += chunk.choices[0].delta.content
+                        # st.session_state.incomplete_stream += chunk.choices[0].delta.content
+                        st.session_state.incomplete_stream += chunk
                     except TypeError:
                         #TODO - not sure why this error happens...
                         # st.session_state.incomplete_stream += chunk.choices[0].message.content

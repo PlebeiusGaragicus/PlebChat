@@ -59,28 +59,8 @@ def load_settings():
             st.error("user preferences yaml file not found. Creating a new one with default settings.")
             with open(preferences_file, "w") as f:
                 yaml.dump(appstate.user_preferences, f)
-# if 'user_preferences' not in st.session_state:
-# #     appstate.user_preferences = load_user_preferences(appstate.username)
-#     try:
-#         appstate.user_preferences = yaml.load(open("user_preferences.yaml"), Loader=SafeLoader)
-#     except FileNotFoundError:
-#         user_preferences = {}
-#         # write to file
-#         with open("user_preferences.yaml", "w") as f:
-#             yaml.dump(user_preferences, f)
-#         st.error("user_preferences.yaml not found.  Creating a new one.")
-# if 'user_preferences' not in st.session_state:
-#     try:
-#         preferences_file = PREFERENCES_PATH / f"{appstate.username}.yaml"
-#         appstate.user_preferences = yaml.load(open(preferences_file), Loader=SafeLoader)
-#     except FileNotFoundError:
-#         appstate.user_preferences = DEFAULT_USER_PREFERENCES  # Use default preferences
-#         st.error("user preferences yaml file not found. Creating a new one with default settings.")
-#         with open(preferences_file, "w") as f:
-#             yaml.dump(appstate.user_preferences, f)
 
 
-# @st.cache_data()
 def load_user_preferences(username):
     preferences_file = PREFERENCES_PATH / f"{username}.yaml"
     try:
@@ -121,20 +101,20 @@ def save_user_preferences(update_key=None, toggle_key=None):
 def settings_llm():
     if os.getenv("DEBUG", False):
         llm_options = [
-            LLM_OPTIONS.MISTRAL_API,
-            LLM_OPTIONS.MISTRAL_LOCAL,
-            LLM_OPTIONS.OPENAI,
             LLM_OPTIONS.ECHOBOT,
             LLM_OPTIONS.UPPERCASEBOT,
+            LLM_OPTIONS.MISTRAL_LOCAL,
+            LLM_OPTIONS.MISTRAL_API,
+            LLM_OPTIONS.OPENAI,
         ]
     else:
         llm_options = [
-            LLM_OPTIONS.MISTRAL_API,
             LLM_OPTIONS.ECHOBOT,
+            LLM_OPTIONS.MISTRAL_API,
+            LLM_OPTIONS.OPENAI,
         ]
 
     selected_llm_index = llm_options.index(st.session_state.user_preferences["language_model"])
-    # with st.container(border=True):
     st.selectbox("🧠 Language Model",
                 options=llm_options,
                 index=selected_llm_index,
@@ -157,6 +137,9 @@ def settings_llm():
             type='password' if st.session_state.username == 'demo' else 'default'
         )
 
+    elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.MISTRAL_LOCAL:
+        st.caption("no settings for local `mistral` - good luck!")
+
     elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.MISTRAL_API:
         st.toggle(
             "Safe mode",
@@ -165,7 +148,7 @@ def settings_llm():
             on_change=save_user_preferences,
             kwargs={"toggle_key": "mistral_safemode"},
             help="Safe mode is not yet implemented by mistral ai.  It also turns mistral into a little bitch... you don't want that, do you?",
-            # disabled=True
+            disabled=True
         )
 
         st.radio("Mistral model select",
@@ -174,7 +157,6 @@ def settings_llm():
             index=MISTRAL_MODELS.index(st.session_state.user_preferences["mistral_model"]),
             on_change=save_user_preferences,
             kwargs={"update_key": "mistral_model"},
-
         )
 
         st.text_input(
@@ -187,9 +169,6 @@ def settings_llm():
             type='password' if st.session_state.username == 'demo' else 'default'
         )
     
-    # # we need to ensure we destory the old client so a new one with the new settings is init'd
-    # if 'model' in st.session_state:
-    #     del st.session_state.model
 
 
 def settings_stt():
@@ -282,3 +261,25 @@ def settings_bottom_buttons():
                     key="button_move_to_main",
                     use_container_width=True)
 
+
+
+def init_model():
+    from src.abstract_model import Echobot, UppercaseBot, MistralAPI, MistralLocal, OpenAIAPI
+
+    if 'model' in st.session_state:
+        return
+
+    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.ECHOBOT:
+        st.session_state.model = Echobot()
+    
+    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.UPPERCASEBOT:
+        st.session_state.model = UppercaseBot()
+    
+    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.MISTRAL_API:
+        st.session_state.model = MistralAPI()
+
+    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.MISTRAL_LOCAL:
+        st.session_state.model = MistralLocal()
+
+    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.OPENAI:
+        st.session_state.model = OpenAIAPI()

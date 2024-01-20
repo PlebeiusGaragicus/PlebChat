@@ -5,9 +5,6 @@ from datetime import datetime
 import streamlit as st
 
 from mistralai.models.chat_completion import ChatMessage
-from mistralai.client import MistralClient
-
-from src.settings import LLM_OPTIONS
 
 
 def serialize_messages(msg: ChatMessage):

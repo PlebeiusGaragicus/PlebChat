@@ -6,6 +6,7 @@ streamlit-authenticator
 streamlit_mic_recorder
 
 gtts
+ollama
 openai
 assemblyai
 mistralai
