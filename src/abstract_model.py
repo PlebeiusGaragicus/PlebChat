@@ -58,7 +58,7 @@ class Echobot(AbstractModel):
     def get_description(self):
         content = st.session_state.appstate.chat.messages[0].content
         # return first 3 words, at most
-        return " ".join(content.split(" ")[:3])
+        return " ".join(content.split(" ")[:4])
 
 
 
@@ -84,7 +84,7 @@ class UppercaseBot(AbstractModel):
     def get_description(self):
         content = st.session_state.appstate.chat.messages[0].content
         # return first 3 words, at most
-        return " ".join(content.split(" ")[:3]).upper()
+        return " ".join(content.split(" ")[:4]).upper()
 
 
 
@@ -131,29 +131,24 @@ class MistralAPI(AbstractModel):
         return chat_response.choices[0].message.content
     
 
+
 class MistralLocal(AbstractModel):
     def __init__(self):
         super().__init__("Mistral Local")
-        import ollama
+        # import ollama # TODO why the fuck doesn't it work here?
         self.client = None
 
 
     def get_client(self):
-        # import ollama
+        import ollama
         smsg = [serialize_messages(m) for m in st.session_state.appstate.chat.messages]
-        # smsg = serialize_messages(st.session_state.appstate.chat)
-        print("WHAT THE FUCK")
-        print(smsg)
         return ollama.chat(
                 model='mistral',
                 messages=smsg,
                 stream=True
             )
-        # part['message']['content']
 
-    # @classmethod
-    # def get_streamed_tokens(cls, chunk):
-    #     return chunk['message']['content']
+
     @classmethod
     def get_streamed_tokens(cls, chunk):
         for c in chunk:
@@ -162,8 +157,7 @@ class MistralLocal(AbstractModel):
 
     def get_description(self):
         content = st.session_state.appstate.chat.messages[0].content
-        # return first 3 words, at most
-        return " ".join(content.split(" ")[:3]).upper()
+        return " ".join(content.split(" ")[:4])
 
 
 
@@ -186,10 +180,8 @@ class OpenAIAPI(AbstractModel):
             messages=st.session_state.appstate.chat.messages,
             stream=True,
         )
-    
-    # @classmethod
-    # def get_streamed_tokens(cls, chunk):
-    #     return chunk.choices[0].delta.content
+
+
     @classmethod
     def get_streamed_tokens(cls, chunk):
         for c in chunk:
@@ -199,18 +191,4 @@ class OpenAIAPI(AbstractModel):
     def get_description(self):
         content = st.session_state.appstate.chat.messages[0].content
         # return first 3 words, at most
-        return " ".join(content.split(" ")[:3]).upper()
-
-        # self.client = MistralClient(api_key=st.session_state.user_preferences["mistral_api_key"])
-        # messages = [
-        #     ChatMessage(
-        #         role="user",
-        #         content=f"Reduce the following user query into 3 to 4 key words: `{st.session_state.appstate.chat.messages[0].content}`\nDo not answer questions. Your reply MUST be no more than 4 words!"
-        #     )
-        # ]
-
-        # chat_response = self.client.chat(
-        #     model="mistral-small", #TODO use medium?  The smaller ones seem to SUCK at following directions.
-        #     messages=messages,
-        # )
-        # return chat_response.choices[0].message.content
+        return " ".join(content.split(" ")[:4])
