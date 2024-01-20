@@ -10,6 +10,9 @@ from src.root_panel import root_panel
 from src.main import main_page, init_if_needed
 
 
+print("\n\n!!! STREAMLIT SERVER RE-RUN\n\n")
+
+
 def login_router_page():
     st.set_page_config(
         page_title="DEBUG!" if os.getenv("DEBUG", False) else "Pleb Chat",

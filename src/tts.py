@@ -47,15 +47,10 @@ def autoplay_audio(audio_base64: str):
 
 # NOTE: you need to adjust the website setting in safari to allow auto play media
 def TTS(text, language='en', slow=False):
-    #TODO if we persist the client, we may save some time here
-
     with st.spinner("💬 Generating speech..."):
-        # if os.getenv("DEBUG", False):
         if st.session_state.user_preferences["tts"] == TTS_OPTIONS.GOOGLE:
-        # if st.session_state.get("gtts", True):
-            # Create a gTTS object
-            # TODO - attempting to do delayed imports for speed (not sure if this works)
             try:
+                # TODO - attempting to do delayed imports for speed (not sure if this works)
                 from gtts import gTTS, gTTSError
                 tts = gTTS(text=text, lang=language, slow=slow)
 
@@ -66,7 +61,7 @@ def TTS(text, language='en', slow=False):
                 autoplay_audio(audio_base64)
             except gTTSError as e:
                 st.error(e)
-                st.error(f"Could not create audio: ")
+                st.exception(e)
 
 
         if st.session_state.user_preferences["tts"] == TTS_OPTIONS.OPENAI:
@@ -84,7 +79,6 @@ def TTS(text, language='en', slow=False):
             else:
                 tts_model = OPENAI_TTS_MODELS[2]
 
-            # speech = st.session_state.openai_client.audio.speech.create(
             speech = openai_client.audio.speech.create(
                     model="tts-1",
                     voice=tts_model,
@@ -93,7 +87,6 @@ def TTS(text, language='en', slow=False):
                     input=f"{text}",
                     speed=st.session_state.openai_tts_rate
                 )
-            # stub.empty()
 
             # Extract audio data from the response
             audio_data = speech.content

@@ -1,21 +1,12 @@
 import os
-import base64
-import time
-import io
-import yaml
-
 
 import streamlit as st
-import streamlit_authenticator as stauth
 
 from mistralai.models.chat_completion import ChatMessage
 from mistralai.exceptions import MistralAPIException
-from openai import OpenAI
 
 import logging
 log = logging.getLogger(__file__)
-
-print("\n\nLOADING AND RUNNING TOP-LEVEL CODE FOR EACH USER ACTION?!\n\n")
 
 
 from src.VERSION import VERSION
@@ -35,8 +26,11 @@ from src.settings import (
     settings_stt,
     settings_tts,
     settings_bottom_buttons,
-    load_settings,
     init_model,
+)
+
+from src.user_preferences import (
+    load_settings,
 )
 
 from src.interface import (
@@ -77,8 +71,6 @@ def main_page():
     center_text("p", "🗣️🤖💬", size=60) # or h1, whichever
 
     load_settings()
-    # sidebar_new_button_placeholder = st.sidebar.empty()
-    # sidebar_del_button_placeholder = st.sidebar.empty()
 
     ### SETTINGS EXPANDER
     if st.session_state.user_preferences["settings_on_sidebar"]:
@@ -102,8 +94,6 @@ def main_page():
 
 
     ### INPUT BUTTONS
-    ### DELETE BUTTON
-    # if len(appstate.chat.messages) > 0:
     top_buttons = st.columns((1, 1, 1))
     with top_buttons[0]:
         st.toggle("🗣️🤖", key="speech_input", value=False)
@@ -111,19 +101,12 @@ def main_page():
         st.toggle("🤖💬", key="read_to_me", value=False)
     with top_buttons[2]:
         st.empty()
-    #         st.button("🗑️ Delete", on_click=delete_this_chat, key="button_delete", use_container_width=True)
-    # else:
-    # top_buttons = st.columns((1, 1))
-    # with top_buttons[0]:
-    #     st.toggle("🗣️🤖", key="speech_input", value=False)
-    # with top_buttons[1]:
-    #     st.toggle("🤖💬", key="read_to_me", value=False)
+        # if len(appstate.chat.messages) > 0:
+            # st.button("🗑️ Delete", on_click=delete_this_chat, key="button_delete", use_container_width=True)
 
 
     ### RAINBOW DIVIDER
     st.header("", divider="rainbow")
-    # st.caption(f"LLM: {st.session_state.user_preferences['language_model']}, STT: {st.session_state.user_preferences['stt']}, TTS: {st.session_state.user_preferences['tts']}")
-    # st.caption(f"Using: `{st.session_state.user_preferences['language_model']}`")
     st.caption(f"Using: `{st.session_state.model.name}`")
 
 
@@ -253,15 +236,11 @@ def main_page():
             st.caption("Running in production mode.")
 
 
-
     ### THE AUDIO PLAYER FOR TTS
     if st.session_state.speak_this is not None:
         # on reload, if `tts` is set, then we speak it
         TTS(st.session_state.speak_this)
         st.session_state.speak_this = None
-
-    # st.caption(".") # I was trying to do this so that the page scrolls to the bottom... but I don't think it works.
-
 
 
 
@@ -289,11 +268,11 @@ def run_prompt(prompt, bots_reply_placeholder):
                     try:
                         # st.session_state.incomplete_stream += chunk.choices[0].delta.content
                         st.session_state.incomplete_stream += chunk
-                    except TypeError:
+                    except TypeError as e:
                         #TODO - not sure why this error happens...
-                        # st.session_state.incomplete_stream += chunk.choices[0].message.content
                         print("TypeError in run_prompt()")
-                        pass
+                        st.exception(e)
+
                     place_holder.markdown(st.session_state.incomplete_stream)
         except MistralAPIException as e:
             st.error(e)

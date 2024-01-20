@@ -2,11 +2,9 @@ import time
 import streamlit as st
 
 from mistralai.models.chat_completion import ChatMessage
-import ollama
 
 from src.chat_history import serialize_messages
 
-# from src.settings import LLM_OPTIONS
 
 
 class AbstractModel:
@@ -48,12 +46,14 @@ class Echobot(AbstractModel):
         echo = echo.split(" ")
         for e in echo:
             time.sleep(0.15)
-            yield DeltaContentChunk(f" {e}")
+            # yield DeltaContentChunk(f" {e}")
+            yield e
 
     @classmethod
     def get_streamed_tokens(cls, chunk):
         for c in chunk:
-            yield c.choices[0].delta.content
+            # yield c.choices[0].delta.content
+            yield c
 
     def get_description(self):
         content = st.session_state.appstate.chat.messages[0].content
@@ -89,6 +89,8 @@ class UppercaseBot(AbstractModel):
 
 
 class MistralAPI(AbstractModel):
+    MISTRAL_MODELS = ['mistral-medium', 'mistral-small', 'mistral-tiny']
+
     def __init__(self):
         super().__init__("Mistral API")
         from mistralai.client import MistralClient
@@ -107,16 +109,12 @@ class MistralAPI(AbstractModel):
             safe_mode=st.session_state.user_preferences['mistral_safemode']
         )
 
-    # @classmethod
-    # def get_streamed_tokens(cls, chunk):
-    #     return chunk.choices[0].delta.content
     @classmethod
     def get_streamed_tokens(cls, chunk):
         for c in chunk:
             yield c.choices[0].delta.content
 
     def get_description(self):
-        # self.client = MistralClient(api_key=st.session_state.user_preferences["mistral_api_key"])
         messages = [
             ChatMessage(
                 role="user",
