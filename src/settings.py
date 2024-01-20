@@ -249,15 +249,17 @@ def settings_tts():
             kwargs={"update_key": "openai_tts_rate"},
             key="openai_tts_rate")
     
-        st.text_input(
-            "OpenAI API key",
-            key="openai_api_key",
-            value=st.session_state.user_preferences["openai_api_key"],
-            on_change=save_user_preferences,
-            kwargs={"update_key": "openai_api_key"},
-            disabled=(st.session_state.username == 'demo'),
-            type='password' if st.session_state.username == 'demo' else 'default'
-        )
+        # TODO - need a better solution for this!  Need a central place to store the api keys!
+        if 'openai_api_key' not in st.session_state:
+            st.text_input(
+                "OpenAI API key",
+                key="openai_api_key",
+                value=st.session_state.user_preferences["openai_api_key"],
+                on_change=save_user_preferences,
+                kwargs={"update_key": "openai_api_key"},
+                disabled=(st.session_state.username == 'demo'),
+                type='password' if st.session_state.username == 'demo' else 'default'
+            )
 
 
 def settings_bottom_buttons():
