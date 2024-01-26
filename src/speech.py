@@ -9,8 +9,16 @@ from src.settings import (
     TTS_OPTIONS
 )
 
-from openai import OpenAI
+TO_READ = """
+https://docs.coqui.ai/en/latest/
+https://medium.com/machine-learns/xtts-v2-new-version-of-the-open-source-text-to-speech-model-af73914db81f
+https://huggingface.co/coqui/XTTS-v2
 
+"""
+
+
+
+from openai import OpenAI
 
 # def autoplay_audio(file_path: str):
 def autoplay_audio(audio_base64: str):
@@ -68,6 +76,7 @@ def TTS(text, language='en', slow=False):
             if st.session_state.user_preferences["openai_api_key"] in [None, ""]:
                 raise Exception("OpenAI API key not set.")
 
+            import openai
             openai_client = OpenAI(api_key=st.session_state.user_preferences["openai_api_key"])
 
             voice = st.session_state.openai_voice
@@ -79,14 +88,18 @@ def TTS(text, language='en', slow=False):
             else:
                 tts_model = OPENAI_TTS_MODELS[2]
 
-            speech = openai_client.audio.speech.create(
-                    model="tts-1",
-                    voice=tts_model,
-                    # response_format="opus",
-                    response_format="mp3",
-                    input=f"{text}",
-                    speed=st.session_state.openai_tts_rate
-                )
+            try: #TODO -rerun this code if there's a timeout error
+                speech = openai_client.audio.speech.create(
+                        model="tts-1",
+                        voice=tts_model,
+                        # response_format="opus",
+                        response_format="mp3",
+                        input=f"{text}",
+                        speed=st.session_state.openai_tts_rate
+                    )
+            except openai.APITimeoutError as e:
+                st.error(e)
+                st.exception(e)
 
             # Extract audio data from the response
             audio_data = speech.content

@@ -10,7 +10,8 @@ from src.abstract_model import (
     MistralAPI,
     MistralLocal,
     Llama2Local,
-    OpenAIAPI
+    OpenAIAPI,
+    Dalle3API
 )
 
 from src.user_preferences import save_user_preferences
@@ -27,6 +28,7 @@ class LLM_OPTIONS:
     MISTRAL_LOCAL = "Mistral (local)"
     LLAMA2_LOCAL = "Llama2 (local)"
     OPENAI = "OpenAI"
+    DALLE3 = "DALL-E"
     ECHOBOT = "echobot" # Debug only
     UPPERCASEBOT = "uppercasebot" # Debug only
 
@@ -49,6 +51,7 @@ def settings_llm():
             LLM_OPTIONS.LLAMA2_LOCAL,
             LLM_OPTIONS.MISTRAL_API,
             LLM_OPTIONS.OPENAI,
+            LLM_OPTIONS.DALLE3,
         ]
     else:
         llm_options = [
@@ -234,3 +237,6 @@ def init_model():
 
     if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.OPENAI:
         st.session_state.model = OpenAIAPI()
+    
+    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.DALLE3:
+        st.session_state.model = Dalle3API()

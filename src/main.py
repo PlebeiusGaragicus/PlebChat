@@ -40,7 +40,7 @@ from src.interface import (
     interrupt,
 )
 
-from src.tts import TTS
+from src.speech import TTS
 
 
 
@@ -238,7 +238,7 @@ def main_page():
 
     ### THE AUDIO PLAYER FOR TTS
     if st.session_state.speak_this is not None:
-        # on reload, if `tts` is set, then we speak it
+        # on reload, if `speak_this` is set, then we speak it
         TTS(st.session_state.speak_this)
         st.session_state.speak_this = None
 
@@ -266,20 +266,24 @@ def run_prompt(prompt, bots_reply_placeholder):
                 # for chunk in client:
                 for chunk in st.session_state.model.get_streamed_tokens(client):
                     try:
-                        # st.session_state.incomplete_stream += chunk.choices[0].delta.content
-                        st.session_state.incomplete_stream += chunk
+                        if st.session_state.model.modality == "IMAGES":
+                            st.image(chunk) # TODO untested
+                        else:
+                            st.session_state.incomplete_stream += chunk
+                            place_holder.markdown(st.session_state.incomplete_stream)
                     except TypeError as e:
                         #TODO - not sure why this error happens...
                         print("TypeError in run_prompt()")
                         st.exception(e)
 
-                    place_holder.markdown(st.session_state.incomplete_stream)
+                    # place_holder.markdown(st.session_state.incomplete_stream)
         except MistralAPIException as e:
             st.error(e)
             st.stop()
 
-        reply = st.session_state.incomplete_stream
-
-    st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
-
-    return reply
+        if st.session_state.model.modality == "IMAGES":
+            return "picture"
+        else:
+            reply = st.session_state.incomplete_stream
+            st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
+            return reply

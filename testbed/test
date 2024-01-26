@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# source ../venv/bin/activate
+
+# args="--server.runOnSave true --logger.level debug"
+args="--server.runOnSave true --logger.level info"
+
+export DEBUG=true
+streamlit run $args try.py
