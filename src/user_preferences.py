@@ -5,20 +5,6 @@ import streamlit as st
 
 PREFERENCES_PATH = pathlib.Path(__file__).parent.parent / "preferences"
 
-# Define default user preferences
-# DEFAULT_USER_PREFERENCES = {
-#     "assemblyai_api_key": None,
-#     "language_model": LLM_OPTIONS.MISTRAL_API,
-#     "mistral_api_key": None,
-#     "mistral_model": "mistral-medium",
-#     "mistral_safemode": True,
-#     "openai_api_key": None,
-#     "openai_tts_rate": 1.2,
-#     "openai_voice": TTS_VOICE_CHOICES[0],
-#     "settings_on_sidebar": False,
-#     "stt": STT_OPTIONS.PYTHON,
-#     "tts": TTS_OPTIONS.GOOGLE,
-# }
 
 
 def load_settings():
@@ -44,21 +30,13 @@ def load_settings():
                 "settings_on_sidebar": False,
                 "stt": STT_OPTIONS.PYTHON,
                 "tts": TTS_OPTIONS.GOOGLE,
+                "confirm_stt": True,
             }
 
             st.error("user preferences yaml file not found. Creating a new one with default settings.")
             with open(preferences_file, "w") as f:
                 yaml.dump(appstate.user_preferences, f)
 
-
-def load_user_preferences(username):
-    preferences_file = PREFERENCES_PATH / f"{username}.yaml"
-    try:
-        with open(preferences_file) as f:
-            return yaml.load(f, Loader=yaml.loader.SafeLoader)
-    except FileNotFoundError:
-
-        return DEFAULT_USER_PREFERENCES
 
 
 def save_user_preferences(update_key=None, toggle_key=None):

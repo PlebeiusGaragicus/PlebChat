@@ -69,10 +69,10 @@ def settings_llm():
                 kwargs={"update_key": "language_model"},
             )
 
-    if st.session_state.user_preferences["language_model"] == LLM_OPTIONS.ECHOBOT:
-        st.caption("no settings for `echobot` - it just repeats what you say mainly for testing.")
+    # if st.session_state.user_preferences["language_model"] == LLM_OPTIONS.ECHOBOT:
+    #     st.caption("no settings for `echobot` - it just repeats what you say mainly for testing.")
 
-    elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.OPENAI:
+    if st.session_state.user_preferences["language_model"] == LLM_OPTIONS.OPENAI:
         st.text_input(
             "OpenAI API key",
             key="openai_api_key",
@@ -83,11 +83,11 @@ def settings_llm():
             type='password' if st.session_state.username == 'demo' else 'default'
         )
 
-    elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.MISTRAL_LOCAL:
-        st.caption("no settings for local `mistral` - good luck!")
+    # elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.MISTRAL_LOCAL:
+    #     st.caption("no settings for local `mistral` - good luck!")
 
-    elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.LLAMA2_LOCAL:
-        st.caption("no settings for local `llama2` - good luck!")
+    # elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.LLAMA2_LOCAL:
+    #     st.caption("no settings for local `llama2` - good luck!")
 
     elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.MISTRAL_API:
         st.toggle(
@@ -136,8 +136,8 @@ def settings_stt():
             kwargs={"update_key": "stt"},
         )
     
-    if st.session_state.get("stt") == STT_OPTIONS.PYTHON:
-        st.caption("No settings for `python` - it's free and it works")
+    # if st.session_state.get("stt") == STT_OPTIONS.PYTHON:
+        # st.caption("No settings for `python` - it's free and it works")
     
     if st.session_state.get("stt") == STT_OPTIONS.ASSEMBLYAI:
         st.text_input(
@@ -149,6 +149,15 @@ def settings_stt():
             disabled=(st.session_state.username == 'demo'),
             type='password' if st.session_state.username == 'demo' else 'default'
         )
+    
+    confirm_stt = st.session_state.user_preferences["confirm_stt"]
+    st.toggle(
+        label="Confirm stt",
+        key="confirm_stt",
+        value=confirm_stt,
+        on_change=save_user_preferences,
+        kwargs={"toggle_key": "confirm_stt"},
+    )
 
 
 def settings_tts():
@@ -165,8 +174,8 @@ def settings_tts():
     )
 
 
-    if st.session_state.get("tts") == "Google TTS":
-        st.caption("No settings for `gTTS` - it's free and it works")
+    # if st.session_state.get("tts") == "Google TTS":
+    #     st.caption("No settings for `gTTS` - it's free and it works")
 
     if st.session_state.get("tts") == "OpenAI TTS":
         cols = st.columns((1, 1))
@@ -204,16 +213,23 @@ def settings_bottom_buttons():
     col2 = st.columns((1, 1))
     ### LOGOUT BUTTON
     with col2[0]:
-        st.toggle("Confirm stt", key="confirm_stt", value=False)
+        confirm_stt = st.session_state.user_preferences["confirm_stt"]
+        st.toggle(
+            label="Confirm stt",
+            key="confirm_stt",
+            value=confirm_stt,
+            on_change=save_user_preferences,
+            kwargs={"toggle_key": "confirm_stt"},
+        )
 
     ### SWITCH SETTINGS LOCATION BUTTON
-    with col2[1]:
-        move_button_text = f"Move to {'main' if st.session_state.user_preferences['settings_on_sidebar'] else 'sidebar'}"
-        st.button(move_button_text,
-                    on_click=save_user_preferences,
-                    kwargs={"toggle_key": "settings_on_sidebar"},
-                    key="button_move_to_main",
-                    use_container_width=True)
+    # with col2[1]:
+    #     move_button_text = f"Move to {'main' if st.session_state.user_preferences['settings_on_sidebar'] else 'sidebar'}"
+    #     st.button(move_button_text,
+    #                 on_click=save_user_preferences,
+    #                 kwargs={"toggle_key": "settings_on_sidebar"},
+    #                 key="button_move_to_main",
+    #                 use_container_width=True)
 
 
 def init_model():

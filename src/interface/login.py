@@ -6,7 +6,7 @@ import streamlit_authenticator as stauth
 
 from src.common import ASSETS_PATH
 
-from src.root_panel import root_panel
+from src.interface.root_panel import root_panel
 from src.main import main_page, init_if_needed
 
 
@@ -47,7 +47,12 @@ def login_router_page():
 
     # https://blog.streamlit.io/streamlit-authenticator-part-1-adding-an-authentication-component-to-your-app/
     # https://github.com/mkhorasani/Streamlit-Authenticator?ref=blog.streamlit.io
-    st.session_state.authenticator.login("PlebChat login", "main")
+    st.session_state.authenticator.login(location="main", max_concurrent_users=1, fields={
+        "Form name": "PlebChat login",
+        "Username": "Username",
+        "Password": "Password",
+        "Login": "Enter ye!",
+    })
 
     if st.session_state["authentication_status"]:
 

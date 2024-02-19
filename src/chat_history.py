@@ -48,31 +48,6 @@ def delete_this_chat():
 
 
 
-# def get_description():
-#     # if st.session_state.mistral_api_key in [None, ""]:
-#     # if st.session_state.user_preferences["mistral_api_key"] in [None, ""]:
-#     if st.session_state.language_model == LLM_OPTIONS.ECHOBOT:
-#         # return "A friendly chat."
-#         content = st.session_state.appstate.chat.messages[0].content
-#         # return first 3 words, at most
-#         return " ".join(content.split(" ")[:3])
-
-#     # client = MistralClient(api_key=st.session_state.mistral_api_key)
-#     client = MistralClient(api_key=st.session_state.user_preferences["mistral_api_key"])
-#     messages = [
-#         ChatMessage(
-#             role="user",
-#             content=f"Reduce the following user query into 3 to 4 key words: `{st.session_state.appstate.chat.messages[0].content}`\nDo not answer questions. Your reply MUST be no more than 4 words!"
-#         )
-#     ]
-
-#     chat_response = client.chat(
-#         model="mistral-small",
-#         messages=messages,
-#     )
-#     # print(chat_response)
-#     # st.stop()
-#     return chat_response.choices[0].message.content
 
 
 
@@ -109,3 +84,32 @@ def save_chat_history() -> bool:
         )
     
     return new_chat_first_save
+
+
+
+
+# def get_description():
+#     # if st.session_state.mistral_api_key in [None, ""]:
+#     # if st.session_state.user_preferences["mistral_api_key"] in [None, ""]:
+#     if st.session_state.language_model == LLM_OPTIONS.ECHOBOT:
+#         # return "A friendly chat."
+#         content = st.session_state.appstate.chat.messages[0].content
+#         # return first 3 words, at most
+#         return " ".join(content.split(" ")[:3])
+
+#     # client = MistralClient(api_key=st.session_state.mistral_api_key)
+#     client = MistralClient(api_key=st.session_state.user_preferences["mistral_api_key"])
+#     messages = [
+#         ChatMessage(
+#             role="user",
+#             content=f"Reduce the following user query into 3 to 4 key words: `{st.session_state.appstate.chat.messages[0].content}`\nDo not answer questions. Your reply MUST be no more than 4 words!"
+#         )
+#     ]
+
+#     chat_response = client.chat(
+#         model="mistral-small",
+#         messages=messages,
+#     )
+#     # print(chat_response)
+#     # st.stop()
+#     return chat_response.choices[0].message.content

@@ -1,39 +1,21 @@
-# PlebChat
-
 <div align="center">
 <figure>
     <img src="./assets/assistant2sm.png" alt="a friendly assistant" height="300px">
-    <figcaption>Yes, you can have your own personal chatbot!</figcaption>
 </figure>
 </div>
 
 ---
 
-The __purpose__ of this project is to:
-- Teach myself to build custom AI applications. 🧠
-- Build a portfolio of _useful_ AI applications. 💼
-- Use these applications to improve my own productivity. 📈
-- Implement open-source AI models and run them on my own hardware. 🖥️
-- Have fun 💕 and inspire others! ✨
-- Empower humans 💪
+# to research..,.
 
-## Current version
+https://maladeep-coventry-purehub-search-engine-app-okesr5.streamlit.app
 
-This is still a work-in-progress, obvi.
+https://blog.streamlit.io/purehub-a-search-engine-for-your-university/#key-takeaways
 
-I'll make this section once it's ready to deploy for reals tho...
+https://blog.streamlit.io/simplifying-generative-ai-workflows/
 
+https://docs.coqui.ai/en/latest/
 
-## About this project
+https://medium.com/machine-learns/xtts-v2-new-version-of-the-open-source-text-to-speech-model-af73914db81f
 
-The pace of Artificial Intelligence research is accelerating and products from the field have the potential to exponentially increase human productivity.  For-profit organizations are likely to use this technology to create closed-source, pay-walled, and morally bent (read "safe") models to dominate the market.  If expertise of integrating machine learning remains centralized we will create that future.
-
-Instead, let's use open-source machine intelligence, on hardware we own, on web domains we control, for only the cost of setup and maintenance!
-
-Not only can we build our own infrastructure, but our own custom application!  We can fine-tune our deployment to exactly our specifications - any model on any-size hardware.
-
-This project is a demonstration of how to build private, custom AI applications using free, open-source software on privately-owned inexpensive second-hand hardware.  In this way, we can optimize for accessibility in order to maximize our benefits.
-
-This project is completely [open-source](https://github.com/PlebeiusGaragicus/PlebChat) and free to use, especially for personal profit/gain.
-
-Please submit [feature requests, ideas or bug reports](https://github.com/PlebeiusGaragicus/PlebChat/issues)
+https://huggingface.co/coqui/XTTS-v2

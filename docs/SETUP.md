@@ -45,7 +45,7 @@ credentials:
     root:
       email: root@plebby.me
       name: root
-      password: $2b$12$4bvXCx.ioRuuZi.tTwlKh./5IfyMox/gEC4JbAkjT72XYpuDquVB6
+      password: $2b$12$M6w0b2cIDfKU5YA8o4AlQOrMs2npZZOoGUBTDKpTwVYFNbj8ztsDK
 cookie:
   expiry_days: 7
   key: plebchat_auth_widget_key
@@ -57,7 +57,7 @@ EOF
 
 nano auth.yaml
 ```
-**Note:** A default `root` user is created with a password of `eatyourveggies`.  Log in to root and (1) change this default password as well as (2) create additional users.  If you create a `demo` user account then API keys will not be able to be edited or viewed and you can safety allow others to user your app.  Editing of these API keys by root is not yet enabled.  soon...
+**Note:** A default `root` user is created with a password of `toor`.  Log in to root and (1) change this default password as well as (2) create additional users.  If you create a `demo` user account then API keys will not be able to be edited or viewed and you can safety allow others to user your app.  Editing of these API keys by root is not yet enabled.  soon...
 
 The passwords are actually "salted" hashes.  Do not put the actual password in the .yaml file.
 

@@ -2,7 +2,7 @@ python-dotenv
 
 streamlit
 streamlit-chat
-streamlit-authenticator
+streamlit_authenticator
 streamlit_mic_recorder
 
 gtts

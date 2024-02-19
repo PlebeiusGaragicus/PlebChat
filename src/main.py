@@ -5,6 +5,8 @@ import streamlit as st
 from mistralai.models.chat_completion import ChatMessage
 from mistralai.exceptions import MistralAPIException
 
+from streamlit_option_menu import option_menu
+
 import logging
 log = logging.getLogger(__file__)
 
@@ -33,7 +35,7 @@ from src.user_preferences import (
     load_settings,
 )
 
-from src.interface import (
+from src.interface.interface import (
     column_fix,
     center_text,
     centered_button_trick,
@@ -78,9 +80,9 @@ def main_page():
     else:
         settings_placeholder = st.empty()
 
-    with settings_placeholder.expander("Settings",
+    with settings_placeholder.expander("Settings"):#,
                                        # expand the settings expander if the settings are on the sidebar
-                                       expanded=st.session_state.user_preferences["settings_on_sidebar"]):
+                                    #    expanded=st.session_state.user_preferences["settings_on_sidebar"]):
         with st.container(border=True):
             settings_llm()
         with st.container(border=True):
@@ -88,9 +90,26 @@ def main_page():
         with st.container(border=True):
             settings_tts()
 
-        settings_bottom_buttons()
+        # settings_bottom_buttons()
 
     init_model()
+
+
+
+    with centered_button_trick():
+        from src.settings import TTS_OPTIONS, save_user_preferences
+        flows = ["flow 1", "flow 2"]
+        # selected_tts = tts_options.index(st.session_state.user_preferences["tts"])
+        st.selectbox(
+            label="🦜⛓",
+            options=flows,
+            # index=selected_tts,
+            key="flow",
+            # on_change=save_user_preferences,
+            # kwargs={"update_key": "language_model"},
+        )
+    
+    load_proper_flow()
 
 
     ### INPUT BUTTONS
@@ -104,10 +123,9 @@ def main_page():
         # if len(appstate.chat.messages) > 0:
             # st.button("🗑️ Delete", on_click=delete_this_chat, key="button_delete", use_container_width=True)
 
-
     ### RAINBOW DIVIDER
     st.header("", divider="rainbow")
-    st.caption(f"Using: `{st.session_state.model.name}`")
+    # st.caption(f"Using: `{st.session_state.model.name}`")
 
 
 
@@ -183,7 +201,11 @@ def main_page():
         interrupt_button_placeholder.button("🛑 Interrupt", on_click=interrupt, key="button_interrupt")
 
         my_next_prompt_placeholder.chat_message("user").markdown(prompt)
-        reply = run_prompt(prompt, bots_reply_placeholder)
+        st.session_state.appstate.chat.messages.append( ChatMessage(role="user", content=prompt) )
+        # with bots_reply_placeholder.chat_message("assistant"):
+        with st.spinner("🧠 Thinking..."):
+            import asyncio
+            reply = asyncio.run(run_prompt(prompt, bots_reply_placeholder))
 
         new_chat = save_chat_history() # dummy variable for readability
         if new_chat:
@@ -217,12 +239,10 @@ def main_page():
     ### SIDEBAR WITH CONVERSATION HISTORY
     with st.sidebar:
         if len(appstate.chat.messages) > 0:
-            # with centered_button_trick():
             sidebar_new_button_placeholder = st.columns((1, 1))
             sidebar_new_button_placeholder[0].button("🗑️ Delete", on_click=delete_this_chat, key="delbutton2", use_container_width=True)
             sidebar_new_button_placeholder[1].button("🌱 New", on_click=lambda: appstate.new_thread(), use_container_width=True, key="newbutton2")
         st.write("## Past Conversations")
-        # with st.container(border=True):
         for description, runlog in appstate.chat_history:
             st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
         if appstate.truncated:
@@ -244,46 +264,105 @@ def main_page():
 
 
 
+def load_proper_flow():
+    if st.session_state.flow is None:
+        raise ValueError("Flow is not set - how the fuck did this happen?")
 
-def run_prompt(prompt, bots_reply_placeholder):
-    st.session_state.appstate.chat.messages.append( ChatMessage(role="user", content=prompt) )
+    if st.session_state.flow == "flow 1":
+        from src.flows.simple import compiled_graph
+        st.session_state.graph = compiled_graph()
 
-    # With streaming
+def init_flow():
+    pass
+
+
+
+
+
+async def run_prompt(prompt, bots_reply_placeholder):
     with bots_reply_placeholder.chat_message("assistant"):
         st.session_state.incomplete_stream = ""
         place_holder = st.empty()
 
-        try:
-            with st.spinner("🧠 Thinking..."):
-                try:
-                    # TODO missing API keys will throw an exception here
-                    client = st.session_state.model.get_client()
-                except Exception as e:
-                    st.error(e)
-                    st.exception(e)
-                    st.stop()
+        # if st.session_state.flow is None:
+        #     init_flow()
 
-                # for chunk in client:
-                for chunk in st.session_state.model.get_streamed_tokens(client):
-                    try:
-                        if st.session_state.model.modality == "IMAGES":
-                            st.image(chunk) # TODO untested
-                        else:
-                            st.session_state.incomplete_stream += chunk
-                            place_holder.markdown(st.session_state.incomplete_stream)
-                    except TypeError as e:
-                        #TODO - not sure why this error happens...
-                        print("TypeError in run_prompt()")
-                        st.exception(e)
 
+
+        from langchain_core.messages import HumanMessage
+        inputs = {"messages": [HumanMessage(content=prompt)]}
+
+        async for output in st.session_state.graph.astream_log(inputs, include_types=["llm"]):
+            # astream_log() yields the requested logs (here LLMs) in JSONPatch format
+            for op in output.ops:
+                print(op)
+                continue
+
+                if op["path"] == "/streamed_output/-":
+                    # this is the output from .stream()
+                    # print(op["value"])
+                    print(op['value'])
+                    # st.session_state.incomplete_stream += op["value"]
                     # place_holder.markdown(st.session_state.incomplete_stream)
-        except MistralAPIException as e:
-            st.error(e)
-            st.stop()
 
-        if st.session_state.model.modality == "IMAGES":
-            return "picture"
-        else:
-            reply = st.session_state.incomplete_stream
-            st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
-            return reply
+                elif op["path"].startswith("/logs/") and op["path"].endswith("/streamed_output/-"):
+                    # because we chose to only include LLMs, these are LLM tokens
+                    print("STREAMING LLM TOKENS!!!!!!!!")
+                    print(op["value"])
+                    # st.session_state.incomplete_stream += op["value"]
+                    # place_holder.markdown(st.session_state.incomplete_stream)
+
+        # from langchain_core.messages import HumanMessage
+        # inputs = {"messages": [HumanMessage(content=prompt)]}
+        # for output in st.session_state.graph.stream(inputs):
+        #     # stream() yields dictionaries with output keyed by node name
+        #     for key, value in output.items():
+        #         st.session_state.incomplete_stream = f"{key}: {value}"
+        #         place_holder.markdown(st.session_state.incomplete_stream)
+        #         # st.write(f"{key}: {value}")
+        #         print(f"Output from node '{key}':")
+        #         print(value)
+
+        # try:
+        #     client = st.session_state.model.get_client()
+        # except Exception as e:
+        #     st.error(e)
+        #     st.exception(e)
+        #     st.stop()
+
+        # for chunk in st.session_state.model.get_streamed_tokens(client):
+            # st.session_state.incomplete_stream += chunk
+            # place_holder.markdown(st.session_state.incomplete_stream)
+
+        reply = st.session_state.incomplete_stream
+        st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
+        return reply
+
+
+
+
+
+
+
+
+# def run_prompt(prompt, bots_reply_placeholder):
+#     with bots_reply_placeholder.chat_message("assistant"):
+#         st.session_state.incomplete_stream = ""
+#         place_holder = st.empty()
+
+
+#         try:
+#             client = st.session_state.model.get_client()
+#         except Exception as e:
+#             st.error(e)
+#             st.exception(e)
+#             st.stop()
+
+#         # for chunk in client:
+#         for chunk in st.session_state.model.get_streamed_tokens(client):
+#             st.session_state.incomplete_stream += chunk
+#             place_holder.markdown(st.session_state.incomplete_stream)
+
+#         reply = st.session_state.incomplete_stream
+#         st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
+#         return reply

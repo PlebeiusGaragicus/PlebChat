@@ -21,11 +21,6 @@
 - bugfixes
 - UI tidying - toggles, containers, rainbow header
 
-<figure>
-    <img src="../assets/0.0.8.png" alt="0.0.8" height="400px">
-    <img src="../assets/0.0.8sidebar.png" alt="0.0.8 settings" height="400px">
-</figure>
-
 ## 0.0.7
 - error message when auth.yaml is missing
 - workaround to fight column responsiveness on mobile: column_fix()

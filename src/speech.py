@@ -9,14 +9,6 @@ from src.settings import (
     TTS_OPTIONS
 )
 
-TO_READ = """
-https://docs.coqui.ai/en/latest/
-https://medium.com/machine-learns/xtts-v2-new-version-of-the-open-source-text-to-speech-model-af73914db81f
-https://huggingface.co/coqui/XTTS-v2
-
-"""
-
-
 
 from openai import OpenAI
 
