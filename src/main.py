@@ -103,7 +103,11 @@ def load_proper_flow(construct):
 
 
 
-debug_placeholder = None
+# debug_placeholder = None
+
+
+# def debug():
+#     return debug_placeholder
 
 
 
@@ -133,7 +137,6 @@ def main_page(authenticator):
 
 
 
-
     ### INPUT BUTTONS
     with st.sidebar:
         top_buttons = st.columns((1, 1))
@@ -147,18 +150,18 @@ def main_page(authenticator):
             get('construct').display_settings()
 
 
-    if os.getenv("DEBUG", False):
-        with st.expander("Debug", expanded=False):
-            debug_placeholder = st.container()
 
     ### RAINBOW DIVIDER
     st.header("", divider="rainbow")
 
 
-    debug_placeholder.write(get("construct"))
-    # debug_placeholder.write(get("construct").preamble)
-    # debug_placeholder.write(get("construct").settings)
-    debug_placeholder.write(st.session_state.appstate.chat.messages)
+    if os.getenv("DEBUG", False):
+        with st.expander("Debug", expanded=False):
+            debug_placeholder = st.container()
+            debug_placeholder.write(get("construct"))
+            # debug_placeholder.write(get("construct").preamble)
+            # debug_placeholder.write(get("construct").settings)
+            debug_placeholder.write(st.session_state.appstate.chat.messages)
 
     human_avatar = f"{ASSETS_PATH}/human_avatar.png"
     ai_avatar = f"{ASSETS_PATH}/assistant_avatar.png"
