@@ -303,7 +303,7 @@ def main_page(authenticator):
             with st.container(border=True):
                 settings_tts()
 
-        authenticator.logout()
+        authenticator.logout(f"Logout `{st.session_state.username}`")
         # st.session_state.authenticator.logout(f"Logout `{st.session_state.username}`", "main")
         st.caption(f"running version `{VERSION}`")
         if os.getenv("DEBUG", False) == False:

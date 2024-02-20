@@ -118,7 +118,8 @@ def login_router_page():
             config["cookie"]["expiry_days"],
             config["preauthorized"],
         )
-    time.sleep(0.2)
+    # time.sleep(0.2) # This prevents the flashing of the login page, if nothing else.
+    time.sleep(0.05) # This prevents the flashing of the login page, if nothing else.
     # authenticator.login()
 
 
