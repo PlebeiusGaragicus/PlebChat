@@ -4,12 +4,12 @@ import pathlib
 
 import streamlit as st
 
-from src.flows.abstract_model import (
-    Echobot,
-    MistralAPI,
-    MistralLocal,
-    OpenAIAPI,
-)
+# from src.flows.abstract_model import (
+#     Echobot,
+#     MistralAPI,
+#     MistralLocal,
+#     OpenAIAPI,
+# )
 
 from src.user_preferences import save_user_preferences
 
@@ -20,11 +20,11 @@ TTS_VOICE_CHOICES = ["👱🏼‍♂️", "👱🏻‍♀️", "🧔🏻‍♂�
 
 
 
-class LLM_OPTIONS:
-    MISTRAL_API = "Mistral API"
-    MISTRAL_LOCAL = "Mistral (local)"
-    OPENAI = "OpenAI"
-    ECHOBOT = "echobot" # Debug only
+# class LLM_OPTIONS:
+#     MISTRAL_API = "Mistral API"
+#     MISTRAL_LOCAL = "Mistral (local)"
+#     OPENAI = "OpenAI"
+#     ECHOBOT = "echobot" # Debug only
 
 class STT_OPTIONS:
     PYTHON = "Python SpeechRecognition"
@@ -36,81 +36,81 @@ class TTS_OPTIONS:
 
 
 
-def settings_llm():
-    if os.getenv("DEBUG", False):
-        llm_options = [
-            LLM_OPTIONS.ECHOBOT,
-            LLM_OPTIONS.MISTRAL_LOCAL,
-            LLM_OPTIONS.MISTRAL_API,
-            LLM_OPTIONS.OPENAI,
-        ]
-    else:
-        llm_options = [
-            LLM_OPTIONS.ECHOBOT,
-            LLM_OPTIONS.MISTRAL_API,
-            LLM_OPTIONS.OPENAI,
-        ]
+# def settings_llm():
+#     if os.getenv("DEBUG", False):
+#         llm_options = [
+#             LLM_OPTIONS.ECHOBOT,
+#             LLM_OPTIONS.MISTRAL_LOCAL,
+#             LLM_OPTIONS.MISTRAL_API,
+#             LLM_OPTIONS.OPENAI,
+#         ]
+#     else:
+#         llm_options = [
+#             LLM_OPTIONS.ECHOBOT,
+#             LLM_OPTIONS.MISTRAL_API,
+#             LLM_OPTIONS.OPENAI,
+#         ]
 
-    selected_llm_index = llm_options.index(st.session_state.user_preferences["language_model"])
-    st.selectbox("🧠 Language Model",
-                options=llm_options,
-                index=selected_llm_index,
-                key="language_model",
-                on_change=save_user_preferences,
-                kwargs={"update_key": "language_model"},
-            )
+#     selected_llm_index = llm_options.index(st.session_state.user_preferences["language_model"])
+#     st.selectbox("🧠 Language Model",
+#                 options=llm_options,
+#                 index=selected_llm_index,
+#                 key="language_model",
+#                 on_change=save_user_preferences,
+#                 kwargs={"update_key": "language_model"},
+#             )
 
-    # if st.session_state.user_preferences["language_model"] == LLM_OPTIONS.ECHOBOT:
-    #     st.caption("no settings for `echobot` - it just repeats what you say mainly for testing.")
+#     # if st.session_state.user_preferences["language_model"] == LLM_OPTIONS.ECHOBOT:
+#     #     st.caption("no settings for `echobot` - it just repeats what you say mainly for testing.")
 
-    if st.session_state.user_preferences["language_model"] == LLM_OPTIONS.OPENAI:
-        st.text_input(
-            "OpenAI API key",
-            key="openai_api_key",
-            value=st.session_state.user_preferences["openai_api_key"],
-            on_change=save_user_preferences,
-            kwargs={"update_key": "openai_api_key"},
-            disabled=(st.session_state.username == 'demo'),
-            type='password' if st.session_state.username == 'demo' else 'default'
-        )
+#     if st.session_state.user_preferences["language_model"] == LLM_OPTIONS.OPENAI:
+#         st.text_input(
+#             "OpenAI API key",
+#             key="openai_api_key",
+#             value=st.session_state.user_preferences["openai_api_key"],
+#             on_change=save_user_preferences,
+#             kwargs={"update_key": "openai_api_key"},
+#             disabled=(st.session_state.username == 'demo'),
+#             type='password' if st.session_state.username == 'demo' else 'default'
+#         )
 
-    # elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.MISTRAL_LOCAL:
-    #     st.caption("no settings for local `mistral` - good luck!")
+#     # elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.MISTRAL_LOCAL:
+#     #     st.caption("no settings for local `mistral` - good luck!")
 
-    # elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.LLAMA2_LOCAL:
-    #     st.caption("no settings for local `llama2` - good luck!")
+#     # elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.LLAMA2_LOCAL:
+#     #     st.caption("no settings for local `llama2` - good luck!")
 
-    elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.MISTRAL_API:
-        st.toggle(
-            "Safe mode",
-            key="mistral_safemode",
-            value=st.session_state.user_preferences["mistral_safemode"],
-            on_change=save_user_preferences,
-            kwargs={"toggle_key": "mistral_safemode"},
-            help="Safe mode is not yet implemented by mistral ai.  It also turns mistral into a little bitch... you don't want that, do you?",
-            disabled=True
-        )
+#     elif st.session_state.user_preferences["language_model"] == LLM_OPTIONS.MISTRAL_API:
+#         st.toggle(
+#             "Safe mode",
+#             key="mistral_safemode",
+#             value=st.session_state.user_preferences["mistral_safemode"],
+#             on_change=save_user_preferences,
+#             kwargs={"toggle_key": "mistral_safemode"},
+#             help="Safe mode is not yet implemented by mistral ai.  It also turns mistral into a little bitch... you don't want that, do you?",
+#             disabled=True
+#         )
 
-        from src.flows.abstract_model import MistralAPI
-        # MISTRAL_MODELS = ['mistral-medium', 'mistral-small', 'mistral-tiny']
+#         from src.flows.abstract_model import MistralAPI
+#         # MISTRAL_MODELS = ['mistral-medium', 'mistral-small', 'mistral-tiny']
 
-        st.radio("Mistral model select",
-            key="mistral_model",
-            options=MistralAPI.MISTRAL_MODELS,
-            index=MistralAPI.MISTRAL_MODELS.index(st.session_state.user_preferences["mistral_model"]),
-            on_change=save_user_preferences,
-            kwargs={"update_key": "mistral_model"},
-        )
+#         st.radio("Mistral model select",
+#             key="mistral_model",
+#             options=MistralAPI.MISTRAL_MODELS,
+#             index=MistralAPI.MISTRAL_MODELS.index(st.session_state.user_preferences["mistral_model"]),
+#             on_change=save_user_preferences,
+#             kwargs={"update_key": "mistral_model"},
+#         )
 
-        st.text_input(
-            "Mistral API key",
-            key="mistral_api_key",
-            value=st.session_state.user_preferences["mistral_api_key"],
-            on_change=save_user_preferences,
-            kwargs={"update_key": "mistral_api_key"},
-            disabled=(st.session_state.username == 'demo'),
-            type='password' if st.session_state.username == 'demo' else 'default'
-        )
+#         st.text_input(
+#             "Mistral API key",
+#             key="mistral_api_key",
+#             value=st.session_state.user_preferences["mistral_api_key"],
+#             on_change=save_user_preferences,
+#             kwargs={"update_key": "mistral_api_key"},
+#             disabled=(st.session_state.username == 'demo'),
+#             type='password' if st.session_state.username == 'demo' else 'default'
+#         )
     
 
 
@@ -141,14 +141,15 @@ def settings_stt():
             type='password' if st.session_state.username == 'demo' else 'default'
         )
     
-    confirm_stt = st.session_state.user_preferences["confirm_stt"]
-    st.toggle(
-        label="Confirm stt",
-        key="confirm_stt",
-        value=confirm_stt,
-        on_change=save_user_preferences,
-        kwargs={"toggle_key": "confirm_stt"},
-    )
+    #NOTE: This has to be high in the flow as it is used for speech generation
+    # confirm_stt = st.session_state.user_preferences["confirm_stt"]
+    # st.toggle(
+    #     label="Confirm stt",
+    #     key="confirm_stt",
+    #     value=confirm_stt,
+    #     on_change=save_user_preferences,
+    #     kwargs={"toggle_key": "confirm_stt"},
+    # )
 
 
 def settings_tts():
@@ -223,18 +224,18 @@ def settings_bottom_buttons():
     #                 use_container_width=True)
 
 
-def init_model():
-    if 'model' in st.session_state:
-        return
+# def init_model():
+#     if 'model' in st.session_state:
+#         return
 
-    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.ECHOBOT:
-        st.session_state.model = Echobot()
+#     if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.ECHOBOT:
+#         st.session_state.model = Echobot()
 
-    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.MISTRAL_API:
-        st.session_state.model = MistralAPI()
+#     if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.MISTRAL_API:
+#         st.session_state.model = MistralAPI()
 
-    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.MISTRAL_LOCAL:
-        st.session_state.model = MistralLocal()
+#     if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.MISTRAL_LOCAL:
+#         st.session_state.model = MistralLocal()
 
-    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.OPENAI:
-        st.session_state.model = OpenAIAPI()
+#     if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.OPENAI:
+#         st.session_state.model = OpenAIAPI()

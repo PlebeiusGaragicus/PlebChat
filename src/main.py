@@ -1,4 +1,5 @@
 import os
+import json
 
 import streamlit as st
 from streamlit_pills import pills
@@ -15,7 +16,7 @@ log = logging.getLogger(__file__)
 from src.VERSION import VERSION
 from src.common import (
     ASSETS_PATH,
-    ChatAppVars,
+    # ChatAppVars,
     is_init,
     not_init,
     get,
@@ -29,11 +30,12 @@ from src.chat_history import (
 )
 
 from src.settings import (
-    settings_llm,
+    # settings_llm,
     settings_stt,
     settings_tts,
     settings_bottom_buttons,
-    init_model,
+    save_user_preferences,
+    # init_model,
 )
 
 from src.user_preferences import (
@@ -44,12 +46,52 @@ from src.interface.interface import (
     column_fix,
     center_text,
     centered_button_trick,
-    interrupt,
+    # interrupt,
 )
 
 from src.speech import TTS
 
 from src.persist import load_persistance, update_persistance
+
+from src.flows import ChatThread
+
+
+
+class ChatAppVars:
+    def __init__(self):
+        self.chat = ChatThread()
+
+        self.chat_history_depth = 20
+        self.chat_history = None # the list of past conversations list of (description, runlog file name)
+        self.load_chat_history()
+
+
+    def new_thread(self):
+        self.chat = ChatThread()
+
+    def increase_chat_history_depth(self):
+        self.chat_history_depth += 20
+        self.load_chat_history()
+
+    def load_chat_history(self):
+        # make sure the runlog directory exists
+        os.makedirs(st.session_state.runlog_dir, exist_ok=True)
+
+        self.chat_history = []
+        runlogs = os.listdir(st.session_state.runlog_dir)
+        runlogs.sort(reverse=True)
+        self.truncated = len(runlogs) > self.chat_history_depth
+        if self.truncated:
+            runlogs = runlogs[:self.chat_history_depth]
+        for runlog in runlogs:
+            with open(os.path.join(st.session_state.runlog_dir, runlog), "r") as f:
+                try:
+                    file_contents = json.load(f)
+                    description = file_contents["description"]
+                except json.decoder.JSONDecodeError:
+                    # file load error - skip this file
+                    continue
+            self.chat_history.append((description, runlog))
 
 
 
@@ -126,22 +168,46 @@ def main_page(authenticator):
     construct_icons = [c.emoji for c in ALL_CONSTRUCTS]
     pill_index = get("persistance")['chosen_pill']
     construct = pills(label="AI Construct",
-                      options=construct_names,
+                    options=construct_names,
                     #   icons=["🤖", "🤖", "🤖", "🕸️"],
-                      icons=construct_icons,
+                    icons=construct_icons,
                     #   index=CONSTRUCTS.index(get("persistance")['chosen_pill'])
-                      index=pill_index
+                    index=pill_index
                 )
 
     load_proper_flow(construct)
+    
+
+    st.toggle("🗣️🤖", key="speech_input", value=False)
+    if get('speech_input') is True:
+        st.toggle(
+            label="Confirm stt",
+            key="confirm_stt",
+            value=st.session_state.user_preferences["confirm_stt"],
+            on_change=save_user_preferences,
+            kwargs={"toggle_key": "confirm_stt"},)
+
+    # cols2 = st.columns((1, 1, 1))
+    # with cols2[0]:
+    #     st.toggle("🗣️🤖", key="speech_input", value=False)
+    # if get('speech_input') is True:
+    #     with cols2[1]:
+    #         confirm_stt = st.session_state.user_preferences["confirm_stt"]
+    #         st.toggle(
+    #             label="Confirm stt",
+    #             key="confirm_stt",
+    #             value=confirm_stt,
+    #             on_change=save_user_preferences,
+    #             kwargs={"toggle_key": "confirm_stt"},
+    #         )
 
 
 
     ### INPUT BUTTONS
     with st.sidebar:
         top_buttons = st.columns((1, 1))
-        with top_buttons[0]:
-            st.toggle("🗣️🤖", key="speech_input", value=False)
+        # with top_buttons[0]:
+        #     st.toggle("🗣️🤖", key="speech_input", value=False)
         with top_buttons[1]:
             st.toggle("🤖💬", key="read_to_me", value=False)
 
@@ -235,6 +301,16 @@ def main_page(authenticator):
 
     if prompt:
         st.session_state.speech_confirmed = False
+        
+
+        def interrupt():
+            """ callback for the interrupt button """
+            st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=st.session_state.incomplete_stream))
+            st.session_state.appstate.chat.messages.append(ChatMessage(role="user", content="<INTERRUPTS>"))
+
+            if save_chat_history():
+                st.session_state.appstate.load_chat_history()
+
         interrupt_button_placeholder.button("🛑 Interrupt", on_click=interrupt, key="button_interrupt")
 
         my_next_prompt_placeholder.chat_message("user", avatar=human_avatar).markdown(prompt)

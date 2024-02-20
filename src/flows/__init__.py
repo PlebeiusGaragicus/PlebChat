@@ -1,10 +1,22 @@
-# import time
-# import json
-# from typing import Type, Union
+import time
+from typing import Type, Union
+from pydantic import BaseModel
 
-# from pydantic import BaseModel
+from mistralai.models.chat_completion import ChatMessage
 
-# import streamlit as st
+
+class AgenticChatThread(ChatMessage):
+    step: list[Union[str, str]]
+
+
+
+class ChatThread:
+    def __init__(self):
+        self.session_start_time = time.strftime("%Y%m%d_%H%M%S", time.localtime())
+        self.description = None
+        self.messages: list[ChatMessage] = []
+
+
 
 
 class AIWorkflowAbsctractConstruct:

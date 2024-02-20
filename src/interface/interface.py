@@ -1,12 +1,14 @@
 import streamlit as st
 
-from src.common import (
-    ChatMessage,
-)
+# from src.common import (
+#     ChatMessage,
+# )
 
 from src.chat_history import (
     save_chat_history,
 )
+
+from src.flows import ChatMessage
 
 
 def column_fix():
@@ -50,12 +52,12 @@ def centered_button_trick():
     return columns[1]
 
 
-def interrupt():
-    """ callback for the interrupt button """
-    st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=st.session_state.incomplete_stream))
-    st.session_state.appstate.chat.messages.append(ChatMessage(role="user", content="<INTERRUPTS>"))
+# def interrupt():
+#     """ callback for the interrupt button """
+#     st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=st.session_state.incomplete_stream))
+#     st.session_state.appstate.chat.messages.append(ChatMessage(role="user", content="<INTERRUPTS>"))
 
-    if save_chat_history():
-        st.session_state.appstate.load_chat_history()
+#     if save_chat_history():
+#         st.session_state.appstate.load_chat_history()
 
     # st.rerun() # not allowed in on_click handlers (callbacks)
