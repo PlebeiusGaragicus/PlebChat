@@ -147,8 +147,9 @@ def main_page(authenticator):
             get('construct').display_settings()
 
 
-    with st.expander("Debug", expanded=False):
-        debug_placeholder = st.container()
+    if os.getenv("DEBUG", False):
+        with st.expander("Debug", expanded=False):
+            debug_placeholder = st.container()
 
     ### RAINBOW DIVIDER
     st.header("", divider="rainbow")
