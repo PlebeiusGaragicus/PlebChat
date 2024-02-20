@@ -119,7 +119,7 @@ def login_router_page():
             config["preauthorized"],
         )
     # time.sleep(0.2) # This prevents the flashing of the login page, if nothing else.
-    # time.sleep(0.05) # This prevents the flashing of the login page, if nothing else. #NOTE: BUT ONLY ON LOCALHOST?!?!?
+    time.sleep(0.05) # This prevents the flashing of the login page, if nothing else. #NOTE: BUT ONLY ON LOCALHOST?!?!?
     # authenticator.login()
 
 
