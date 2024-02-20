@@ -4,9 +4,9 @@ import pathlib
 import streamlit as st
 
 
-PREFERENCES_PATH = pathlib.Path(__file__).parent.parent / "preferences"
 
 from src.common import (
+    PREFERENCES_PATH,
     is_init,
     not_init,
     get,

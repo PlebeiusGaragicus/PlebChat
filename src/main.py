@@ -49,6 +49,8 @@ from src.interface.interface import (
     # interrupt,
 )
 
+from src.sats import load_sats_balance
+
 from src.speech import TTS
 
 from src.persist import load_persistance, update_persistance
@@ -103,7 +105,9 @@ def init_if_needed():
     # initialize the appstate on first run
     if not_init('appstate'):
         try:
-            st.session_state['appstate']: ChatAppVars = ChatAppVars()
+            st.session_state.appstate: ChatAppVars = ChatAppVars()
+            # st.session_state['appstate'] = ChatAppVars()
+            # st.session_state.appstate.
         except Exception as e:
             st.error(e)
             st.exception(e)
@@ -177,15 +181,20 @@ def main_page(authenticator):
 
     load_proper_flow(construct)
     
+    cols2 = st.columns((1, 1, 1))
+    with cols2[0]:
+        st.toggle("🗣️🤖", key="speech_input", value=False)
+        if get('speech_input') is True:
+            st.toggle(
+                label="Confirm stt",
+                key="confirm_stt",
+                value=st.session_state.user_preferences["confirm_stt"],
+                on_change=save_user_preferences,
+                kwargs={"toggle_key": "confirm_stt"},)
 
-    st.toggle("🗣️🤖", key="speech_input", value=False)
-    if get('speech_input') is True:
-        st.toggle(
-            label="Confirm stt",
-            key="confirm_stt",
-            value=st.session_state.user_preferences["confirm_stt"],
-            on_change=save_user_preferences,
-            kwargs={"toggle_key": "confirm_stt"},)
+    with cols2[1]:
+        st.toggle("🤖💬", key="read_to_me", value=False)
+
 
     # cols2 = st.columns((1, 1, 1))
     # with cols2[0]:
@@ -204,12 +213,20 @@ def main_page(authenticator):
 
 
     ### INPUT BUTTONS
-    with st.sidebar:
-        top_buttons = st.columns((1, 1))
-        # with top_buttons[0]:
-        #     st.toggle("🗣️🤖", key="speech_input", value=False)
-        with top_buttons[1]:
-            st.toggle("🤖💬", key="read_to_me", value=False)
+    # with st.sidebar:
+    #     top_buttons = st.columns((1, 1))
+    #     with top_buttons[0]:
+    #     #     st.toggle("🗣️🤖", key="speech_input", value=False)
+    #         sats = load_sats_balance()
+    #         # bitcoin_symbol = "₿"
+    #         st.write(f":orange[₿]: `{sats:,.0f}` sats")
+    #     with top_buttons[1]:
+    #         st.toggle("🤖💬", key="read_to_me", value=False)
+
+
+
+    ################### TOP OF SIDEBAR ###################
+    sats_display()
 
     # construct_settings_placeholder = st.sidebar.empty()
     with st.sidebar.expander("Construct settings", expanded=True):
@@ -372,6 +389,8 @@ def main_page(authenticator):
         # st.write("---")
         st.header("", divider="rainbow")
 
+        # sats_display()
+
 
         # settings_placeholder = st.sidebar.empty()
         # with settings_placeholder.expander("Settings"):#,
@@ -383,7 +402,14 @@ def main_page(authenticator):
             with st.container(border=True):
                 settings_tts()
 
-        authenticator.logout(f"Logout `{st.session_state.username}`")
+
+        # logoutcols = st.columns((1, 1))
+        # with logoutcols[0]:
+        authenticator.logout(f":red[Logout] `{st.session_state.username}`")
+            # authenticator.logout(f":red[Logout]")
+        # with logoutcols[1]:
+            # st.caption(f"user:`{get('username')}`")
+
         # st.session_state.authenticator.logout(f"Logout `{st.session_state.username}`", "main")
         st.caption(f"running version `{VERSION}`")
         if os.getenv("DEBUG", False) == False:
@@ -471,3 +497,17 @@ def init_graph(prompt, bots_reply_placeholder):
         st.write(output)
         # st.session_state.incomplete_stream += chunk
         # place_holder.markdown(st.session_state.incomplete_stream)
+
+
+
+
+def sats_display():
+    with st.sidebar:
+        sats_cols = st.columns((1, 1))
+        with sats_cols[0]:
+            # st.button("🔁 Refresh", on_click=load_sats_balance, key="refresh_sats", use_container_width=True)
+            # st.button("❇️ :green[add sats]", key="add_sats", use_container_width=True)
+            st.button("⚡️ :green[add sats] ⚡️", key="add_sats", use_container_width=True)
+        with sats_cols[1]:
+            sats = load_sats_balance()
+            st.write(f":orange[₿] `{sats:,.0f}` sats")
