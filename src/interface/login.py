@@ -52,11 +52,12 @@ def login_router_page():
         
     # NOTE: HOLY SHIT THIS BUG REALLY SHOOK ME FOR AWHILE...!!!!
     # https://github.com/mkhorasani/Streamlit-Authenticator/issues/131
-    time.sleep(0.1)
+    # TODO - still not working well on mobile
+    time.sleep(0.5)
 
-    st.session_state.authenticator.login(location="main", max_concurrent_users=1, fields={
+    # st.session_state.authenticator.login(location="main", max_concurrent_users=1, fields={
     # TODO - do I want to limit concurrent users???~??~?
-    # st.session_state.authenticator.login(location="main", fields={
+    st.session_state.authenticator.login(location="main", fields={
         "Form name": "PlebChat login",
         "Username": "Username",
         "Password": "Password",

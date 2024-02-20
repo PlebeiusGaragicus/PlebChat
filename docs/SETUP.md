@@ -21,6 +21,13 @@ usermod -aG sudo satoshi
 
 Then, log out of `root` and log in as this user
 
+```sh
+# signal that we are non-root
+echo 'export PS1="\n\[\e[1;35m\](\[\e[1;31m\]\u\[\e[1;35m\]@\[\e[1;34m\]\h\[\e[1;35m\]) [\w] \[\e[33;3m\]\A\[\e[0m\] \[\e[1;36m\]\$ \[\e[0m\]\n"' >> ~/.bashrc
+
+# log out and in again...
+```
+
 ## clone the repo
 
 ```sh
@@ -46,7 +53,11 @@ credentials:
     root:
       email: root@plebby.me
       name: root
-      password: $2b$12$M6w0b2cIDfKU5YA8o4AlQOrMs2npZZOoGUBTDKpTwVYFNbj8ztsDK
+      password: 
+    satoshi:
+      email: satoshi@plebby.me
+      name: satoshi
+      password: 
 cookie:
   expiry_days: 7
   key: plebchat_auth_widget_key
@@ -58,6 +69,16 @@ EOF
 
 nano auth.yaml
 ```
+
+>> the above command isn't properly escaped... so here are some stupid default TESTING ONLY hashed passwords to use
+
+```sh
+# toor
+$2b$12$M6w0b2cIDfKU5YA8o4AlQOrMs2npZZOoGUBTDKpTwVYFNbj8ztsDK
+# go
+$2b$12$V9LB8zbysAe/CfHWQlgYs.WXfGIp4MWSzQSYRaUBpoV0Q/VwHeGzC
+```
+
 **Note:** A default `root` user is created with a password of `toor`.  Log in to root and (1) change this default password as well as (2) create additional users.  If you create a `demo` user account then API keys will not be able to be edited or viewed and you can safety allow others to user your app.  Editing of these API keys by root is not yet enabled.  soon...
 
 The passwords are actually "salted" hashes.  Do not put the actual password in the .yaml file.
@@ -101,7 +122,7 @@ After=network.target
 [Service]
 User=satoshi
 WorkingDirectory=/home/satoshi/PlebChat
-ExecStart=/bin/bash -c "/home/satoshi/PlebChat/launch_production"
+ExecStart=/bin/bash -c "/home/satoshi/PlebChat/production"
 Restart=on-failure
 RestartSec=5s
 
