@@ -1,5 +1,6 @@
 import os
 import json
+import random
 
 import streamlit as st
 from streamlit_pills import pills
@@ -49,7 +50,7 @@ from src.interface.interface import (
     # interrupt,
 )
 
-from src.sats import load_sats_balance
+from src.sats import load_sats_balance, add_sats
 
 from src.speech import TTS
 
@@ -507,7 +508,8 @@ def sats_display():
         with sats_cols[0]:
             # st.button("🔁 Refresh", on_click=load_sats_balance, key="refresh_sats", use_container_width=True)
             # st.button("❇️ :green[add sats]", key="add_sats", use_container_width=True)
-            st.button("⚡️ :green[add sats] ⚡️", key="add_sats", use_container_width=True)
+            r = random.randint(0, 100)
+            st.button("⚡️ :green[add sats] ⚡️", key="add_sats", on_click=add_sats, args=(r,), use_container_width=True)
         with sats_cols[1]:
             sats = load_sats_balance()
             st.write(f":orange[₿] `{sats:,.0f}` sats")

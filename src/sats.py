@@ -21,3 +21,14 @@ def load_sats_balance():
             return 0
 
     assert False, "should not reach here"
+
+
+
+def add_sats(sats):
+    filename = PREFERENCES_PATH / f"{get('username')}.sats"
+    with open(filename, "r") as f:
+        current_sats = int(f.read())
+    with open(filename, "w") as f:
+        f.write(str(current_sats + sats))
+    
+    st.toast(f"Added {sats} sats to your balance!", icon="⚡️")
