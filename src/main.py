@@ -98,11 +98,8 @@ def load_proper_flow(construct):
         if Construct.name == construct:
             st.session_state["construct"] = Construct()
             st.rerun() # we need this to reload the page with the new construct
-            break
     else:
         raise Exception(f"Unknown construct: {construct} - fix this!")
-
-    st.write(f"Construct loaded is: {get('construct').name}...")
 
 
 
@@ -114,7 +111,7 @@ def main_page():
     load_persistance()
     print("\n\n\nRERUN!!!!!!\n")
     appstate = st.session_state.appstate
-    column_fix()
+    # column_fix()
 
     load_settings()
 

@@ -25,11 +25,16 @@ class testing_echobot(StreamingLLM):
             raise Exception("Echobot.run(): not setup yet! Run `setup()` first!")
 
         # echo = prompt.split(" ")
-        echo = [prompt[i:i+5] for i in range(0, len(prompt), 5)]
-        if self.settings.uppercase:
-            echo = [e.upper() for e in echo]
+        echo = prompt
+
         if self.settings.reverse:
             echo = echo[::-1]
+
+        if self.settings.uppercase:
+            # echo = [e.upper() for e in echo]
+            echo = echo.upper()
+
+        echo = [echo[i:i+5] for i in range(0, len(prompt), 5)]
 
         for e in echo:
             time.sleep(self.settings.sleep_time)

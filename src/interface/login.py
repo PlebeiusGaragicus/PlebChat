@@ -1,5 +1,6 @@
 import os
 import yaml
+import time
 
 import streamlit as st
 import streamlit_authenticator as stauth
@@ -19,6 +20,7 @@ def login_router_page():
         page_icon=os.path.join(ASSETS_PATH, "favicon.ico"),
         layout="centered",
         initial_sidebar_state="auto",
+        menu_items=None
     )
 
     try:
@@ -47,7 +49,14 @@ def login_router_page():
 
     # https://blog.streamlit.io/streamlit-authenticator-part-1-adding-an-authentication-component-to-your-app/
     # https://github.com/mkhorasani/Streamlit-Authenticator?ref=blog.streamlit.io
+        
+    # NOTE: HOLY SHIT THIS BUG REALLY SHOOK ME FOR AWHILE...!!!!
+    # https://github.com/mkhorasani/Streamlit-Authenticator/issues/131
+    time.sleep(0.1)
+
     st.session_state.authenticator.login(location="main", max_concurrent_users=1, fields={
+    # TODO - do I want to limit concurrent users???~??~?
+    # st.session_state.authenticator.login(location="main", fields={
         "Form name": "PlebChat login",
         "Username": "Username",
         "Password": "Password",

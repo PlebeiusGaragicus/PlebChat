@@ -15,7 +15,8 @@ apt-get install -y git curl python3-venv python3-pip
 ## Create a non-`root` user
 
 ```sh
-TODO
+adduser satoshi
+usermod -aG sudo satoshi
 ```
 
 Then, log out of `root` and log in as this user

@@ -1,21 +1,20 @@
 python-dotenv
 
 streamlit
-streamlit-chat
 streamlit_authenticator
 streamlit_mic_recorder
 streamlit-pills
-streamlit-pydantic
-
-gtts
-ollama
-openai
-assemblyai
-mistralai
-
+# streamlit-pydantic
+# streamlit-chat
 
 langchain
 langchain_core
 langgraph
 langchain_openai
 langchain_community
+
+gtts
+ollama
+openai
+assemblyai
+mistralai
