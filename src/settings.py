@@ -4,14 +4,11 @@ import pathlib
 
 import streamlit as st
 
-from src.abstract_model import (
+from src.flows.abstract_model import (
     Echobot,
-    UppercaseBot,
     MistralAPI,
     MistralLocal,
-    Llama2Local,
     OpenAIAPI,
-    Dalle3API
 )
 
 from src.user_preferences import save_user_preferences
@@ -26,11 +23,8 @@ TTS_VOICE_CHOICES = ["👱🏼‍♂️", "👱🏻‍♀️", "🧔🏻‍♂�
 class LLM_OPTIONS:
     MISTRAL_API = "Mistral API"
     MISTRAL_LOCAL = "Mistral (local)"
-    LLAMA2_LOCAL = "Llama2 (local)"
     OPENAI = "OpenAI"
-    DALLE3 = "DALL-E"
     ECHOBOT = "echobot" # Debug only
-    UPPERCASEBOT = "uppercasebot" # Debug only
 
 class STT_OPTIONS:
     PYTHON = "Python SpeechRecognition"
@@ -46,12 +40,9 @@ def settings_llm():
     if os.getenv("DEBUG", False):
         llm_options = [
             LLM_OPTIONS.ECHOBOT,
-            LLM_OPTIONS.UPPERCASEBOT,
             LLM_OPTIONS.MISTRAL_LOCAL,
-            LLM_OPTIONS.LLAMA2_LOCAL,
             LLM_OPTIONS.MISTRAL_API,
             LLM_OPTIONS.OPENAI,
-            LLM_OPTIONS.DALLE3,
         ]
     else:
         llm_options = [
@@ -100,7 +91,7 @@ def settings_llm():
             disabled=True
         )
 
-        from src.abstract_model import MistralAPI
+        from src.flows.abstract_model import MistralAPI
         # MISTRAL_MODELS = ['mistral-medium', 'mistral-small', 'mistral-tiny']
 
         st.radio("Mistral model select",
@@ -238,21 +229,12 @@ def init_model():
 
     if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.ECHOBOT:
         st.session_state.model = Echobot()
-    
-    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.UPPERCASEBOT:
-        st.session_state.model = UppercaseBot()
-    
+
     if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.MISTRAL_API:
         st.session_state.model = MistralAPI()
 
     if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.MISTRAL_LOCAL:
         st.session_state.model = MistralLocal()
 
-    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.LLAMA2_LOCAL:
-        st.session_state.model = Llama2Local()
-
     if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.OPENAI:
         st.session_state.model = OpenAIAPI()
-    
-    if st.session_state.user_preferences['language_model'] == LLM_OPTIONS.DALLE3:
-        st.session_state.model = Dalle3API()

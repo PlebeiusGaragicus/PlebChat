@@ -1,11 +1,12 @@
 import os
 
 import streamlit as st
+from streamlit_pills import pills
 
 from mistralai.models.chat_completion import ChatMessage
 from mistralai.exceptions import MistralAPIException
 
-from streamlit_option_menu import option_menu
+# from streamlit_option_menu import option_menu
 
 import logging
 log = logging.getLogger(__file__)
@@ -15,6 +16,10 @@ from src.VERSION import VERSION
 from src.common import (
     ASSETS_PATH,
     ChatAppVars,
+    is_init,
+    not_init,
+    get,
+    set,
 )
 
 from src.chat_history import (
@@ -44,6 +49,8 @@ from src.interface.interface import (
 
 from src.speech import TTS
 
+from src.persist import load_persistance, update_persistance
+
 
 
 
@@ -52,7 +59,7 @@ def init_if_needed():
     st.session_state.runlog_dir = os.path.join(os.getcwd(), "runlog", st.session_state.username)
 
     # initialize the appstate on first run
-    if 'appstate' not in st.session_state:
+    if not_init('appstate'):
         try:
             st.session_state['appstate']: ChatAppVars = ChatAppVars()
         except Exception as e:
@@ -61,28 +68,59 @@ def init_if_needed():
             st.stop()
 
 
-    if 'speak_this' not in st.session_state:
-        st.session_state.speak_this = None
+    if not_init('speak_this'):
+        set('speak_this', None)
+
+
+
+
+def load_proper_flow(construct):
+    if is_init("construct"):
+        st.write(f"Construct loaded is: {get('construct').name}...")
+
+        if get('construct').name != construct:
+            update_persistance('chosen_pill', construct)
+            st.write("CONSTRUCT CHANGE!")
+        else:
+            st.write("no change!")
+            return
+
+    print("load_proper_flow() - building contruct")
+
+    # ["echobot", "Mistral", "GPT"] # TODO
+    if construct == 'echobot':
+        st.write("init echobot construct")
+        from src.flows import echobot
+        st.session_state["construct"] = echobot()
+        st.rerun()
+    elif construct == 'tommybot':
+        from src.flows import tommybot
+        st.session_state["construct"] = tommybot()
+        st.rerun()
+        # raise Exception("not yet made")
+    elif construct == "dummybot":
+        from src.flows import dummybot
+        st.session_state["construct"] = dummybot()
+        st.rerun()
+        # raise Exception("not yet made")
+    else:
+        raise Exception("wtf how? - fix this!")
+
+    st.write(f"Construct loaded is: {get('construct').name}...")
 
 
 
 def main_page():
+    load_persistance()
+    print("\n\n\nRERUN!!!!!!\n")
     appstate = st.session_state.appstate
-
     column_fix()
-    center_text("p", "🗣️🤖💬", size=60) # or h1, whichever
 
     load_settings()
 
-    ### SETTINGS EXPANDER
-    if st.session_state.user_preferences["settings_on_sidebar"]:
-        settings_placeholder = st.sidebar.empty()
-    else:
-        settings_placeholder = st.empty()
+    settings_placeholder = st.sidebar.empty()
 
     with settings_placeholder.expander("Settings"):#,
-                                       # expand the settings expander if the settings are on the sidebar
-                                    #    expanded=st.session_state.user_preferences["settings_on_sidebar"]):
         with st.container(border=True):
             settings_llm()
         with st.container(border=True):
@@ -90,36 +128,32 @@ def main_page():
         with st.container(border=True):
             settings_tts()
 
-        # settings_bottom_buttons()
 
-    init_model()
+    CONSTRUCTS = ["echobot", "tommybot", "dummybot"]
+
+    construct = pills(label="AI Construct",
+                      options=CONSTRUCTS,
+                      icons=["🤖", "🤖", "🤖"],
+                      index=CONSTRUCTS.index(get("persistance")['chosen_pill'])
+                )
+    st.caption(f"Using: `{construct}`")
+
+    # check_change = st.session_state.get("construct", None)
+    # if check_change is not None or check_change.name != st.session_state.get("construct").name:
+    load_proper_flow(construct)
 
 
-
-    with centered_button_trick():
-        from src.settings import TTS_OPTIONS, save_user_preferences
-        flows = ["flow 1", "flow 2"]
-        # selected_tts = tts_options.index(st.session_state.user_preferences["tts"])
-        st.selectbox(
-            label="🦜⛓",
-            options=flows,
-            # index=selected_tts,
-            key="flow",
-            # on_change=save_user_preferences,
-            # kwargs={"update_key": "language_model"},
-        )
-    
-    load_proper_flow()
 
 
     ### INPUT BUTTONS
-    top_buttons = st.columns((1, 1, 1))
-    with top_buttons[0]:
-        st.toggle("🗣️🤖", key="speech_input", value=False)
-    with top_buttons[1]:
-        st.toggle("🤖💬", key="read_to_me", value=False)
-    with top_buttons[2]:
-        st.empty()
+    with st.sidebar:
+        top_buttons = st.columns((1, 1))
+        with top_buttons[0]:
+            st.toggle("🗣️🤖", key="speech_input", value=False)
+        with top_buttons[1]:
+            st.toggle("🤖💬", key="read_to_me", value=False)
+        # with top_buttons[2]:
+        #     st.empty()
         # if len(appstate.chat.messages) > 0:
             # st.button("🗑️ Delete", on_click=delete_this_chat, key="button_delete", use_container_width=True)
 
@@ -127,6 +161,9 @@ def main_page():
     st.header("", divider="rainbow")
     # st.caption(f"Using: `{st.session_state.model.name}`")
 
+
+    st.write(get("construct").preamble)
+    st.write(get("construct").settings)
 
 
     ####### CONVERSATION #######
@@ -204,8 +241,9 @@ def main_page():
         st.session_state.appstate.chat.messages.append( ChatMessage(role="user", content=prompt) )
         # with bots_reply_placeholder.chat_message("assistant"):
         with st.spinner("🧠 Thinking..."):
-            import asyncio
-            reply = asyncio.run(run_prompt(prompt, bots_reply_placeholder))
+            # import asyncio
+            # reply = asyncio.run(run_prompt(prompt, bots_reply_placeholder))
+            reply = run_prompt(prompt, bots_reply_placeholder)
 
         new_chat = save_chat_history() # dummy variable for readability
         if new_chat:
@@ -242,18 +280,26 @@ def main_page():
             sidebar_new_button_placeholder = st.columns((1, 1))
             sidebar_new_button_placeholder[0].button("🗑️ Delete", on_click=delete_this_chat, key="delbutton2", use_container_width=True)
             sidebar_new_button_placeholder[1].button("🌱 New", on_click=lambda: appstate.new_thread(), use_container_width=True, key="newbutton2")
-        st.write("## Past Conversations")
-        for description, runlog in appstate.chat_history:
-            st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
-        if appstate.truncated:
-            st.caption(f"Only showing last {appstate.chat_history_depth} conversations")
-            st.button("Load more...", use_container_width=True, key="load_more_button", on_click=appstate.increase_chat_history_depth)
+        with st.expander("Past Conversations", expanded=False):
+            st.write("## Past Conversations")
+            for description, runlog in appstate.chat_history:
+                st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
+            if appstate.truncated:
+                st.caption(f"Only showing last {appstate.chat_history_depth} conversations")
+                st.button("Load more...", use_container_width=True, key="load_more_button", on_click=appstate.increase_chat_history_depth)
 
         st.write("---")
         st.session_state.authenticator.logout(f"Logout `{st.session_state.username}`", "main")
         st.caption(f"running version `{VERSION}`")
         if os.getenv("DEBUG", False) == False:
             st.caption("Running in production mode.")
+        
+        # with st.expander("API Keys"):
+        #     st.write("here")
+        
+        with st.expander("Construct settings", expanded=True):
+            get('construct').display_settings()
+
 
 
     ### THE AUDIO PLAYER FOR TTS
@@ -264,22 +310,11 @@ def main_page():
 
 
 
-def load_proper_flow():
-    if st.session_state.flow is None:
-        raise ValueError("Flow is not set - how the fuck did this happen?")
-
-    if st.session_state.flow == "flow 1":
-        from src.flows.simple import compiled_graph
-        st.session_state.graph = compiled_graph()
-
-def init_flow():
-    pass
 
 
 
-
-
-async def run_prompt(prompt, bots_reply_placeholder):
+# async def run_prompt(prompt, bots_reply_placeholder):
+def run_prompt(prompt, bots_reply_placeholder):
     with bots_reply_placeholder.chat_message("assistant"):
         st.session_state.incomplete_stream = ""
         place_holder = st.empty()
@@ -289,39 +324,39 @@ async def run_prompt(prompt, bots_reply_placeholder):
 
 
 
-        from langchain_core.messages import HumanMessage
-        inputs = {"messages": [HumanMessage(content=prompt)]}
-
-        async for output in st.session_state.graph.astream_log(inputs, include_types=["llm"]):
-            # astream_log() yields the requested logs (here LLMs) in JSONPatch format
-            for op in output.ops:
-                print(op)
-                continue
-
-                if op["path"] == "/streamed_output/-":
-                    # this is the output from .stream()
-                    # print(op["value"])
-                    print(op['value'])
-                    # st.session_state.incomplete_stream += op["value"]
-                    # place_holder.markdown(st.session_state.incomplete_stream)
-
-                elif op["path"].startswith("/logs/") and op["path"].endswith("/streamed_output/-"):
-                    # because we chose to only include LLMs, these are LLM tokens
-                    print("STREAMING LLM TOKENS!!!!!!!!")
-                    print(op["value"])
-                    # st.session_state.incomplete_stream += op["value"]
-                    # place_holder.markdown(st.session_state.incomplete_stream)
-
         # from langchain_core.messages import HumanMessage
         # inputs = {"messages": [HumanMessage(content=prompt)]}
-        # for output in st.session_state.graph.stream(inputs):
-        #     # stream() yields dictionaries with output keyed by node name
-        #     for key, value in output.items():
-        #         st.session_state.incomplete_stream = f"{key}: {value}"
-        #         place_holder.markdown(st.session_state.incomplete_stream)
-        #         # st.write(f"{key}: {value}")
-        #         print(f"Output from node '{key}':")
-        #         print(value)
+
+        # async for output in st.session_state.graph.astream_log(inputs, include_types=["llm"]):
+        #     # astream_log() yields the requested logs (here LLMs) in JSONPatch format
+        #     for op in output.ops:
+        #         print(op)
+        #         continue
+
+        #         if op["path"] == "/streamed_output/-":
+        #             # this is the output from .stream()
+        #             # print(op["value"])
+        #             print(op['value'])
+        #             # st.session_state.incomplete_stream += op["value"]
+        #             # place_holder.markdown(st.session_state.incomplete_stream)
+
+        #         elif op["path"].startswith("/logs/") and op["path"].endswith("/streamed_output/-"):
+        #             # because we chose to only include LLMs, these are LLM tokens
+        #             print("STREAMING LLM TOKENS!!!!!!!!")
+        #             print(op["value"])
+        #             # st.session_state.incomplete_stream += op["value"]
+        #             # place_holder.markdown(st.session_state.incomplete_stream)
+
+        from langchain_core.messages import HumanMessage
+        inputs = {"messages": [HumanMessage(content=prompt)]}
+        for output in st.session_state.graph.stream(inputs):
+            # stream() yields dictionaries with output keyed by node name
+            for key, value in output.items():
+                st.session_state.incomplete_stream = f"{key}: {value}"
+                place_holder.markdown(st.session_state.incomplete_stream)
+                # st.write(f"{key}: {value}")
+                print(f"Output from node '{key}':")
+                print(value)
 
         # try:
         #     client = st.session_state.model.get_client()

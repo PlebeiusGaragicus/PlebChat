@@ -76,9 +76,9 @@ print(stauth.Hasher([input("Enter password: ")]).generate()[0])
 
 ```sh
 cat << EOF > .env
-OPENAI_API_KEY=""
-ASSEMBLYAI_API_KEY=""
-MISTRAL_API_KEY=""
+TAVILY_API_KEY=
+LANGCHAIN_API_KEY=
+OPENAI_API_KEY=
 EOF
 
 nano .env

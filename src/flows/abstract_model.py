@@ -10,7 +10,6 @@ from src.chat_history import serialize_messages
 class AbstractModel:
     def __init__(self, name):
         self.name = name
-        self.modality = "TEXT"
 
         self.client = None
         self.options = {}
@@ -63,29 +62,6 @@ class Echobot(AbstractModel):
 
 
 
-class UppercaseBot(AbstractModel):
-    def __init__(self):
-        super().__init__("UppercaseBot")
-
-    def get_client(self):
-        time.sleep(0.8)
-        echo = st.session_state.appstate.chat.messages[-1].content
-
-        # split the message into words
-        echo = echo.split(" ")
-        for e in echo:
-            time.sleep(0.3)
-            yield DeltaContentChunk(f" {e.upper()}!")
-
-    @classmethod
-    def get_streamed_tokens(cls, chunk):
-        for c in chunk:
-            yield f"{c.choices[0].delta.content} "
-
-    def get_description(self):
-        content = st.session_state.appstate.chat.messages[0].content
-        # return first 3 words, at most
-        return " ".join(content.split(" ")[:4]).upper()
 
 
 
@@ -156,29 +132,6 @@ class MistralLocal(AbstractModel):
 
 
 
-class Llama2Local(AbstractModel):
-    def __init__(self):
-        super().__init__("Llama2 Local")
-        self.client = None
-
-    def get_client(self):
-        import ollama
-        smsg = [serialize_messages(m) for m in st.session_state.appstate.chat.messages]
-        return ollama.chat(
-                model='llama2',
-                messages=smsg,
-                stream=True
-            )
-
-    @classmethod
-    def get_streamed_tokens(cls, chunk):
-        for c in chunk:
-            yield c['message']['content']
-
-    def get_description(self):
-        content = st.session_state.appstate.chat.messages[0].content
-        return " ".join(content.split(" ")[:4])
-
 
 
 class OpenAIAPI(AbstractModel):
@@ -214,54 +167,3 @@ class OpenAIAPI(AbstractModel):
         return " ".join(content.split(" ")[:4])
 
 
-
-# from openai import OpenAI
-# client = OpenAI()
-
-# response = client.images.generate(
-#   model="dall-e-3",
-#   prompt="a white siamese cat",
-#   size="1024x1024",
-#   quality="standard",
-#   n=1,
-# )
-
-# image_url = response.data[0].url
-
-
-class Dalle3API(AbstractModel):
-    def __init__(self):
-        super().__init__("OpenAI API")
-        self.modality = "IMAGES" # override the default TEXT modality
-
-        if st.session_state.user_preferences["openai_api_key"] in [None, ""]:
-            raise Exception("OpenAI API key not set.")
-
-        from openai import OpenAI
-
-        # TODO add error handling here
-        self.client = OpenAI(api_key=st.session_state.user_preferences["openai_api_key"])
-
-
-    def get_client(self):
-        print(f"prompt: {st.session_state.appstate.chat.messages[-1].content}")
-        return self.client.images.generate(
-                model="dall-e-3",
-                prompt=st.session_state.appstate.chat.messages[-1].content,
-                size="1024x1024",
-                quality="standard",
-                n=1,
-            )
-
-
-    @classmethod
-    def get_streamed_tokens(cls, chunk):
-        for c in chunk:
-            print(c.response.data[0].url)
-            yield c.response.data[0].url
-
-
-    def get_description(self):
-        content = st.session_state.appstate.chat.messages[0].content
-        # return first 3 words, at most
-        return " ".join(content.split(" ")[:4])

@@ -3,10 +3,10 @@ if __name__ == "__main__":
     dotenv.load_dotenv()
 
     import os
-    print(f"{os.environ['TAVILY_API_KEY']=}")
+    # print(f"{os.environ['TAVILY_API_KEY']=}")
 
     os.environ["LANGCHAIN_TRACING_V2"] = "true"
-    print(f"{os.environ['LANGCHAIN_API_KEY']=}")
+    # print(f"{os.environ['LANGCHAIN_API_KEY']=}")
 
 
     from src.interface.login import login_router_page
