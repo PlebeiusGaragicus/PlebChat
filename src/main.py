@@ -118,16 +118,6 @@ def main_page():
 
     load_settings()
 
-    settings_placeholder = st.sidebar.empty()
-
-    with settings_placeholder.expander("Settings"):#,
-        with st.container(border=True):
-            settings_llm()
-        with st.container(border=True):
-            settings_stt()
-        with st.container(border=True):
-            settings_tts()
-
 
     CONSTRUCTS = ["echobot", "tommybot", "dummybot"]
 
@@ -157,6 +147,9 @@ def main_page():
         # if len(appstate.chat.messages) > 0:
             # st.button("🗑️ Delete", on_click=delete_this_chat, key="button_delete", use_container_width=True)
 
+    construct_settings_placeholder = st.sidebar.empty()
+
+
     ### RAINBOW DIVIDER
     st.header("", divider="rainbow")
     # st.caption(f"Using: `{st.session_state.model.name}`")
@@ -165,10 +158,12 @@ def main_page():
     st.write(get("construct").preamble)
     st.write(get("construct").settings)
 
+    human_avatar = f"{ASSETS_PATH}/human_avatar.png"
+    ai_avatar = f"{ASSETS_PATH}/assistant_avatar.png"
 
     ####### CONVERSATION #######
     for message in appstate.chat.messages:
-        with st.chat_message(message.role):
+        with st.chat_message(message.role, avatar=ai_avatar if message.role == "assistant" else human_avatar):
             st.markdown(message.content)
 
     # This is so that we can later populate with the users' next prompt
@@ -189,7 +184,7 @@ def main_page():
         st.session_state.speech_draft = None
         st.session_state.speech_confirmed = False
 
-    if not st.session_state.get("speech_input", False):
+    if not get("speech_input"):
         prompt = st.chat_input("Ask a question.")
     else:
         # TODO - naive thinking that let me to think having us import here would increase page performance... lol, oh well
@@ -241,8 +236,6 @@ def main_page():
         st.session_state.appstate.chat.messages.append( ChatMessage(role="user", content=prompt) )
         # with bots_reply_placeholder.chat_message("assistant"):
         with st.spinner("🧠 Thinking..."):
-            # import asyncio
-            # reply = asyncio.run(run_prompt(prompt, bots_reply_placeholder))
             reply = run_prompt(prompt, bots_reply_placeholder)
 
         new_chat = save_chat_history() # dummy variable for readability
@@ -280,13 +273,14 @@ def main_page():
             sidebar_new_button_placeholder = st.columns((1, 1))
             sidebar_new_button_placeholder[0].button("🗑️ Delete", on_click=delete_this_chat, key="delbutton2", use_container_width=True)
             sidebar_new_button_placeholder[1].button("🌱 New", on_click=lambda: appstate.new_thread(), use_container_width=True, key="newbutton2")
-        with st.expander("Past Conversations", expanded=False):
-            st.write("## Past Conversations")
-            for description, runlog in appstate.chat_history:
-                st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
-            if appstate.truncated:
-                st.caption(f"Only showing last {appstate.chat_history_depth} conversations")
-                st.button("Load more...", use_container_width=True, key="load_more_button", on_click=appstate.increase_chat_history_depth)
+        # with st.expander("Past Conversations", expanded=False):
+        st.header("", divider="rainbow")
+        st.write("## Past Conversations")
+        for description, runlog in appstate.chat_history:
+            st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
+        if appstate.truncated:
+            st.caption(f"Only showing last {appstate.chat_history_depth} conversations")
+            st.button("Load more...", use_container_width=True, key="load_more_button", on_click=appstate.increase_chat_history_depth)
 
         st.write("---")
         st.session_state.authenticator.logout(f"Logout `{st.session_state.username}`", "main")
@@ -297,8 +291,21 @@ def main_page():
         # with st.expander("API Keys"):
         #     st.write("here")
         
-        with st.expander("Construct settings", expanded=True):
+        # with st.expander("Construct settings", expanded=True):
+        #     get('construct').display_settings()
+
+    with construct_settings_placeholder.expander("Construct settings", expanded=False):
             get('construct').display_settings()
+
+    settings_placeholder = st.sidebar.empty()
+
+    with settings_placeholder.expander("Settings"):#,
+        with st.container(border=True):
+            settings_llm()
+        with st.container(border=True):
+            settings_stt()
+        with st.container(border=True):
+            settings_tts()
 
 
 
@@ -313,91 +320,39 @@ def main_page():
 
 
 
-# async def run_prompt(prompt, bots_reply_placeholder):
-def run_prompt(prompt, bots_reply_placeholder):
-    with bots_reply_placeholder.chat_message("assistant"):
-        st.session_state.incomplete_stream = ""
-        place_holder = st.empty()
-
-        # if st.session_state.flow is None:
-        #     init_flow()
-
-
-
-        # from langchain_core.messages import HumanMessage
-        # inputs = {"messages": [HumanMessage(content=prompt)]}
-
-        # async for output in st.session_state.graph.astream_log(inputs, include_types=["llm"]):
-        #     # astream_log() yields the requested logs (here LLMs) in JSONPatch format
-        #     for op in output.ops:
-        #         print(op)
-        #         continue
-
-        #         if op["path"] == "/streamed_output/-":
-        #             # this is the output from .stream()
-        #             # print(op["value"])
-        #             print(op['value'])
-        #             # st.session_state.incomplete_stream += op["value"]
-        #             # place_holder.markdown(st.session_state.incomplete_stream)
-
-        #         elif op["path"].startswith("/logs/") and op["path"].endswith("/streamed_output/-"):
-        #             # because we chose to only include LLMs, these are LLM tokens
-        #             print("STREAMING LLM TOKENS!!!!!!!!")
-        #             print(op["value"])
-        #             # st.session_state.incomplete_stream += op["value"]
-        #             # place_holder.markdown(st.session_state.incomplete_stream)
-
-        from langchain_core.messages import HumanMessage
-        inputs = {"messages": [HumanMessage(content=prompt)]}
-        for output in st.session_state.graph.stream(inputs):
-            # stream() yields dictionaries with output keyed by node name
-            for key, value in output.items():
-                st.session_state.incomplete_stream = f"{key}: {value}"
-                place_holder.markdown(st.session_state.incomplete_stream)
-                # st.write(f"{key}: {value}")
-                print(f"Output from node '{key}':")
-                print(value)
-
-        # try:
-        #     client = st.session_state.model.get_client()
-        # except Exception as e:
-        #     st.error(e)
-        #     st.exception(e)
-        #     st.stop()
-
-        # for chunk in st.session_state.model.get_streamed_tokens(client):
-            # st.session_state.incomplete_stream += chunk
-            # place_holder.markdown(st.session_state.incomplete_stream)
-
-        reply = st.session_state.incomplete_stream
-        st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
-        return reply
-
-
-
-
-
-
-
-
+# # async def run_prompt(prompt, bots_reply_placeholder):
 # def run_prompt(prompt, bots_reply_placeholder):
 #     with bots_reply_placeholder.chat_message("assistant"):
 #         st.session_state.incomplete_stream = ""
 #         place_holder = st.empty()
 
 
-#         try:
-#             client = st.session_state.model.get_client()
-#         except Exception as e:
-#             st.error(e)
-#             st.exception(e)
-#             st.stop()
 
-#         # for chunk in client:
-#         for chunk in st.session_state.model.get_streamed_tokens(client):
-#             st.session_state.incomplete_stream += chunk
-#             place_holder.markdown(st.session_state.incomplete_stream)
 
 #         reply = st.session_state.incomplete_stream
 #         st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
 #         return reply
+
+
+
+
+
+
+
+
+def run_prompt(prompt, bots_reply_placeholder):
+    with bots_reply_placeholder.chat_message("assistant"):
+        st.session_state.incomplete_stream = ""
+        place_holder = st.empty()
+
+
+        if get("construct").agentic:
+            st.write("not yet supported")
+        else:
+            for chunk in get('construct').run(prompt):
+                st.session_state.incomplete_stream += chunk
+                place_holder.markdown(st.session_state.incomplete_stream)
+
+        reply = st.session_state.incomplete_stream
+        st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
+        return reply

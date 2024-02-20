@@ -1,3 +1,4 @@
+import time
 import json
 from typing import Type, Union
 
@@ -38,6 +39,7 @@ class echobot(AIWorkflowAbsctractConstruct):
     def __init__(self):
         super().__init__(emoji="🤖", name="echobot", runnable=run_echo)
         # self.settings = echobot_settings()
+        self.agentic = False
         self.preamble = "Echobot is ready to echo your prompt!"
 
     def setup(self):
@@ -56,8 +58,17 @@ class echobot(AIWorkflowAbsctractConstruct):
         if not self._is_setup:
             raise Exception("Echobot.run(): not setup yet! Run `setup()` first!")
 
-        print(f"Running `{self.name}` with prompt: `{prompt}`\nkwargs: {kwargs}")
-        self.runnable(prompt)
+        echo = prompt.split(" ")
+        if self.settings.uppercase:
+            echo = [e.upper() for e in echo]
+        if self.settings.reverse:
+            echo = echo[::-1]
+
+        for e in echo:
+            time.sleep(self.settings.sleep_time)
+            yield f"{e} "
+
+
     
     def display_settings(self):
         def update(key):
@@ -72,7 +83,7 @@ class echobot(AIWorkflowAbsctractConstruct):
 
         st.toggle("Uppercase", key="uppercase", value=self.settings.uppercase, on_change=update, args=("uppercase",))
         st.toggle("Reverse", key="reverse", value=self.settings.reverse, on_change=update, args=("reverse",))
-        st.slider("Sleep time", min_value=0.1, max_value=3.0, key="sleep_time", value=self.settings.sleep_time, on_change=update, args=("sleep_time",))
+        st.slider("Sleep time", min_value=0.01, max_value=1.0, key="sleep_time", value=self.settings.sleep_time, on_change=update, args=("sleep_time",))
         st.text_input("Caboose", key="caboose", value=self.settings.caboose, on_change=update, args=("caboose",))
 
 

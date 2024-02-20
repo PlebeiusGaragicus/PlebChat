@@ -58,7 +58,8 @@ def save_chat_history() -> bool:
 
     if st.session_state.appstate.chat.description == None:
         new_chat_first_save = True
-        desc = st.session_state.model.get_description()
+        # desc = st.session_state.model.get_description()
+        desc = "a new chat appears!"
         # desc = get_description()
 
         #ensure desc is no more than n words
