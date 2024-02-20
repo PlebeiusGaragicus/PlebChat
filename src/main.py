@@ -76,20 +76,21 @@ def init_if_needed():
 
 def load_proper_flow(construct):
     if is_init("construct"):
-        st.write(f"Construct loaded is: {get('construct').name}...")
+        # st.write(f"Construct loaded is: {get('construct').name}...")
 
         if get('construct').name != construct:
             update_persistance('chosen_pill', construct)
-            st.write("CONSTRUCT CHANGE!")
+            # st.write("CONSTRUCT CHANGE!")
+            st.session_state.appstate.new_thread()
         else:
-            st.write("no change!")
+            # st.write("no change!")
             return
 
     print("load_proper_flow() - building contruct")
 
     # ["echobot", "Mistral", "GPT"] # TODO
     if construct == 'echobot':
-        st.write("init echobot construct")
+        # st.write("init echobot construct")
         from src.flows.echobots import echobot
         st.session_state["construct"] = echobot()
         st.rerun() # we need this to reload the page with the new construct
@@ -132,7 +133,7 @@ def main_page():
                       icons=["🤖", "🤖", "🤖", "🕸️"],
                       index=CONSTRUCTS.index(get("persistance")['chosen_pill'])
                 )
-    st.caption(f"Using: `{construct}`")
+    # st.caption(f"Using: `{construct}`")
 
     # check_change = st.session_state.get("construct", None)
     # if check_change is not None or check_change.name != st.session_state.get("construct").name:
@@ -161,8 +162,8 @@ def main_page():
     # st.caption(f"Using: `{st.session_state.model.name}`")
 
 
-    st.write(get("construct").preamble)
-    st.write(get("construct").settings)
+    # st.write(get("construct").preamble)
+    # st.write(get("construct").settings)
 
     human_avatar = f"{ASSETS_PATH}/human_avatar.png"
     ai_avatar = f"{ASSETS_PATH}/assistant_avatar.png"
@@ -238,11 +239,15 @@ def main_page():
         st.session_state.speech_confirmed = False
         interrupt_button_placeholder.button("🛑 Interrupt", on_click=interrupt, key="button_interrupt")
 
-        my_next_prompt_placeholder.chat_message("user").markdown(prompt)
+        my_next_prompt_placeholder.chat_message("user", avatar=human_avatar).markdown(prompt)
         st.session_state.appstate.chat.messages.append( ChatMessage(role="user", content=prompt) )
         # with bots_reply_placeholder.chat_message("assistant"):
-        with st.spinner("🧠 Thinking..."):
-            reply = run_prompt(prompt, bots_reply_placeholder)
+        if get("construct").agentic:
+            # bots_reply_placeholder.container()
+            init_graph(prompt, bots_reply_placeholder)
+        else:
+            with st.spinner("🧠 Thinking..."):
+                reply = run_prompt(prompt, bots_reply_placeholder)
 
         new_chat = save_chat_history() # dummy variable for readability
         if new_chat:
@@ -282,6 +287,8 @@ def main_page():
         # with st.expander("Past Conversations", expanded=False):
         st.header("", divider="rainbow")
         st.write("## Past Conversations")
+        if len(appstate.chat_history) == 0:
+            st.caption("No past conversations... yet")
         for description, runlog in appstate.chat_history:
             st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
         if appstate.truncated:
@@ -347,23 +354,39 @@ def main_page():
 
 
 def run_prompt(prompt, bots_reply_placeholder):
-    with bots_reply_placeholder.chat_message("assistant"):
-        st.session_state.incomplete_stream = ""
-        place_holder = st.empty()
+    with bots_reply_placeholder.chat_message("assistant", avatar=f"{ASSETS_PATH}/assistant_avatar.png"):
+        # st.session_state.incomplete_stream = ""
+        # place_holder = st.empty()
 
 
-        if get("construct").agentic:
-            for node, output in get('construct').run(prompt):
-                st.write(f"Output from node '{node}':")
-                st.write("---")
-                st.write(output)
-                # st.session_state.incomplete_stream += chunk
-                # place_holder.markdown(st.session_state.incomplete_stream)
-        else:
-            for chunk in get('construct').run(prompt):
-                st.session_state.incomplete_stream += chunk
-                place_holder.markdown(st.session_state.incomplete_stream)
+        # if get("construct").agentic:
+        #     for node, output in get('construct').run(prompt):
+        #         st.write(f"Output from node '{node}':")
+        #         st.write("---")
+        #         st.write(output)
+        #         # st.session_state.incomplete_stream += chunk
+        #         # place_holder.markdown(st.session_state.incomplete_stream)
+        # else:
+        reply = st.write_stream(get('construct').run(prompt))
+        # for chunk in get('construct').run(prompt):
+            # st.session_state.incomplete_stream += chunk
+            # place_holder.markdown(st.session_state.incomplete_stream)
+            # st.write_stream(chunk)
 
-        reply = st.session_state.incomplete_stream
+        # reply = st.session_state.incomplete_stream
         st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
         return reply
+
+
+
+
+def init_graph(prompt, bots_reply_placeholder):
+    bots_reply_placeholder.container()
+
+
+    for node, output in get('construct').run(prompt):
+        st.write(f"Output from node '{node}':")
+        st.write("---")
+        st.write(output)
+        # st.session_state.incomplete_stream += chunk
+        # place_holder.markdown(st.session_state.incomplete_stream)

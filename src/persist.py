@@ -16,7 +16,7 @@ from src.common import (
 
 def load_persistance():
     if is_init("persistance"):
-        st.write(f"persistance already loaded... {get('persistance')}")
+        # st.write(f"persistance already loaded... {get('persistance')}")
         print("persistance already loaded... returning")
         return
         # set("persistance", {})
@@ -37,7 +37,7 @@ def update_persistance(key, value):
     print(f"update_persistance()")
 
     st.session_state["persistance"][key] = value
-    st.write(f"updating {key} to {value}...")
+    # st.write(f"updating {key} to {value}...")
 
     persistance_file = PREFERENCES_PATH / f"{get('username')}.json"
     with open(persistance_file, "w") as f:

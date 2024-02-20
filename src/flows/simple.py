@@ -56,7 +56,7 @@ class TavilyBot(AIWorkflowAbsctractConstruct):
             raise Exception("TavilyBot.run(): not setup yet! Run `setup()` first!")
         # yield "TavilyBot is ready to search the web for you!"
 
-        inputs = {"messages": [HumanMessage(content="what is the weather in sf")]}
+        inputs = {"messages": [HumanMessage(content=prompt)]}
         for output in self.graph.stream(inputs):
             # stream() yields dictionaries with output keyed by node name
             for key, value in output.items():
