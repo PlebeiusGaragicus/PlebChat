@@ -90,19 +90,25 @@ def load_proper_flow(construct):
     # ["echobot", "Mistral", "GPT"] # TODO
     if construct == 'echobot':
         st.write("init echobot construct")
-        from src.flows import echobot
+        from src.flows.echobots import echobot
         st.session_state["construct"] = echobot()
-        st.rerun()
+        st.rerun() # we need this to reload the page with the new construct
+
     elif construct == 'tommybot':
-        from src.flows import tommybot
+        from src.flows.echobots import tommybot
         st.session_state["construct"] = tommybot()
-        st.rerun()
-        # raise Exception("not yet made")
+        st.rerun() # ... same
+
     elif construct == "dummybot":
-        from src.flows import dummybot
+        from src.flows.echobots import dummybot
         st.session_state["construct"] = dummybot()
+        st.rerun() # ... same
+    
+    elif construct == "tavily":
+        from src.flows.simple import TavilyBot
+        st.session_state["construct"] = TavilyBot()
         st.rerun()
-        # raise Exception("not yet made")
+
     else:
         raise Exception("wtf how? - fix this!")
 
@@ -119,11 +125,11 @@ def main_page():
     load_settings()
 
 
-    CONSTRUCTS = ["echobot", "tommybot", "dummybot"]
+    CONSTRUCTS = ["echobot", "tommybot", "dummybot", "tavily"]
 
     construct = pills(label="AI Construct",
                       options=CONSTRUCTS,
-                      icons=["🤖", "🤖", "🤖"],
+                      icons=["🤖", "🤖", "🤖", "🕸️"],
                       index=CONSTRUCTS.index(get("persistance")['chosen_pill'])
                 )
     st.caption(f"Using: `{construct}`")
@@ -347,7 +353,12 @@ def run_prompt(prompt, bots_reply_placeholder):
 
 
         if get("construct").agentic:
-            st.write("not yet supported")
+            for node, output in get('construct').run(prompt):
+                st.write(f"Output from node '{node}':")
+                st.write("---")
+                st.write(output)
+                # st.session_state.incomplete_stream += chunk
+                # place_holder.markdown(st.session_state.incomplete_stream)
         else:
             for chunk in get('construct').run(prompt):
                 st.session_state.incomplete_stream += chunk

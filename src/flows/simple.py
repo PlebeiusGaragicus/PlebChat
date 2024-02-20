@@ -2,7 +2,7 @@ from typing import TypedDict, Annotated, Sequence
 import operator
 import json
 
-from langchain_core.messages import BaseMessage, FunctionMessage
+from langchain_core.messages import BaseMessage, FunctionMessage, HumanMessage
 from langchain.tools.render import format_tool_to_openai_function
 from langgraph.prebuilt import ToolExecutor, ToolInvocation
 from langchain_community.tools.tavily_search import TavilySearchResults
@@ -11,20 +11,75 @@ from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, END
 
 
+from pydantic import BaseModel
+
+import streamlit as st
+
+from src.flows import AIWorkflowAbsctractConstruct
+
+
 class AgentState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], operator.add]
 
 
 
-# class SimpleFlow:
-#     def __init__(self):
-#         tools = [TavilySearchResults(max_results=1)]
-#         self.tool_executor = ToolExecutor(tools)
+class TavilyBotSettings(BaseModel):
+    nothing: bool = False
+    something: bool = True
+    API_KEY: str = ""
 
-#         self.model = ChatOpenAI(temperature=0, streaming=True)
 
-#         functions = [format_tool_to_openai_function(t) for t in tools]
-#         self.model = self.model.bind_functions(functions)
+
+class TavilyBot(AIWorkflowAbsctractConstruct):
+    def __init__(self):
+        super().__init__(emoji="🤖", name="tavily")
+        self.agentic = True
+        self.preamble = "TavilyBot is ready to search the web for you!"
+
+
+    def setup(self):
+        self._is_setup = True
+
+        self.graph = compiled_graph()
+
+        # load settings from file
+        try:
+            with open(f"{self.name}_settings.json", "r") as f:
+                settings = json.loads(f.read())
+                self.settings = TavilyBotSettings(**settings)
+        except FileNotFoundError:
+            self.settings = TavilyBotSettings()
+
+
+    def run(self, prompt, **kwargs):
+        if not self._is_setup:
+            raise Exception("TavilyBot.run(): not setup yet! Run `setup()` first!")
+        # yield "TavilyBot is ready to search the web for you!"
+
+        inputs = {"messages": [HumanMessage(content="what is the weather in sf")]}
+        for output in self.graph.stream(inputs):
+            # stream() yields dictionaries with output keyed by node name
+            for key, value in output.items():
+                yield key, value
+            #     print(f"Output from node '{key}':")
+            #     print("---")
+            #     print(value)
+            # print("\n---\n")
+
+
+
+    def display_settings(self):
+        def update(key):
+            new_value = st.session_state[key]
+            self.settings.__dict__[key] = new_value
+
+            # save to file
+            with open(f"{self.name}_settings.json", "w") as f:
+                f.write(json.dumps(self.settings.model_dump()))
+
+        st.toggle("Nothing", key="nothing", value=self.settings.nothing, on_change=update, args=("nothing",))
+        st.toggle("Something", key="something", value=self.settings.something, on_change=update, args=("something",))
+        st.text_input("API_KEY", key="API_KEY", value=self.settings.API_KEY, on_change=update, args=("API_KEY",))
 
 
 
