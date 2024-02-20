@@ -1,7 +1,7 @@
 python-dotenv
 
 streamlit
-streamlit_authenticator
+streamlit-authenticator
 streamlit_mic_recorder
 streamlit-pills
 # streamlit-pydantic

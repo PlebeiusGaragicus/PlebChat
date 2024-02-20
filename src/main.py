@@ -107,11 +107,13 @@ debug_placeholder = None
 
 
 
-def main_page():
+def main_page(authenticator):
     load_persistance()
     print("\n\n\nRERUN!!!!!!\n")
     appstate = st.session_state.appstate
-    # column_fix()
+    column_fix()
+    center_text("p", "🗣️🤖💬", size=60) # or h1, whichever
+    
 
     load_settings()
 
@@ -140,7 +142,10 @@ def main_page():
         with top_buttons[1]:
             st.toggle("🤖💬", key="read_to_me", value=False)
 
-    construct_settings_placeholder = st.sidebar.empty()
+    # construct_settings_placeholder = st.sidebar.empty()
+    with st.sidebar.expander("Construct settings", expanded=True):
+            get('construct').display_settings()
+
 
     with st.expander("Debug", expanded=False):
         debug_placeholder = st.container()
@@ -284,8 +289,22 @@ def main_page():
             st.caption(f"Only showing last {appstate.chat_history_depth} conversations")
             st.button("Load more...", use_container_width=True, key="load_more_button", on_click=appstate.increase_chat_history_depth)
 
-        st.write("---")
-        st.session_state.authenticator.logout(f"Logout `{st.session_state.username}`", "main")
+        # st.write("---")
+        st.header("", divider="rainbow")
+
+
+        # settings_placeholder = st.sidebar.empty()
+        # with settings_placeholder.expander("Settings"):#,
+        with st.expander("Settings"):#,
+            # with st.container(border=True):
+            #     settings_llm()
+            with st.container(border=True):
+                settings_stt()
+            with st.container(border=True):
+                settings_tts()
+
+        authenticator.logout()
+        # st.session_state.authenticator.logout(f"Logout `{st.session_state.username}`", "main")
         st.caption(f"running version `{VERSION}`")
         if os.getenv("DEBUG", False) == False:
             st.caption("Running in production mode.")
@@ -298,18 +317,9 @@ def main_page():
 
     # TODO - fuck.. the settings expander closes every time you make an adjustment!!!
     # with construct_settings_placeholder.expander("Construct settings"):
-    with construct_settings_placeholder.expander("Construct settings", expanded=True):
-            get('construct').display_settings()
+    # with construct_settings_placeholder.expander("Construct settings", expanded=True):
+    #         get('construct').display_settings()
 
-    settings_placeholder = st.sidebar.empty()
-
-    with settings_placeholder.expander("Settings"):#,
-        # with st.container(border=True):
-        #     settings_llm()
-        with st.container(border=True):
-            settings_stt()
-        with st.container(border=True):
-            settings_tts()
 
 
 
