@@ -71,7 +71,8 @@ def init_if_needed():
     if not_init('speak_this'):
         set('speak_this', None)
 
-
+# TODO
+CONSTRUCTS = ["echobot", "tommybot", "dummybot", "tavily"]
 
 
 def load_proper_flow(construct):
@@ -79,7 +80,8 @@ def load_proper_flow(construct):
         # st.write(f"Construct loaded is: {get('construct').name}...")
 
         if get('construct').name != construct:
-            update_persistance('chosen_pill', construct)
+            # update_persistance('chosen_pill', construct)
+            update_persistance('chosen_pill', CONSTRUCTS.index(construct))
             # st.write("CONSTRUCT CHANGE!")
             st.session_state.appstate.new_thread()
         else:
@@ -117,6 +119,10 @@ def load_proper_flow(construct):
 
 
 
+debug_placeholder = None
+
+
+
 def main_page():
     load_persistance()
     print("\n\n\nRERUN!!!!!!\n")
@@ -126,17 +132,15 @@ def main_page():
     load_settings()
 
 
-    CONSTRUCTS = ["echobot", "tommybot", "dummybot", "tavily"]
 
+    pill_index = get("persistance")['chosen_pill']
     construct = pills(label="AI Construct",
                       options=CONSTRUCTS,
                       icons=["🤖", "🤖", "🤖", "🕸️"],
-                      index=CONSTRUCTS.index(get("persistance")['chosen_pill'])
+                    #   index=CONSTRUCTS.index(get("persistance")['chosen_pill'])
+                      index=pill_index
                 )
-    # st.caption(f"Using: `{construct}`")
 
-    # check_change = st.session_state.get("construct", None)
-    # if check_change is not None or check_change.name != st.session_state.get("construct").name:
     load_proper_flow(construct)
 
 
@@ -149,21 +153,20 @@ def main_page():
             st.toggle("🗣️🤖", key="speech_input", value=False)
         with top_buttons[1]:
             st.toggle("🤖💬", key="read_to_me", value=False)
-        # with top_buttons[2]:
-        #     st.empty()
-        # if len(appstate.chat.messages) > 0:
-            # st.button("🗑️ Delete", on_click=delete_this_chat, key="button_delete", use_container_width=True)
 
     construct_settings_placeholder = st.sidebar.empty()
 
+    with st.expander("Debug", expanded=False):
+        debug_placeholder = st.container()
 
     ### RAINBOW DIVIDER
     st.header("", divider="rainbow")
-    # st.caption(f"Using: `{st.session_state.model.name}`")
 
 
-    # st.write(get("construct").preamble)
-    # st.write(get("construct").settings)
+    debug_placeholder.write(get("construct"))
+    # debug_placeholder.write(get("construct").preamble)
+    # debug_placeholder.write(get("construct").settings)
+    debug_placeholder.write(st.session_state.appstate.chat.messages)
 
     human_avatar = f"{ASSETS_PATH}/human_avatar.png"
     ai_avatar = f"{ASSETS_PATH}/assistant_avatar.png"
@@ -307,7 +310,9 @@ def main_page():
         # with st.expander("Construct settings", expanded=True):
         #     get('construct').display_settings()
 
-    with construct_settings_placeholder.expander("Construct settings", expanded=False):
+    # TODO - fuck.. the settings expander closes every time you make an adjustment!!!
+    # with construct_settings_placeholder.expander("Construct settings"):
+    with construct_settings_placeholder.expander("Construct settings", expanded=True):
             get('construct').display_settings()
 
     settings_placeholder = st.sidebar.empty()

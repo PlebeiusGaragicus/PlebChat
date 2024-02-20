@@ -10,3 +10,5 @@ venv/
 runlog/
 
 .shh
+
+preferences/*

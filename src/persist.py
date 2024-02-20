@@ -33,10 +33,13 @@ def load_persistance():
     print(get('persistance'))
 
 
-def update_persistance(key, value):
+# TODO seems hacky... but whatevs.... there could be a better way to have consistent naming and "scoop" all persistance keys... nevermind.
+# def update_persistance(key, value):
+def update_persistance(key = None, value = None):
     print(f"update_persistance()")
 
-    st.session_state["persistance"][key] = value
+    if key is not None and value is not None:
+        st.session_state["persistance"][key] = value
     # st.write(f"updating {key} to {value}...")
 
     persistance_file = PREFERENCES_PATH / f"{get('username')}.json"
@@ -44,9 +47,11 @@ def update_persistance(key, value):
         f.write(json.dumps(get("persistance")))
 
     import time
-    time.sleep(0.1)
+    # time.sleep(0.1) # TODO NEEDED
+
+
 
 ### DEFAULT PERSISTANCE
 default_persistance = {
-    "chosen_pill": "echobot"
+    "chosen_pill": 0 # INDEX OF THE PILL USED TO CHOOSE THE AI CONSTRUCT WORKFLOW
 }

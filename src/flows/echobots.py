@@ -6,36 +6,21 @@ from pydantic import BaseModel
 import streamlit as st
 
 from src.flows import AIWorkflowAbsctractConstruct
-
-
+from src.persist import PREFERENCES_PATH
+from src.common import get
 
 class echobot_settings(BaseModel):
     uppercase: bool = False
     reverse: bool = False
-    sleep_time: float = 1.0
-    caboose: str = "🚂"
+    sleep_time: float = 0.4
 
 
-class echobot(AIWorkflowAbsctractConstruct):
-    def __init__(self):
-        super().__init__(emoji="🤖", name="echobot")
-        # self.settings = echobot_settings()
-        self.agentic = False
-        self.preamble = "Echobot is ready to echo your prompt!"
-
-    def setup(self):
-        self._is_setup = True
-        print("Setting up Echobot...")
-        # load settings from file
-        try:
-            with open(f"{self.name}_settings.json", "r") as f:
-                settings = json.loads(f.read())
-                self.settings = echobot_settings(**settings)
-        except FileNotFoundError:
-            self.settings = echobot_settings()
+class StreamingLLM(AIWorkflowAbsctractConstruct):
+    agentic = False
 
 
-    def run(self, prompt, **kwargs):
+class testing_echobot(StreamingLLM):
+    def just_echo(self, prompt, **kwargs):
         if not self._is_setup:
             raise Exception("Echobot.run(): not setup yet! Run `setup()` first!")
 
@@ -50,28 +35,66 @@ class echobot(AIWorkflowAbsctractConstruct):
             yield f"{e} "
 
 
+
+class echobot(testing_echobot):
+    def __init__(self):
+        super().__init__(emoji="🤖", name="echobot")
+        # self.settings = echobot_settings()
+        # self.agentic = False
+        self.preamble = "Echobot is ready to echo your prompt!"
+
+    def setup(self):
+        self._is_setup = True
+        print("Setting up Echobot...")
+        # load settings from file
+        try:
+            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            with open(settings_filename, "r") as f:
+                settings = json.loads(f.read())
+                self.settings = echobot_settings(**settings)
+        except FileNotFoundError:
+            self.settings = echobot_settings()
+
+
+    def run(self, prompt, **kwargs):
+        return self.just_echo(prompt, **kwargs)
+        # if not self._is_setup:
+        #     raise Exception("Echobot.run(): not setup yet! Run `setup()` first!")
+
+        # echo = prompt.split(" ")
+        # if self.settings.uppercase:
+        #     echo = [e.upper() for e in echo]
+        # if self.settings.reverse:
+        #     echo = echo[::-1]
+
+        # for e in echo:
+        #     time.sleep(self.settings.sleep_time)
+        #     yield f"{e} "
+
+
     
     def display_settings(self):
         def update(key):
             new_value = st.session_state[key]
-            if key == 'caboose':
-                new_value = new_value[:1]
+            # if key == 'caboose':
+            #     new_value = new_value[:1]
             self.settings.__dict__[key] = new_value
 
             # save to file
-            with open(f"{self.name}_settings.json", "w") as f:
+            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            with open(settings_filename, "w") as f:
                 f.write(json.dumps(self.settings.model_dump()))
 
         st.toggle("Uppercase", key="uppercase", value=self.settings.uppercase, on_change=update, args=("uppercase",))
         st.toggle("Reverse", key="reverse", value=self.settings.reverse, on_change=update, args=("reverse",))
-        st.slider("Sleep time", min_value=0.01, max_value=1.0, key="sleep_time", value=self.settings.sleep_time, on_change=update, args=("sleep_time",))
-        st.text_input("Caboose", key="caboose", value=self.settings.caboose, on_change=update, args=("caboose",))
+        st.slider("Sleep time", min_value=0.05, max_value=1.0, key="sleep_time", value=self.settings.sleep_time, on_change=update, args=("sleep_time",))
+        # st.text_input("Caboose", key="caboose", value=self.settings.caboose, on_change=update, args=("caboose",))
 
 
 
 
 
-class dummybot(AIWorkflowAbsctractConstruct):
+class dummybot(testing_echobot):
     def __init__(self):
         super().__init__(emoji="🤖", name="dummybot")
         # self.settings = echobot_settings()
@@ -84,7 +107,8 @@ class dummybot(AIWorkflowAbsctractConstruct):
 
         # load settings from file
         try:
-            with open(f"{self.name}_settings.json", "r") as f:
+            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            with open(settings_filename, "r") as f:
                 settings = json.loads(f.read())
                 self.settings = echobot_settings(**settings)
         except FileNotFoundError:
@@ -92,33 +116,30 @@ class dummybot(AIWorkflowAbsctractConstruct):
 
 
     def run(self, prompt, **kwargs):
-        if not self._is_setup:
-            raise Exception("Echobot.run(): not setup yet! Run `setup()` first!")
-
-        print(f"Running `{self.name}` with prompt: `{prompt}`\nkwargs: {kwargs}")
-        self.runnable(prompt)
+        return self.just_echo(prompt, **kwargs)
     
 
     def display_settings(self):
         def update(key):
             new_value = st.session_state[key]
-            if key == 'caboose':
-                new_value = new_value[:1]
+            # if key == 'caboose':
+            #     new_value = new_value[:1]
             self.settings.__dict__[key] = new_value
 
             # save to file
-            with open(f"{self.name}_settings.json", "w") as f:
+            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            with open(settings_filename, "w") as f:
                 f.write(json.dumps(self.settings.model_dump()))
 
         st.toggle("Uppercase", key="uppercase", value=self.settings.uppercase, on_change=update, args=("uppercase",))
         st.toggle("Reverse", key="reverse", value=self.settings.reverse, on_change=update, args=("reverse",))
-        st.slider("Sleep time", min_value=0.1, max_value=3.0, key="sleep_time", value=self.settings.sleep_time, on_change=update, args=("sleep_time",))
-        st.text_input("Caboose", key="caboose", value=self.settings.caboose, on_change=update, args=("caboose",))
+        st.slider("Sleep time", min_value=0.05, max_value=1.0, key="sleep_time", value=self.settings.sleep_time, on_change=update, args=("sleep_time",))
+        # st.text_input("Caboose", key="caboose", value=self.settings.caboose, on_change=update, args=("caboose",))
 
 
 
 
-class tommybot(AIWorkflowAbsctractConstruct):
+class tommybot(testing_echobot):
     def __init__(self):
         super().__init__(emoji="🤖", name="tommybot")
         # self.settings = echobot_settings() #NOTE: DO NOT DO THIS.. IT OVERWRITES THE SETTINGS TO DEFAULT
@@ -131,7 +152,8 @@ class tommybot(AIWorkflowAbsctractConstruct):
 
         # load settings from file
         try:
-            with open(f"{self.name}_settings.json", "r") as f:
+            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            with open(settings_filename, "r") as f:
                 settings = json.loads(f.read())
                 self.settings = echobot_settings(**settings)
         except FileNotFoundError:
@@ -139,29 +161,26 @@ class tommybot(AIWorkflowAbsctractConstruct):
 
 
     def run(self, prompt, **kwargs):
-        if not self._is_setup:
-            raise Exception("Echobot.run(): not setup yet! Run `setup()` first!")
-
-        print(f"Running `{self.name}` with prompt: `{prompt}`\nkwargs: {kwargs}")
-        self.runnable(prompt)
+        return self.just_echo(prompt, **kwargs)
     
 
     def display_settings(self):
         def update(key):
             new_value = st.session_state[key]
-            if key == 'caboose':
-                new_value = new_value[:1]
+            # if key == 'caboose':
+            #     new_value = new_value[:1]
             self.settings.__dict__[key] = new_value
             
             # save to file
-            with open(f"{self.name}_settings.json", "w") as f:
+            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            with open(settings_filename, "w") as f:
                 f.write(json.dumps(self.settings.model_dump()))
 
 
         st.toggle("Uppercase", key="uppercase", value=self.settings.uppercase, on_change=update, args=("uppercase",))
         st.toggle("Reverse", key="reverse", value=self.settings.reverse, on_change=update, args=("reverse",))
-        st.slider("Sleep time", min_value=0.1, max_value=3.0, key="sleep_time", value=self.settings.sleep_time, on_change=update, args=("sleep_time",))
-        st.text_input("Caboose", key="caboose", value=self.settings.caboose, on_change=update, args=("caboose",))
+        st.slider("Sleep time", min_value=0.05, max_value=1.0, key="sleep_time", value=self.settings.sleep_time, on_change=update, args=("sleep_time",))
+        # st.text_input("Caboose", key="caboose", value=self.settings.caboose, on_change=update, args=("caboose",))
 
 """
 
