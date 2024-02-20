@@ -1,5 +1,6 @@
 [browser]
-gatherUsageStats = false
+# gatherUsageStats = false
+gatherUsageStats = true
 
 
 [client]
