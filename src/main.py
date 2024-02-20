@@ -72,7 +72,8 @@ def init_if_needed():
         set('speak_this', None)
 
 # TODO
-CONSTRUCTS = ["echobot", "tommybot", "dummybot", "tavily"]
+# CONSTRUCTS = ["echobot", "tommybot", "dummybot", "tavily"]
+from src.flows.constructs import ALL_CONSTRUCTS
 
 
 def load_proper_flow(construct):
@@ -81,7 +82,9 @@ def load_proper_flow(construct):
 
         if get('construct').name != construct:
             # update_persistance('chosen_pill', construct)
-            update_persistance('chosen_pill', CONSTRUCTS.index(construct))
+            # update_persistance('chosen_pill', CONSTRUCTS.index(construct))
+            update_persistance('chosen_pill', [c.name for c in ALL_CONSTRUCTS].index(construct))
+            # update_persistance('chosen_pill', [c.name for c in ALL_CONSTRUCTS].index(construct))
             # st.write("CONSTRUCT CHANGE!")
             st.session_state.appstate.new_thread()
         else:
@@ -90,30 +93,14 @@ def load_proper_flow(construct):
 
     print("load_proper_flow() - building contruct")
 
-    # ["echobot", "Mistral", "GPT"] # TODO
-    if construct == 'echobot':
-        # st.write("init echobot construct")
-        from src.flows.echobots import echobot
-        st.session_state["construct"] = echobot()
-        st.rerun() # we need this to reload the page with the new construct
-
-    elif construct == 'tommybot':
-        from src.flows.echobots import tommybot
-        st.session_state["construct"] = tommybot()
-        st.rerun() # ... same
-
-    elif construct == "dummybot":
-        from src.flows.echobots import dummybot
-        st.session_state["construct"] = dummybot()
-        st.rerun() # ... same
-    
-    elif construct == "tavily":
-        from src.flows.simple import TavilyBot
-        st.session_state["construct"] = TavilyBot()
-        st.rerun()
-
+    # Use ALL_CONSTRUCTS to dynamically instantiate the correct construct
+    for Construct in ALL_CONSTRUCTS:
+        if Construct.name == construct:
+            st.session_state["construct"] = Construct()
+            st.rerun() # we need this to reload the page with the new construct
+            break
     else:
-        raise Exception("wtf how? - fix this!")
+        raise Exception(f"Unknown construct: {construct} - fix this!")
 
     st.write(f"Construct loaded is: {get('construct').name}...")
 
@@ -132,11 +119,13 @@ def main_page():
     load_settings()
 
 
-
+    construct_names = [c.name for c in ALL_CONSTRUCTS]
+    construct_icons = [c.emoji for c in ALL_CONSTRUCTS]
     pill_index = get("persistance")['chosen_pill']
     construct = pills(label="AI Construct",
-                      options=CONSTRUCTS,
-                      icons=["🤖", "🤖", "🤖", "🕸️"],
+                      options=construct_names,
+                    #   icons=["🤖", "🤖", "🤖", "🕸️"],
+                      icons=construct_icons,
                     #   index=CONSTRUCTS.index(get("persistance")['chosen_pill'])
                       index=pill_index
                 )
@@ -318,8 +307,8 @@ def main_page():
     settings_placeholder = st.sidebar.empty()
 
     with settings_placeholder.expander("Settings"):#,
-        with st.container(border=True):
-            settings_llm()
+        # with st.container(border=True):
+        #     settings_llm()
         with st.container(border=True):
             settings_stt()
         with st.container(border=True):

@@ -31,6 +31,9 @@ class TavilyBotSettings(BaseModel):
 
 
 class TavilyBot(AIWorkflowAbsctractConstruct):
+    emoji = "🤖"
+    name = "tavily"
+
     def __init__(self):
         super().__init__(emoji="🤖", name="tavily")
         self.agentic = True

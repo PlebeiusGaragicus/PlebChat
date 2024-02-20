@@ -59,11 +59,19 @@ def save_chat_history() -> bool:
     if st.session_state.appstate.chat.description == None:
         new_chat_first_save = True
         # desc = st.session_state.model.get_description()
-        desc = "a new chat appears!"
+        # desc = "a new chat appears!"
         # desc = get_description()
+        # desc = " ".join(st.session_state.appstate.chat.messages[0].content.split(" ")[:6]) # n=6
+        desc = st.session_state.appstate.chat.messages[0].content
+
+        # remove whitespaces before and after
+        desc = desc.strip()
 
         #ensure desc is no more than n words
         desc = " ".join(desc.split(" ")[:6]) # n=6
+
+        # ensure desc is no more than n characters
+        desc = desc[:20]
     else:
         desc = st.session_state.appstate.chat.description
 
