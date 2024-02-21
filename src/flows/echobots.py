@@ -47,7 +47,7 @@ class echobot(testing_echobot):
     emoji = "🤖"
     name = "echobot"
     def __init__(self):
-        super().__init__(emoji="🤖", name="echobot")
+        super().__init__()
         # self.settings = echobot_settings()
         # self.agentic = False
         self.preamble = "Echobot is ready to echo your prompt!"
@@ -61,7 +61,7 @@ class echobot(testing_echobot):
             with open(settings_filename, "r") as f:
                 settings = json.loads(f.read())
                 self.settings = echobot_settings(**settings)
-        except FileNotFoundError:
+        except (FileNotFoundError, json.JSONDecodeError):
             self.settings = echobot_settings()
 
 
@@ -96,7 +96,7 @@ class echobot(testing_echobot):
 
         st.toggle("Uppercase", key="uppercase", value=self.settings.uppercase, on_change=update, args=("uppercase",))
         st.toggle("Reverse", key="reverse", value=self.settings.reverse, on_change=update, args=("reverse",))
-        st.slider("Sleep time", min_value=0.0, max_value=0.1, key="sleep_time", value=self.settings.sleep_time, on_change=update, args=("sleep_time",))
+        st.slider("Sleep time", min_value=0.0, max_value=0.5, key="sleep_time", value=self.settings.sleep_time, on_change=update, args=("sleep_time",))
         # st.text_input("Caboose", key="caboose", value=self.settings.caboose, on_change=update, args=("caboose",))
 
 
@@ -104,8 +104,11 @@ class echobot(testing_echobot):
 
 
 class dummybot(testing_echobot):
+    emoji = "🥴"
+    name = "dummybot"
+
     def __init__(self):
-        super().__init__(emoji="🤖", name="dummybot")
+        super().__init__()
         # self.settings = echobot_settings()
 
         self.preamble = "I can do this if I keep trying.  Don't give up and you'll get there!"
@@ -120,13 +123,13 @@ class dummybot(testing_echobot):
             with open(settings_filename, "r") as f:
                 settings = json.loads(f.read())
                 self.settings = echobot_settings(**settings)
-        except FileNotFoundError:
+        except (FileNotFoundError, json.JSONDecodeError):
             self.settings = echobot_settings()
 
 
     def run(self, prompt, **kwargs):
-        return self.just_echo(prompt, **kwargs)
-    
+        return self.just_echo(f"{prompt} ...I'm so dumB!", **kwargs)
+
 
     def display_settings(self):
         def update(key):
@@ -149,8 +152,11 @@ class dummybot(testing_echobot):
 
 
 class tommybot(testing_echobot):
+    emoji = "💪🏼"
+    name = "tommybot"
+
     def __init__(self):
-        super().__init__(emoji="🤖", name="tommybot")
+        super().__init__()
         # self.settings = echobot_settings() #NOTE: DO NOT DO THIS.. IT OVERWRITES THE SETTINGS TO DEFAULT
 
         self.preamble = "I can do this, but I can't do it alone!  Stay connected with your network!"
@@ -165,13 +171,13 @@ class tommybot(testing_echobot):
             with open(settings_filename, "r") as f:
                 settings = json.loads(f.read())
                 self.settings = echobot_settings(**settings)
-        except FileNotFoundError:
+        except (FileNotFoundError, json.JSONDecodeError):
             self.settings = echobot_settings()
 
 
     def run(self, prompt, **kwargs):
-        return self.just_echo(prompt, **kwargs)
-    
+        return self.just_echo("Hey, my name's Tommy! 💪", **kwargs)
+
 
     def display_settings(self):
         def update(key):

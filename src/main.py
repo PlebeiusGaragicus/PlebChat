@@ -229,9 +229,10 @@ def main_page(authenticator):
     ################### TOP OF SIDEBAR ###################
     sats_display()
 
-    # construct_settings_placeholder = st.sidebar.empty()
-    with st.sidebar.expander("Construct settings", expanded=True):
-            get('construct').display_settings()
+    construct_settings_placeholder = st.sidebar.empty()
+    # with st.sidebar.expander("Construct settings", expanded=True):
+    # with construct_settings_placeholder.expander("Construct settings", expanded=True):
+    #     get('construct').display_settings()
 
 
 
@@ -318,6 +319,11 @@ def main_page(authenticator):
         st.session_state.speech_draft = None
 
     if prompt:
+        # construct_settings_placeholder.empty()
+
+        # st.caption("settings disabled during inference")
+
+        # with construct_settings_placeholder.expander("Construct settings", expanded=False):
         st.session_state.speech_confirmed = False
         
 
@@ -425,7 +431,8 @@ def main_page(authenticator):
     # TODO - fuck.. the settings expander closes every time you make an adjustment!!!
     # with construct_settings_placeholder.expander("Construct settings"):
     # with construct_settings_placeholder.expander("Construct settings", expanded=True):
-    #         get('construct').display_settings()
+    with construct_settings_placeholder.container(border=True):
+        get('construct').display_settings()
 
 
 

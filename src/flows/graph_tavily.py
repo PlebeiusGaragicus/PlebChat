@@ -50,7 +50,7 @@ class TavilyBot(AIWorkflowAbsctractConstruct):
             with open(f"{self.name}_settings.json", "r") as f:
                 settings = json.loads(f.read())
                 self.settings = TavilyBotSettings(**settings)
-        except FileNotFoundError:
+        except (FileNotFoundError, json.JSONDecodeError):
             self.settings = TavilyBotSettings()
 
 

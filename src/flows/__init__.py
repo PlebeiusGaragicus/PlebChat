@@ -20,9 +20,7 @@ class ChatThread:
 
 
 class AIWorkflowAbsctractConstruct:
-    def __init__(self, emoji: str, name: str):
-        self.emoji = emoji
-        self.name = name
+    def __init__(self):
         self._is_setup = False
 
         self.setup()
@@ -39,4 +37,3 @@ class AIWorkflowAbsctractConstruct:
 
 class StreamingLLM(AIWorkflowAbsctractConstruct):
     agentic = False
-

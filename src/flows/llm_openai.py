@@ -20,7 +20,7 @@ class LLM_OPENAI_GPT_3_5(StreamingLLM):
     name = "GPT-3.5"
 
     def __init__(self):
-        super().__init__(emoji="💫", name="GPT-3.5")
+        super().__init__()
 
     def setup(self):
         self._is_setup = True
@@ -31,7 +31,7 @@ class LLM_OPENAI_GPT_3_5(StreamingLLM):
             with open(settings_filename, "r") as f:
                 settings = json.loads(f.read())
                 self.settings = LLM_SETTINGS_OPENAI(**settings)
-        except FileNotFoundError:
+        except (FileNotFoundError, json.JSONDecodeError):
             self.settings = LLM_SETTINGS_OPENAI()
 
 
