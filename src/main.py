@@ -196,6 +196,9 @@ def main_page():
 
     with cols2[1]:
         st.toggle("🤖💬", key="read_to_me", value=False)
+    
+    with cols2[2]:
+        show_tokens()
 
 
     ### RAINBOW DIVIDER
@@ -238,7 +241,7 @@ def main_page():
     ################### TOP OF SIDEBAR ###################
     # sats_display()
     # st.session_state.sats = load_sats_balance()
-    show_tokens()
+    # show_tokens()
 
     st.sidebar.header("", divider="rainbow")
 
@@ -506,9 +509,13 @@ def sats_display():
 
 
 def show_tokens():
-    with st.sidebar:
+    # with st.sidebar:
+        # cols2 = st.columns((1, 1))
+        # with cols2[0]:
+    # st.text_input(label=f":orange[Tokens Available:]", value=f"{get('sats'):,.0f}", disabled=True)
         # sats = load_sats_balance()
-        st.write(f":orange[Tokens Available:]   **{get('sats'):,.0f}**")
+    # st.write(f":orange[Tokens Available:]   **{get('sats'):,.0f}**")
+    st.write(f":orange[Tokens: ] **:green[{get('sats'):,.0f}]** ⚡️")
 
 
 def interrupt():
