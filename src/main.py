@@ -457,14 +457,16 @@ def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
         for chunk in get('construct').run(prompt):
 
             tokens = len(chunk) # TODO - this is not accurate, but it's a start
-            cost_for_this_chunk = tokens / 30 # tokens charged per satoshi
+            cost_for_this_chunk = tokens / 40 # tokens charged per satoshi
 
             st.session_state.token_cost_accumulator += cost_for_this_chunk
             total_cost += cost_for_this_chunk
             sats_left -= cost_for_this_chunk
 
-            # if os.getenv("DEBUG", True):
-            sats_left_placeholder.markdown(f"⚡️ :green[{sats_left:,.0f}] / ⚡️ :red[-{total_cost:,.0f}]")
+            if os.getenv("DEBUG", True):
+                sats_left_placeholder.markdown(f"⚡️ :red[-{total_cost:,.0f}] / :green[{sats_left:,.0f}]")
+            else:
+                sats_left_placeholder.markdown(f":red[-{total_cost:,.0f}]")
 
             if st.session_state.token_cost_accumulator >= 10:
                 st.session_state.redis_conn.decrby(st.session_state.username, int(st.session_state.token_cost_accumulator))
