@@ -157,8 +157,8 @@ def load_proper_flow(construct):
 
 
 
-def main_page(authenticator):
-# def main_page():
+# def main_page(authenticator):
+def main_page():
     print("\n\n\nRERUN!!!!!!\n")
 
     load_persistance()
@@ -398,8 +398,8 @@ def main_page(authenticator):
 
             st.divider()
 
-            authenticator.logout(f":red[Logout] `{st.session_state.username}`")
-            # st.session_state.authenticator.logout(f":red[Logout] `{st.session_state.username}`")
+            # authenticator.logout(f":red[Logout] `{st.session_state.username}`")
+            st.session_state.authenticator.logout(f":red[Logout] `{st.session_state.username}`")
 
 
         caption = f"Version :green[{VERSION}] | "

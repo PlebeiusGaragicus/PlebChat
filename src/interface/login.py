@@ -88,7 +88,7 @@ print("\n\n!!! STREAMLIT SERVER RE-RUN\n\n")
 
 
 
-
+from src.common import not_init, get
 
 
 
@@ -110,13 +110,114 @@ elif st.session_state["authentication_status"] is None:
 
 
 
+# def login_router_page():
+#     st.set_page_config(
+#         page_title="DEBUG!" if os.getenv("DEBUG", False) else "Pleb Chat",
+#         page_icon=os.path.join(ASSETS_PATH, "favicon.ico"),
+#         layout="centered",
+#         initial_sidebar_state="auto",
+#         menu_items=None
+#     )
+
+#     try:
+#         with open("./auth.yaml") as file:
+#             config = yaml.safe_load(file)
+#     except FileNotFoundError:
+#         st.error("This instance of PlebChat has not been configured.  Missing `auth.yaml` file.")
+#         # TODO - just create an empty file and then re-run?  Put default root password in there and have user change it?
+#         st.stop()
+
+#     # if not_init('authenticator'):
+#     if 'authenticator' not in st.session_state:
+#         print("Creating authenticator")
+#         st.session_state.authenticator = stauth.Authenticate(
+#                 config["credentials"],
+#                 config["cookie"]["name"],
+#                 config["cookie"]["key"],
+#                 config["cookie"]["expiry_days"],
+#                 config["preauthorized"],
+#             )
+#         time.sleep(0.5) # This prevents the flashing of the login page, if nothing else.
+#         # time.sleep(0.05) # This prevents the flashing of the login page, if nothing else. #NOTE: BUT ONLY ON LOCALHOST?!?!?
+
+
+#     if st.session_state["authentication_status"] is False:
+#         st.error('Username/password is incorrect')
+
+
+#     if st.session_state["authentication_status"] is None:
+#         # get('authenticator').login()
+#         st.session_state.authenticator.login()
+
+#         # st.warning('Please enter your username and password')
+#         # if 'appstate' in st.session_state:
+#         #     del st.session_state['appstate']
+#             # st.error("Application state has been cleared!")
+
+
+
+
+#     if st.session_state["authentication_status"]:
+#         # authenticator.logout()
+
+#         if st.session_state.username == 'root':
+#             # root_panel(authenticator)
+#             root_panel()
+#         else:
+#             init_if_needed()
+#             # main_page(authenticator)
+#             main_page()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def login_router_page():
     st.set_page_config(
         page_title="DEBUG!" if os.getenv("DEBUG", False) else "Pleb Chat",
         page_icon=os.path.join(ASSETS_PATH, "favicon.ico"),
         layout="centered",
         initial_sidebar_state="auto",
-        menu_items=None
     )
 
     try:
@@ -127,38 +228,35 @@ def login_router_page():
         # TODO - just create an empty file and then re-run?  Put default root password in there and have user change it?
         st.stop()
 
-    authenticator = stauth.Authenticate(
-            config["credentials"],
-            config["cookie"]["name"],
-            config["cookie"]["key"],
-            config["cookie"]["expiry_days"],
-            config["preauthorized"],
-        )
-    time.sleep(0.5) # This prevents the flashing of the login page, if nothing else.
-    # time.sleep(0.05) # This prevents the flashing of the login page, if nothing else. #NOTE: BUT ONLY ON LOCALHOST?!?!?
-    # authenticator.login()
-
-
-    if st.session_state["authentication_status"] is False:
-        st.error('Username/password is incorrect')
-
-
+    st.session_state.authenticator = stauth.Authenticate(
+        config["credentials"],
+        config["cookie"]["name"],
+        config["cookie"]["key"],
+        config["cookie"]["expiry_days"],
+        # config["preauthorized"],
+    )
 
     if st.session_state["authentication_status"] is None:
-        authenticator.login()
-        # st.warning('Please enter your username and password')
-        # if 'appstate' in st.session_state:
-        #     del st.session_state['appstate']
-            # st.error("Application state has been cleared!")
+        if 'appstate' in st.session_state:
+            del st.session_state['appstate']
+            st.error("Application state has been cleared!")
 
+    if st.session_state["authentication_status"] is False:
+        st.error("Username/password is incorrect")
 
-
+    # https://blog.streamlit.io/streamlit-authenticator-part-1-adding-an-authentication-component-to-your-app/
+    # https://github.com/mkhorasani/Streamlit-Authenticator?ref=blog.streamlit.io
+    st.session_state.authenticator.login(location="main", max_concurrent_users=1, fields={
+        "Form name": "PlebChat login",
+        "Username": "Username",
+        "Password": "Password",
+        "Login": "Enter ye!",
+    })
 
     if st.session_state["authentication_status"]:
-        # authenticator.logout()
 
         if st.session_state.username == 'root':
-            root_panel(authenticator)
+            root_panel()
         else:
             init_if_needed()
-            main_page(authenticator)
+            main_page()
