@@ -8,9 +8,28 @@ I recommend a dedicated Debian vitrual machine.
 apt-update
 apt-upgrade -y
 
-apt-get install -y git curl python3-venv python3-pip
+apt-get install -y git curl python3-venv python3-pip redis-server
 
 ```
+
+## Configure Redis database
+```sh
+# ensure it's working
+systemctl status redis-server
+redis-cli ping
+
+# TODO - configure it!
+# nano /etc/redis/redis.conf
+# systemctl restart redis-server
+
+# enable
+systemctl enable redis-server
+
+```
+
+
+
+
 
 ## Create a non-`root` user
 

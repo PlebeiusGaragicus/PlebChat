@@ -18,7 +18,6 @@ log = logging.getLogger(__file__)
 from src.VERSION import VERSION
 from src.common import (
     ASSETS_PATH,
-    # ChatAppVars,
     is_init,
     not_init,
     get,
@@ -37,7 +36,6 @@ from src.settings import (
     settings_tts,
     settings_bottom_buttons,
     save_user_preferences,
-    # init_model,
 )
 
 from src.user_preferences import (
@@ -48,10 +46,9 @@ from src.interface.interface import (
     column_fix,
     center_text,
     centered_button_trick,
-    # interrupt,
 )
 
-from src.sats import load_sats_balance, add_sats, save_sats_balance
+from src.sats import load_sats_balance, add_sats
 
 from src.speech import TTS
 
@@ -213,17 +210,15 @@ def main_page():
         show_tokens()
 
 
-    ### RAINBOW DIVIDER
-    st.header("", divider="rainbow")
 
 
     if os.getenv("DEBUG", False):
         with st.expander("Debug", expanded=False):
             debug_placeholder = st.container()
             debug_placeholder.write(get("construct"))
-            # debug_placeholder.write(get("construct").preamble)
-            # debug_placeholder.write(get("construct").settings)
             debug_placeholder.write(st.session_state.appstate.chat.messages)
+
+    st.header("", divider="rainbow")
 
 
     human_avatar = f"{ASSETS_PATH}/human_avatar.png"
@@ -238,12 +233,17 @@ def main_page():
     # and the bots reply and allows the input field (or start recording button)
     # to be at the bottom of the page
     my_next_prompt_placeholder = st.empty()
-    interrupt_button_placeholder = st.empty()
+    cols2 = st.columns((1, 1))
+    with cols2[0]:
+        interrupt_button_placeholder = st.empty()
+    with cols2[1]:
+        sats_left_placeholder = st.empty()
+    # thinking_placeholder = st.empty()
     bots_reply_placeholder = st.empty()
     before_speech_placeholder = st.empty()
 
-    if len(appstate.chat.messages) > 0:
-        st.header("", divider="rainbow")
+    # if len(appstate.chat.messages) > 0:
+    #     st.header("", divider="rainbow")
 
 
 
@@ -251,17 +251,7 @@ def main_page():
 
 
     ################### TOP OF SIDEBAR ###################
-    # sats_display()
-    # st.session_state.sats = load_sats_balance()
-    # show_tokens()
-
-    # st.sidebar.header("", divider="rainbow")
-
     construct_settings_placeholder = st.sidebar.empty()
-    # with st.sidebar.expander("Construct settings", expanded=True):
-    # with construct_settings_placeholder.expander("Construct settings", expanded=True):
-    #     get('construct').display_settings()
-
 
 
     #### USER PROMPT AND ASSOCIATED LOGIC
@@ -272,7 +262,6 @@ def main_page():
 
 
 
-    # sats = int(st.session_state.redis_conn.get(st.session_state.username)) or 0
     sats = load_sats_balance()
     if sats <= 0:
         st.error("You are out of tokens! Please add more to continue.")
@@ -323,31 +312,25 @@ def main_page():
         st.session_state.speech_draft = None
 
     if prompt:
-        # construct_settings_placeholder.empty()
-
-        # st.caption("settings disabled during inference")
-
-        # with construct_settings_placeholder.expander("Construct settings", expanded=False):
         st.session_state.speech_confirmed = False
-        
 
         interrupt_button_placeholder.button("🛑 Interrupt", on_click=interrupt, key="button_interrupt")
 
         my_next_prompt_placeholder.chat_message("user", avatar=human_avatar).markdown(prompt)
         st.session_state.appstate.chat.messages.append( ChatMessage(role="user", content=prompt) )
 
-        # with bots_reply_placeholder.chat_message("assistant"):
+
         if get("construct").agentic:
             # bots_reply_placeholder.container()
             init_graph(prompt, bots_reply_placeholder)
         else:
             with st.spinner("🧠 Thinking..."):
-                reply = run_prompt(prompt, bots_reply_placeholder)
+                # sats_left_placeholder = st.empty()
+                reply = run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder)
+
+
 
         #### AFTER-PROMPT PROCESSING ####
-        # put things here to update the UI _AFTER_ the prompt has been run
-
-
         new_chat = save_chat_history() # dummy variable for readability
         if new_chat:
             # A new chat thread has just been created, so we must update our list of past conversations
@@ -457,12 +440,7 @@ def main_page():
 
 
 
-def run_prompt(prompt, bots_reply_placeholder):
-    # st.write(get('construct').name)
-
-
-    sats_balance = st.empty()
-
+def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
 
     sats_left = load_sats_balance()
     st.session_state.token_cost_accumulator = 0
@@ -481,7 +459,7 @@ def run_prompt(prompt, bots_reply_placeholder):
                 sats_left = st.session_state.redis_conn.decrby(st.session_state.username, st.session_state.token_cost_accumulator)
                 st.session_state.token_cost_accumulator = 0
                 if os.getenv("DEBUG", True):
-                    sats_balance.markdown(f"⚡️ :green[{sats_left:,.0f}]")
+                    sats_left_placeholder.markdown(f"⚡️ :green[{sats_left:,.0f}]")
 
             if sats_left < -1000:
                 interrupt()
