@@ -443,6 +443,7 @@ def main_page():
 def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
 
     sats_left = load_sats_balance()
+    total_cost = 0
     st.session_state.token_cost_accumulator = 0
 
 
@@ -451,15 +452,23 @@ def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
         st.session_state.incomplete_stream = ""
         place_holder = st.empty()
 
+        # we don't want to use write_stream because we need to keep track of the cost (and other things), as we go.
         # reply = st.write_stream(get('construct').run(prompt))
         for chunk in get('construct').run(prompt):
 
-            st.session_state.token_cost_accumulator += math.ceil(len(chunk) / 3)
+            tokens = len(chunk) # TODO - this is not accurate, but it's a start
+            cost_for_this_chunk = tokens / 30 # tokens charged per satoshi
+
+            st.session_state.token_cost_accumulator += cost_for_this_chunk
+            total_cost += cost_for_this_chunk
+            sats_left -= cost_for_this_chunk
+
+            if os.getenv("DEBUG", True):
+                    sats_left_placeholder.markdown(f"⚡️ :green[{sats_left:,.0f}] / ⚡️ :red[-{total_cost:,.0f}]")
+
             if st.session_state.token_cost_accumulator >= 10:
-                sats_left = st.session_state.redis_conn.decrby(st.session_state.username, st.session_state.token_cost_accumulator)
-                st.session_state.token_cost_accumulator = 0
-                if os.getenv("DEBUG", True):
-                    sats_left_placeholder.markdown(f"⚡️ :green[{sats_left:,.0f}]")
+                st.session_state.redis_conn.decrby(st.session_state.username, int(st.session_state.token_cost_accumulator))
+                st.session_state.token_cost_accumulator -= 10
 
             if sats_left < -1000:
                 interrupt()
@@ -467,16 +476,14 @@ def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
             st.session_state.incomplete_stream += chunk
             place_holder.markdown(st.session_state.incomplete_stream)
 
-        st.session_state.redis_conn.decrby(st.session_state.username, st.session_state.token_cost_accumulator)
+        print(sats_left)
+        remaining = st.session_state.redis_conn.decrby(st.session_state.username, math.ceil(st.session_state.token_cost_accumulator))
+        print(remaining)
+
         reply = st.session_state.incomplete_stream
         st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
-
-
         return reply
 
-        # reply = st.write_stream(get('construct').run(prompt))
-        # st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
-        # return reply
 
 
 
