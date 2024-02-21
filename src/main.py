@@ -50,7 +50,7 @@ from src.interface.interface import (
     # interrupt,
 )
 
-from src.sats import load_sats_balance, add_sats
+from src.sats import load_sats_balance, add_sats, save_sats_balance
 
 from src.speech import TTS
 
@@ -227,7 +227,10 @@ def main_page(authenticator):
 
 
     ################### TOP OF SIDEBAR ###################
-    sats_display()
+    # sats_display()
+    show_tokens()
+
+    st.sidebar.header("", divider="rainbow")
 
     construct_settings_placeholder = st.sidebar.empty()
     # with st.sidebar.expander("Construct settings", expanded=True):
@@ -274,42 +277,47 @@ def main_page(authenticator):
         st.session_state.speech_draft = None
         st.session_state.speech_confirmed = False
 
-    if not get("speech_input"):
-        prompt = st.chat_input("Ask a question.")
+    set("sats", load_sats_balance())
+    if get('sats') < 0:
+        st.error("You are out of tokens! Please add more to continue.")
+        prompt = None
     else:
-        # TODO - naive thinking that let me to think having us import here would increase page performance... lol, oh well
-        from streamlit_mic_recorder import speech_to_text
+        if not get("speech_input"):
+                prompt = st.chat_input("Ask a question.")
+        else:
+            # TODO - naive thinking that let me to think having us import here would increase page performance... lol, oh well
+            from streamlit_mic_recorder import speech_to_text
 
-        with centered_button_trick():
-            # https://pypi.org/project/SpeechRecognition/
-            speech_draft = speech_to_text(
-                            start_prompt="🎤 Speak",
-                            stop_prompt="🛑 Stop",
-                            language='en',
-                            use_container_width=True,
-                            just_once=True,
-                            key='STT'
-                    )
-        if st.session_state.confirm_stt is False:
-            prompt = speech_draft
-            speech_draft = None
+            with centered_button_trick():
+                # https://pypi.org/project/SpeechRecognition/
+                speech_draft = speech_to_text(
+                                start_prompt="🎤 Speak",
+                                stop_prompt="🛑 Stop",
+                                language='en',
+                                use_container_width=True,
+                                just_once=True,
+                                key='STT'
+                        )
+            if st.session_state.confirm_stt is False:
+                prompt = speech_draft
+                speech_draft = None
 
-        if speech_draft:
-            with st.container(border=True):
+            if speech_draft:
+                with st.container(border=True):
 
-                st.text_area("You said:", value=speech_draft, key="speech_draft_edit")
+                    st.text_area("You said:", value=speech_draft, key="speech_draft_edit")
 
-                def user_confirms_speech():
-                    st.session_state.speech_confirmed = True
-                    st.session_state.speech_draft = st.session_state.speech_draft_edit
+                    def user_confirms_speech():
+                        st.session_state.speech_confirmed = True
+                        st.session_state.speech_draft = st.session_state.speech_draft_edit
 
-                def user_cancels_speech():
-                    st.session_state.speech_confirmed = False
-                    st.session_state.speech_draft = None
+                    def user_cancels_speech():
+                        st.session_state.speech_confirmed = False
+                        st.session_state.speech_draft = None
 
-                confirms = st.columns((2, 1, 1))
-                confirms[0].button("✅", on_click=user_confirms_speech, use_container_width=True)
-                confirms[2].button("❌", on_click=user_cancels_speech, use_container_width=True)
+                    confirms = st.columns((2, 1, 1))
+                    confirms[0].button("✅", on_click=user_confirms_speech, use_container_width=True)
+                    confirms[2].button("❌", on_click=user_cancels_speech, use_container_width=True)
 
 
 
@@ -327,13 +335,15 @@ def main_page(authenticator):
         st.session_state.speech_confirmed = False
         
 
-        def interrupt():
-            """ callback for the interrupt button """
-            st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=st.session_state.incomplete_stream))
-            st.session_state.appstate.chat.messages.append(ChatMessage(role="user", content="<INTERRUPTS>"))
+        # def interrupt():
+        #     """ callback for the interrupt button """
+        #     st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=st.session_state.incomplete_stream))
+        #     st.session_state.appstate.chat.messages.append(ChatMessage(role="user", content="<INTERRUPTS>"))
 
-            if save_chat_history():
-                st.session_state.appstate.load_chat_history()
+        #     save_sats_balance()
+
+        #     if save_chat_history():
+        #         st.session_state.appstate.load_chat_history()
 
         interrupt_button_placeholder.button("🛑 Interrupt", on_click=interrupt, key="button_interrupt")
 
@@ -398,6 +408,9 @@ def main_page(authenticator):
 
         # sats_display()
 
+        with st.sidebar:
+            r = random.randint(1000, 5000)
+            st.button("⚡️ :green[add sats] ⚡️", key="add_sats", on_click=add_sats, args=(r,), use_container_width=True)
 
         # settings_placeholder = st.sidebar.empty()
         # with settings_placeholder.expander("Settings"):#,
@@ -408,6 +421,7 @@ def main_page(authenticator):
                 settings_stt()
             with st.container(border=True):
                 settings_tts()
+
 
 
         # logoutcols = st.columns((1, 1))
@@ -431,7 +445,9 @@ def main_page(authenticator):
     # TODO - fuck.. the settings expander closes every time you make an adjustment!!!
     # with construct_settings_placeholder.expander("Construct settings"):
     # with construct_settings_placeholder.expander("Construct settings", expanded=True):
-    with construct_settings_placeholder.container(border=True):
+    # with construct_settings_placeholder.container(border=True):
+
+    with construct_settings_placeholder.container(border=False):
         get('construct').display_settings()
 
 
@@ -469,28 +485,39 @@ def main_page(authenticator):
 
 
 def run_prompt(prompt, bots_reply_placeholder):
+    st.write(get('construct').name)
+    st.session_state.sats = load_sats_balance()
+    #TODO - USE THIS VARIABLE INSTEAD!
+    fee_incurred = 0
+
+    # if get('sats') < 0:
+    #     st.error("You are out of tokens! Please add more to continue.")
+    #     return
+
     with bots_reply_placeholder.chat_message("assistant", avatar=f"{ASSETS_PATH}/assistant_avatar.png"):
-        # st.session_state.incomplete_stream = ""
-        # place_holder = st.empty()
 
+        st.session_state.incomplete_stream = ""
+        place_holder = st.empty()
 
-        # if get("construct").agentic:
-        #     for node, output in get('construct').run(prompt):
-        #         st.write(f"Output from node '{node}':")
-        #         st.write("---")
-        #         st.write(output)
-        #         # st.session_state.incomplete_stream += chunk
-        #         # place_holder.markdown(st.session_state.incomplete_stream)
-        # else:
         reply = st.write_stream(get('construct').run(prompt))
-        # for chunk in get('construct').run(prompt):
-            # st.session_state.incomplete_stream += chunk
-            # place_holder.markdown(st.session_state.incomplete_stream)
-            # st.write_stream(chunk)
+        for chunk in get('construct').run(prompt):
+            st.session_state.sats -= len(chunk) * 100
+            if st.session_state.sats < -10_000:
+                interrupt()
 
-        # reply = st.session_state.incomplete_stream
+            st.session_state.incomplete_stream += chunk
+            place_holder.markdown(st.session_state.incomplete_stream)
+            st.write(chunk)
+
+        reply = st.session_state.incomplete_stream
         st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
+
+        save_sats_balance()
         return reply
+
+        # reply = st.write_stream(get('construct').run(prompt))
+        # st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
+        # return reply
 
 
 
@@ -520,3 +547,20 @@ def sats_display():
         with sats_cols[1]:
             sats = load_sats_balance()
             st.write(f":orange[₿] `{sats:,.0f}` sats")
+
+
+def show_tokens():
+    with st.sidebar:
+        sats = load_sats_balance()
+        st.write(f":orange[Tokens Available:]   **{sats:,.0f}**")
+
+
+def interrupt():
+    """ callback for the interrupt button """
+    st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=st.session_state.incomplete_stream))
+    st.session_state.appstate.chat.messages.append(ChatMessage(role="user", content="<INTERRUPTS>"))
+
+    save_sats_balance()
+
+    if save_chat_history():
+        st.session_state.appstate.load_chat_history()

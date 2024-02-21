@@ -35,7 +35,7 @@ class TavilyBot(AIWorkflowAbsctractConstruct):
     name = "tavily"
 
     def __init__(self):
-        super().__init__(emoji="🤖", name="tavily")
+        super().__init__()
         self.agentic = True
         self.preamble = "TavilyBot is ready to search the web for you!"
 

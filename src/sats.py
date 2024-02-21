@@ -32,3 +32,9 @@ def add_sats(sats):
         f.write(str(current_sats + sats))
     
     st.toast(f"Added {sats} sats to your balance!", icon="⚡️")
+
+
+def save_sats_balance():
+    filename = PREFERENCES_PATH / f"{get('username')}.sats"
+    with open(filename, "w") as f:
+        f.write(str(get("sats")))
