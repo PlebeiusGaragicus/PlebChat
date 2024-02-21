@@ -1,4 +1,5 @@
 python-dotenv
+redis
 
 streamlit
 streamlit-authenticator

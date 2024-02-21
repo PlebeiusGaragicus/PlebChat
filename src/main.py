@@ -1,14 +1,15 @@
 import os
 import json
 import random
+import math
+
+import redis
 
 import streamlit as st
 from streamlit_pills import pills
 
 from mistralai.models.chat_completion import ChatMessage
-from mistralai.exceptions import MistralAPIException
 
-# from streamlit_option_menu import option_menu
 
 import logging
 log = logging.getLogger(__file__)
@@ -115,7 +116,11 @@ def init_if_needed():
             st.stop()
     
     # not sure if this should be here or in main...
-    st.session_state.sats = load_sats_balance()
+    # st.session_state.sats = load_sats_balance()
+
+
+    st.session_state.redis_conn = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+
 
 
     if not_init('speak_this'):
@@ -188,7 +193,8 @@ def main_page():
         st.toggle("🗣️🤖", key="speech_input", value=False)
         if get('speech_input') is True:
             st.toggle(
-                label="Confirm stt",
+                # label="Confirm stt",
+                label="❓✅",
                 key="confirm_stt",
                 value=st.session_state.user_preferences["confirm_stt"],
                 on_change=save_user_preferences,
@@ -243,7 +249,7 @@ def main_page():
     # st.session_state.sats = load_sats_balance()
     # show_tokens()
 
-    st.sidebar.header("", divider="rainbow")
+    # st.sidebar.header("", divider="rainbow")
 
     construct_settings_placeholder = st.sidebar.empty()
     # with st.sidebar.expander("Construct settings", expanded=True):
@@ -260,7 +266,8 @@ def main_page():
 
 
 
-    if get('sats') < 0:
+    sats = int(st.session_state.redis_conn.get(st.session_state.username)) or 0
+    if sats < 0:
         st.error("You are out of tokens! Please add more to continue.")
         prompt = None
     else:
@@ -444,34 +451,41 @@ def main_page():
 
 
 def run_prompt(prompt, bots_reply_placeholder):
-    st.write(get('construct').name)
-    st.session_state.sats = load_sats_balance()
-    #TODO - USE THIS VARIABLE INSTEAD!
-    fee_incurred = 0
+    # st.write(get('construct').name)
 
-    # if get('sats') < 0:
-    #     st.error("You are out of tokens! Please add more to continue.")
-    #     return
+
+    sats_balance = st.empty()
+
+
+    sats_left = load_sats_balance()
+    token_cost_accumulator = 0
+
 
     with bots_reply_placeholder.chat_message("assistant", avatar=f"{ASSETS_PATH}/assistant_avatar.png"):
 
         st.session_state.incomplete_stream = ""
         place_holder = st.empty()
 
-        reply = st.write_stream(get('construct').run(prompt))
+        # reply = st.write_stream(get('construct').run(prompt))
         for chunk in get('construct').run(prompt):
-            st.session_state.sats -= len(chunk) * 100
-            if st.session_state.sats < -10_000:
+
+            token_cost_accumulator += math.ceil(len(chunk) / 3)
+            if token_cost_accumulator >= 10:
+                sats_left = st.session_state.redis_conn.decrby(st.session_state.username, token_cost_accumulator)
+                token_cost_accumulator = 0
+                if os.getenv("DEBUG", True):
+                    sats_balance.markdown(f"⚡️ :green[{sats_left:,.0f}]")
+
+            if sats_left < -1000:
                 interrupt()
 
             st.session_state.incomplete_stream += chunk
             place_holder.markdown(st.session_state.incomplete_stream)
-            st.write(chunk)
 
         reply = st.session_state.incomplete_stream
         st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
 
-        save_sats_balance()
+        # save_sats_balance()
         return reply
 
         # reply = st.write_stream(get('construct').run(prompt))
@@ -515,7 +529,13 @@ def show_tokens():
     # st.text_input(label=f":orange[Tokens Available:]", value=f"{get('sats'):,.0f}", disabled=True)
         # sats = load_sats_balance()
     # st.write(f":orange[Tokens Available:]   **{get('sats'):,.0f}**")
-    st.write(f"⚡️ :green[{get('sats'):,.0f}]")
+
+    # st.write(f"⚡️ :green[{get('sats'):,.0f}]")
+
+    sats = int(st.session_state.redis_conn.get(st.session_state.username))
+    if sats is None:
+        sats = 0
+    st.write(f"⚡️ :green[{sats:,.0f}]")
 
 
 def interrupt():
@@ -523,7 +543,7 @@ def interrupt():
     st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=st.session_state.incomplete_stream))
     st.session_state.appstate.chat.messages.append(ChatMessage(role="user", content="<INTERRUPTS>"))
 
-    save_sats_balance()
+    # save_sats_balance()
 
     if save_chat_history():
         st.session_state.appstate.load_chat_history()
