@@ -532,7 +532,8 @@ def show_tokens():
 
     # st.write(f"⚡️ :green[{get('sats'):,.0f}]")
 
-    sats = int(st.session_state.redis_conn.get(st.session_state.username))
+    # sats = int(st.session_state.redis_conn.get(st.session_state.username))
+    sats = load_sats_balance()
     if sats is None:
         sats = 0
     st.write(f"⚡️ :green[{sats:,.0f}]")
