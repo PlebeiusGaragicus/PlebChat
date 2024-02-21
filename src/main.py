@@ -268,7 +268,7 @@ def main_page():
 
     # sats = int(st.session_state.redis_conn.get(st.session_state.username)) or 0
     sats = load_sats_balance()
-    if sats < 0:
+    if sats <= 0:
         st.error("You are out of tokens! Please add more to continue.")
         prompt = None
     else:
