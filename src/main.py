@@ -465,7 +465,7 @@ def run_prompt(prompt, bots_reply_placeholder):
 
 
     sats_left = load_sats_balance()
-    token_cost_accumulator = 0
+    st.session_state.token_cost_accumulator = 0
 
 
     with bots_reply_placeholder.chat_message("assistant", avatar=f"{ASSETS_PATH}/assistant_avatar.png"):
@@ -476,10 +476,10 @@ def run_prompt(prompt, bots_reply_placeholder):
         # reply = st.write_stream(get('construct').run(prompt))
         for chunk in get('construct').run(prompt):
 
-            token_cost_accumulator += math.ceil(len(chunk) / 3)
-            if token_cost_accumulator >= 10:
-                sats_left = st.session_state.redis_conn.decrby(st.session_state.username, token_cost_accumulator)
-                token_cost_accumulator = 0
+            st.session_state.token_cost_accumulator += math.ceil(len(chunk) / 3)
+            if st.session_state.token_cost_accumulator >= 10:
+                sats_left = st.session_state.redis_conn.decrby(st.session_state.username, st.session_state.token_cost_accumulator)
+                st.session_state.token_cost_accumulator = 0
                 if os.getenv("DEBUG", True):
                     sats_balance.markdown(f"⚡️ :green[{sats_left:,.0f}]")
 
@@ -489,10 +489,11 @@ def run_prompt(prompt, bots_reply_placeholder):
             st.session_state.incomplete_stream += chunk
             place_holder.markdown(st.session_state.incomplete_stream)
 
+        st.session_state.redis_conn.decrby(st.session_state.username, st.session_state.token_cost_accumulator)
         reply = st.session_state.incomplete_stream
         st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
 
-        # save_sats_balance()
+
         return reply
 
         # reply = st.write_stream(get('construct').run(prompt))
@@ -551,6 +552,8 @@ def interrupt():
     st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=st.session_state.incomplete_stream))
     st.session_state.appstate.chat.messages.append(ChatMessage(role="user", content="<INTERRUPTS>"))
 
+    st.session_state.redis_conn.decrby(st.session_state.username, st.session_state.token_cost_accumulator)
+    st.session_state.token_cost_accumulator = 0
     # save_sats_balance()
 
     if save_chat_history():
