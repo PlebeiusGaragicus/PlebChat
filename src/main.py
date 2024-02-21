@@ -121,6 +121,12 @@ def init_if_needed():
 
     st.session_state.redis_conn = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
 
+    user_sats = st.session_state.redis_conn.get(st.session_state.username)
+
+    if user_sats is None:
+        st.session_state.redis_conn.set(st.session_state.username, 0)
+        st.toast("Welcome to the chat app!", icon="🎉")
+
 
 
     if not_init('speak_this'):
@@ -368,7 +374,7 @@ def main_page():
                 if st.session_state.read_to_me is False:
                     def on_click_read_to_me():
                         st.session_state.speak_this = appstate.chat.messages[-1].content
-                    col2[0].button("🗣️ :blue[Speak it]", on_click=on_click_read_to_me, key="button_read_to_me", use_container_width=True)
+                    col2[0].button("🗣️ :blue[Speak]", on_click=on_click_read_to_me, key="button_read_to_me", use_container_width=True)
 
 
 
