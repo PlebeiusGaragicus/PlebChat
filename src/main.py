@@ -153,15 +153,12 @@ def load_proper_flow(construct):
 
 
 
-# debug_placeholder = None
 
-
-# def debug():
-#     return debug_placeholder
 
 
 
 def main_page(authenticator):
+# def main_page():
     print("\n\n\nRERUN!!!!!!\n")
 
     load_persistance()
@@ -180,9 +177,7 @@ def main_page(authenticator):
     pill_index = get("persistance")['chosen_pill']
     construct = pills(label="AI Construct",
                     options=construct_names,
-                    #   icons=["🤖", "🤖", "🤖", "🕸️"],
                     icons=construct_icons,
-                    #   index=CONSTRUCTS.index(get("persistance")['chosen_pill'])
                     index=pill_index
                 )
 
@@ -404,18 +399,13 @@ def main_page(authenticator):
             st.divider()
 
             authenticator.logout(f":red[Logout] `{st.session_state.username}`")
+            # st.session_state.authenticator.logout(f":red[Logout] `{st.session_state.username}`")
 
-        # st.caption(f"Version :green[{VERSION}]")
+
         caption = f"Version :green[{VERSION}] | "
-
         if os.getenv("DEBUG", False):
-            caption += ":orange[DEBUG]"
-            # st.caption("Running in production mode.")
-        # else:
-        #     caption += ":green[Production]"
-            # st.caption("Running in :red[debug] mode.")
-
-        caption += " | by PlebbyG 🧑🏻‍💻"
+            caption += ":orange[DEBUG] | "
+        caption += "by PlebbyG 🧑🏻‍💻"
         st.caption(caption)
 
 

@@ -70,7 +70,7 @@ print("\n\n!!! STREAMLIT SERVER RE-RUN\n\n")
             
 
 #         # TODO - do I want to limit concurrent users???~??~?
-#         time.sleep(0.5)
+#         # time.sleep(0.5)
 #         # st.session_state.authenticator.login(location="main", max_concurrent_users=1, fields={
 #         st.session_state.authenticator.login(location="main", fields={
 #             "Form name": "PlebChat login",
@@ -78,6 +78,22 @@ print("\n\n!!! STREAMLIT SERVER RE-RUN\n\n")
 #             "Password": "Password",
 #             "Login": "Enter ye!",
 #         })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -118,7 +134,7 @@ def login_router_page():
             config["cookie"]["expiry_days"],
             config["preauthorized"],
         )
-    # time.sleep(0.2) # This prevents the flashing of the login page, if nothing else.
+    time.sleep(0.5) # This prevents the flashing of the login page, if nothing else.
     # time.sleep(0.05) # This prevents the flashing of the login page, if nothing else. #NOTE: BUT ONLY ON LOCALHOST?!?!?
     # authenticator.login()
 
@@ -146,5 +162,3 @@ def login_router_page():
         else:
             init_if_needed()
             main_page(authenticator)
-
-
