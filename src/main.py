@@ -515,7 +515,7 @@ def show_tokens():
     # st.text_input(label=f":orange[Tokens Available:]", value=f"{get('sats'):,.0f}", disabled=True)
         # sats = load_sats_balance()
     # st.write(f":orange[Tokens Available:]   **{get('sats'):,.0f}**")
-    st.write(f":orange[Tokens: ] **:green[{get('sats'):,.0f}]** ⚡️")
+    st.write(f"⚡️ :green[{get('sats'):,.0f}]")
 
 
 def interrupt():
