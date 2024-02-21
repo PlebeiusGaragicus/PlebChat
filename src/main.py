@@ -113,6 +113,9 @@ def init_if_needed():
             st.error(e)
             st.exception(e)
             st.stop()
+    
+    # not sure if this should be here or in main...
+    st.session_state.sats = load_sats_balance()
 
 
     if not_init('speak_this'):
@@ -159,15 +162,18 @@ def load_proper_flow(construct):
 
 
 def main_page(authenticator):
-    load_persistance()
     print("\n\n\nRERUN!!!!!!\n")
-    appstate = st.session_state.appstate
-    column_fix()
-    center_text("p", "🗣️🤖💬", size=60) # or h1, whichever
-    
 
+    load_persistance()
     load_settings()
 
+    appstate = st.session_state.appstate
+
+
+
+    ################### TOP OF MAIN CHAT ###################
+    column_fix()
+    center_text("p", "🗣️🤖💬", size=60) # or h1, whichever
 
     construct_names = [c.name for c in ALL_CONSTRUCTS]
     construct_icons = [c.emoji for c in ALL_CONSTRUCTS]
@@ -197,48 +203,6 @@ def main_page(authenticator):
         st.toggle("🤖💬", key="read_to_me", value=False)
 
 
-    # cols2 = st.columns((1, 1, 1))
-    # with cols2[0]:
-    #     st.toggle("🗣️🤖", key="speech_input", value=False)
-    # if get('speech_input') is True:
-    #     with cols2[1]:
-    #         confirm_stt = st.session_state.user_preferences["confirm_stt"]
-    #         st.toggle(
-    #             label="Confirm stt",
-    #             key="confirm_stt",
-    #             value=confirm_stt,
-    #             on_change=save_user_preferences,
-    #             kwargs={"toggle_key": "confirm_stt"},
-    #         )
-
-
-
-    ### INPUT BUTTONS
-    # with st.sidebar:
-    #     top_buttons = st.columns((1, 1))
-    #     with top_buttons[0]:
-    #     #     st.toggle("🗣️🤖", key="speech_input", value=False)
-    #         sats = load_sats_balance()
-    #         # bitcoin_symbol = "₿"
-    #         st.write(f":orange[₿]: `{sats:,.0f}` sats")
-    #     with top_buttons[1]:
-    #         st.toggle("🤖💬", key="read_to_me", value=False)
-
-
-
-    ################### TOP OF SIDEBAR ###################
-    # sats_display()
-    show_tokens()
-
-    st.sidebar.header("", divider="rainbow")
-
-    construct_settings_placeholder = st.sidebar.empty()
-    # with st.sidebar.expander("Construct settings", expanded=True):
-    # with construct_settings_placeholder.expander("Construct settings", expanded=True):
-    #     get('construct').display_settings()
-
-
-
     ### RAINBOW DIVIDER
     st.header("", divider="rainbow")
 
@@ -250,6 +214,7 @@ def main_page(authenticator):
             # debug_placeholder.write(get("construct").preamble)
             # debug_placeholder.write(get("construct").settings)
             debug_placeholder.write(st.session_state.appstate.chat.messages)
+
 
     human_avatar = f"{ASSETS_PATH}/human_avatar.png"
     ai_avatar = f"{ASSETS_PATH}/assistant_avatar.png"
@@ -271,13 +236,32 @@ def main_page(authenticator):
         st.header("", divider="rainbow")
 
 
+
+
+
+
+    ################### TOP OF SIDEBAR ###################
+    # sats_display()
+    # st.session_state.sats = load_sats_balance()
+    show_tokens()
+
+    st.sidebar.header("", divider="rainbow")
+
+    construct_settings_placeholder = st.sidebar.empty()
+    # with st.sidebar.expander("Construct settings", expanded=True):
+    # with construct_settings_placeholder.expander("Construct settings", expanded=True):
+    #     get('construct').display_settings()
+
+
+
     #### USER PROMPT AND ASSOCIATED LOGIC
     prompt = None
     if 'speech_draft' not in st.session_state:
         st.session_state.speech_draft = None
         st.session_state.speech_confirmed = False
 
-    set("sats", load_sats_balance())
+
+
     if get('sats') < 0:
         st.error("You are out of tokens! Please add more to continue.")
         prompt = None
@@ -335,20 +319,11 @@ def main_page(authenticator):
         st.session_state.speech_confirmed = False
         
 
-        # def interrupt():
-        #     """ callback for the interrupt button """
-        #     st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=st.session_state.incomplete_stream))
-        #     st.session_state.appstate.chat.messages.append(ChatMessage(role="user", content="<INTERRUPTS>"))
-
-        #     save_sats_balance()
-
-        #     if save_chat_history():
-        #         st.session_state.appstate.load_chat_history()
-
         interrupt_button_placeholder.button("🛑 Interrupt", on_click=interrupt, key="button_interrupt")
 
         my_next_prompt_placeholder.chat_message("user", avatar=human_avatar).markdown(prompt)
         st.session_state.appstate.chat.messages.append( ChatMessage(role="user", content=prompt) )
+
         # with bots_reply_placeholder.chat_message("assistant"):
         if get("construct").agentic:
             # bots_reply_placeholder.container()
@@ -356,6 +331,10 @@ def main_page(authenticator):
         else:
             with st.spinner("🧠 Thinking..."):
                 reply = run_prompt(prompt, bots_reply_placeholder)
+
+        #### AFTER-PROMPT PROCESSING ####
+        # put things here to update the UI _AFTER_ the prompt has been run
+
 
         new_chat = save_chat_history() # dummy variable for readability
         if new_chat:
@@ -365,9 +344,10 @@ def main_page(authenticator):
         if 'read_to_me' in st.session_state and st.session_state.read_to_me == True:
             st.session_state.speak_this = reply
 
-        st.rerun() # we rerun the page for a reason that I forgot...
-    #### AFTER-PROMPT PROCESSING ####
-    # put things here to update the UI _AFTER_ the prompt has been run
+        st.rerun() # we rerun the page so that TTS can be played if `read_to_me` is True
+
+
+
 
 
     ### READ IT AND NEW BUTTONS
@@ -375,26 +355,33 @@ def main_page(authenticator):
         if len(appstate.chat.messages) > 0:
             # if last message was from the bot, then we can read it aloud
             col2 = st.columns((1, 1, 1))
-            col2[2].button("🌱 New", on_click=lambda: appstate.new_thread(), use_container_width=True)
-            col2[1].button("🗑️ Delete", on_click=delete_this_chat, key="button_delete", use_container_width=True)
+            col2[2].button("🌱 :green[New]", on_click=lambda: appstate.new_thread(), use_container_width=True)
+            col2[1].button("🗑️ :red[Delete]", on_click=delete_this_chat, key="button_delete", use_container_width=True)
             if appstate.chat.messages[-1].role == "assistant":
                 # centered_button_trick().button("🗣️ Speak", on_click=on_click_read_to_me, key="button_read_to_me", use_container_width=True)
                 if st.session_state.read_to_me is False:
                     def on_click_read_to_me():
                         st.session_state.speak_this = appstate.chat.messages[-1].content
-                    col2[0].button("🗣️ read it", on_click=on_click_read_to_me, key="button_read_to_me", use_container_width=True)
+                    col2[0].button("🗣️ :blue[Speak it]", on_click=on_click_read_to_me, key="button_read_to_me", use_container_width=True)
 
 
 
-    ### SIDEBAR WITH CONVERSATION HISTORY
+
+
+
+
+
+    ######################  SIDEBAR  ######################
     with st.sidebar:
-        if len(appstate.chat.messages) > 0:
-            sidebar_new_button_placeholder = st.columns((1, 1))
-            sidebar_new_button_placeholder[0].button("🗑️ Delete", on_click=delete_this_chat, key="delbutton2", use_container_width=True)
-            sidebar_new_button_placeholder[1].button("🌱 New", on_click=lambda: appstate.new_thread(), use_container_width=True, key="newbutton2")
-        # with st.expander("Past Conversations", expanded=False):
         st.header("", divider="rainbow")
         st.write("## Past Conversations")
+
+        if len(appstate.chat.messages) > 0:
+            sidebar_new_button_placeholder = st.columns((1, 1))
+            sidebar_new_button_placeholder[0].button("🗑️ :red[Delete]", on_click=delete_this_chat, key="delbutton2", use_container_width=True)
+            sidebar_new_button_placeholder[1].button("🌱 :green[New]", on_click=lambda: appstate.new_thread(), use_container_width=True, key="newbutton2")
+            center_text('p', "---", size=9)
+        # with st.expander("Past Conversations", expanded=False):
         if len(appstate.chat_history) == 0:
             st.caption("No past conversations... yet")
         for description, runlog in appstate.chat_history:
@@ -403,51 +390,43 @@ def main_page(authenticator):
             st.caption(f"Only showing last {appstate.chat_history_depth} conversations")
             st.button("Load more...", use_container_width=True, key="load_more_button", on_click=appstate.increase_chat_history_depth)
 
-        # st.write("---")
         st.header("", divider="rainbow")
 
-        # sats_display()
+        r = random.randint(1000, 5000)
+        st.button("⚡️ :green[add sats] ⚡️", key="add_sats", on_click=add_sats, args=(r,), use_container_width=True)
 
-        with st.sidebar:
-            r = random.randint(1000, 5000)
-            st.button("⚡️ :green[add sats] ⚡️", key="add_sats", on_click=add_sats, args=(r,), use_container_width=True)
-
-        # settings_placeholder = st.sidebar.empty()
-        # with settings_placeholder.expander("Settings"):#,
         with st.expander("Settings"):#,
-            # with st.container(border=True):
-            #     settings_llm()
             with st.container(border=True):
                 settings_stt()
             with st.container(border=True):
                 settings_tts()
 
+            st.divider()
+
+            authenticator.logout(f":red[Logout] `{st.session_state.username}`")
+
+        # st.caption(f"Version :green[{VERSION}]")
+        caption = f"Version :green[{VERSION}] | "
+
+        if os.getenv("DEBUG", False):
+            caption += ":orange[DEBUG]"
+            # st.caption("Running in production mode.")
+        # else:
+        #     caption += ":green[Production]"
+            # st.caption("Running in :red[debug] mode.")
+
+        caption += " | by PlebbyG 🧑🏻‍💻"
+        st.caption(caption)
 
 
-        # logoutcols = st.columns((1, 1))
-        # with logoutcols[0]:
-        authenticator.logout(f":red[Logout] `{st.session_state.username}`")
-            # authenticator.logout(f":red[Logout]")
-        # with logoutcols[1]:
-            # st.caption(f"user:`{get('username')}`")
-
-        # st.session_state.authenticator.logout(f"Logout `{st.session_state.username}`", "main")
-        st.caption(f"running version `{VERSION}`")
-        if os.getenv("DEBUG", False) == False:
-            st.caption("Running in production mode.")
-        
         # with st.expander("API Keys"):
         #     st.write("here")
-        
-        # with st.expander("Construct settings", expanded=True):
-        #     get('construct').display_settings()
 
-    # TODO - fuck.. the settings expander closes every time you make an adjustment!!!
-    # with construct_settings_placeholder.expander("Construct settings"):
+
+    # we don't use an expander becuase the construct settings may need to have one
     # with construct_settings_placeholder.expander("Construct settings", expanded=True):
-    # with construct_settings_placeholder.container(border=True):
-
     with construct_settings_placeholder.container(border=False):
+        st.write("## Construct configuration")
         get('construct').display_settings()
 
 
@@ -463,19 +442,6 @@ def main_page(authenticator):
 
 
 
-
-# # async def run_prompt(prompt, bots_reply_placeholder):
-# def run_prompt(prompt, bots_reply_placeholder):
-#     with bots_reply_placeholder.chat_message("assistant"):
-#         st.session_state.incomplete_stream = ""
-#         place_holder = st.empty()
-
-
-
-
-#         reply = st.session_state.incomplete_stream
-#         st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
-#         return reply
 
 
 
@@ -551,8 +517,8 @@ def sats_display():
 
 def show_tokens():
     with st.sidebar:
-        sats = load_sats_balance()
-        st.write(f":orange[Tokens Available:]   **{sats:,.0f}**")
+        # sats = load_sats_balance()
+        st.write(f":orange[Tokens Available:]   **{get('sats'):,.0f}**")
 
 
 def interrupt():
@@ -564,3 +530,21 @@ def interrupt():
 
     if save_chat_history():
         st.session_state.appstate.load_chat_history()
+
+
+
+
+
+
+
+# # async def run_prompt(prompt, bots_reply_placeholder):
+# def run_prompt(prompt, bots_reply_placeholder):
+#     with bots_reply_placeholder.chat_message("assistant"):
+#         st.session_state.incomplete_stream = ""
+#         place_holder = st.empty()
+
+###########  OLD CODE  ############
+
+#         reply = st.session_state.incomplete_stream
+#         st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
+#         return reply

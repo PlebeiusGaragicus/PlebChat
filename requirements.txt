@@ -4,6 +4,7 @@ streamlit
 streamlit-authenticator
 streamlit_mic_recorder
 streamlit-pills
+streamlit_modal
 # streamlit-pydantic
 # streamlit-chat
 
