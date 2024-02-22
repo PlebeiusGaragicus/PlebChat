@@ -10,6 +10,7 @@ from langchain_openai import ChatOpenAI
 
 from langgraph.graph import StateGraph, END
 
+from src.common import get, PREFERENCES_PATH
 
 from pydantic import BaseModel
 
@@ -47,7 +48,8 @@ class TavilyBot(AIWorkflowAbsctractConstruct):
 
         # load settings from file
         try:
-            with open(f"{self.name}_settings.json", "r") as f:
+            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            with open(settings_filename, "r") as f:
                 settings = json.loads(f.read())
                 self.settings = TavilyBotSettings(**settings)
         except (FileNotFoundError, json.JSONDecodeError):
@@ -77,7 +79,8 @@ class TavilyBot(AIWorkflowAbsctractConstruct):
             self.settings.__dict__[key] = new_value
 
             # save to file
-            with open(f"{self.name}_settings.json", "w") as f:
+            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            with open(settings_filename, "w") as f:
                 f.write(json.dumps(self.settings.model_dump()))
 
         st.toggle("Nothing", key="nothing", value=self.settings.nothing, on_change=update, args=("nothing",))

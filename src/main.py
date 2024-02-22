@@ -10,6 +10,11 @@ from streamlit_pills import pills
 
 from mistralai.models.chat_completion import ChatMessage
 
+# import tiktoken
+from langchain_core.messages.human import HumanMessage
+from langchain_core.messages.ai import AIMessage
+from langchain_core.messages.function import FunctionMessage
+
 
 import logging
 log = logging.getLogger(__file__)
@@ -326,11 +331,9 @@ def main_page():
 
 
         if get("construct").agentic:
-            # bots_reply_placeholder.container()
-            init_graph(prompt, bots_reply_placeholder)
+            reply = init_graph(prompt, bots_reply_placeholder)
         else:
             with st.spinner("🧠 Thinking..."):
-                # sats_left_placeholder = st.empty()
                 reply = run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder)
 
 
@@ -438,7 +441,12 @@ def main_page():
 
 
 
-
+# # def num_tokens_from_string(string: str, encoding_name: str) -> int:
+# def num_tokens_from_string(string: str) -> int:
+#     """Returns the number of tokens in a text string."""
+#     encoding = tiktoken.get_encoding("cl100k_base")
+#     num_tokens = len(encoding.encode(string))
+#     return num_tokens
 
 
 
@@ -459,8 +467,16 @@ def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
         # reply = st.write_stream(get('construct').run(prompt))
         for chunk in get('construct').run(prompt):
 
-            tokens = len(chunk) # TODO - this is not accurate, but it's a start
-            cost_for_this_chunk = tokens / TOKENS_PER_SAT # tokens charged per satoshi
+            if chunk is None:
+                num_tokens = 0
+                chunk = ""
+            else:
+                # TODO - this is not accurate, but it's a start
+                num_tokens = len(chunk)
+                # num_tokens = num_tokens_from_string(chunk) # nah.... we'll go by chunk count
+
+            # num_tokens = len(chunk) # OpenAI returns a last token of {...content=None}
+            cost_for_this_chunk = num_tokens / TOKENS_PER_SAT # tokens charged per satoshi
 
             st.session_state.token_cost_accumulator += cost_for_this_chunk
             total_cost += cost_for_this_chunk
@@ -494,13 +510,47 @@ def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
 
 
 def init_graph(prompt, bots_reply_placeholder):
-    bots_reply_placeholder.container()
+    # bots_reply_placeholder.container()
+    with bots_reply_placeholder.chat_message("assistant", avatar=f"{ASSETS_PATH}/assistant_avatar.png"):
+
+        for node, output in get('construct').run(prompt):
+
+            if node == "__end__":
+                message = output['messages'][-1]
+            else:
+                message = output['messages'][0]
+
+            # <class 'langchain_core.messages.ai.AIMessage'>
+            # <class 'langchain_core.messages.function.FunctionMessage'>
+            # <class 'langchain_core.messages.human.HumanMessage'>
+
+            if type(message) is FunctionMessage:
+
+                content = f"**Function returned:**\n{message.content}"
+                st.markdown(f"{content}")
+
+                st.session_state.appstate.chat.messages.append(
+                                        ChatMessage(role="assistant",
+                                        content=content))
+
+            elif hasattr(message, 'additional_kwargs'):
+                if message.additional_kwargs != {}:
+                    print(message.additional_kwargs)
+                    print(type(message.additional_kwargs))
+                    # {'function_call': {'arguments': '{"query":"weather in San Francisco"}', 'name': 'tavily_search_results_json'}}
+
+                    function_name = message.additional_kwargs['function_call']['name']
+
+                    content = f"**Calling Function:**\n{function_name}({message.additional_kwargs['function_call']['arguments']})"
+
+                    st.markdown(content)
+                    st.session_state.appstate.chat.messages.append(
+                                        ChatMessage(role="assistant",
+                                        content=content))
 
 
-    for node, output in get('construct').run(prompt):
-        st.write(f"Output from node '{node}':")
-        st.write("---")
-        st.write(output)
+    st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=message.content))
+    return message.content
 
 
 
