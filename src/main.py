@@ -146,17 +146,11 @@ from src.flows.constructs import ALL_CONSTRUCTS
 
 def load_proper_flow(construct):
     if is_init("construct"):
-        # st.write(f"Construct loaded is: {get('construct').name}...")
 
         if get('construct').name != construct:
-            # update_persistance('chosen_pill', construct)
-            # update_persistance('chosen_pill', CONSTRUCTS.index(construct))
             update_persistance('chosen_pill', [c.name for c in ALL_CONSTRUCTS].index(construct))
-            # update_persistance('chosen_pill', [c.name for c in ALL_CONSTRUCTS].index(construct))
-            # st.write("CONSTRUCT CHANGE!")
             st.session_state.appstate.new_thread()
         else:
-            # st.write("no change!")
             return
 
     print("load_proper_flow() - building contruct")
@@ -174,8 +168,6 @@ def load_proper_flow(construct):
 
 
 
-
-# def main_page(authenticator):
 def main_page():
     print("\n\n\nRERUN!!!!!!\n")
 
@@ -206,8 +198,7 @@ def main_page():
         st.toggle("🗣️🤖", key="speech_input", value=False)
         if get('speech_input') is True:
             st.toggle(
-                # label="Confirm stt",
-                label="✅❌",
+                label="❌✅",
                 key="confirm_stt",
                 value=st.session_state.user_preferences["confirm_stt"],
                 on_change=save_user_preferences,
@@ -311,8 +302,8 @@ def main_page():
                         st.session_state.speech_draft = None
 
                     confirms = st.columns((2, 1, 1))
-                    confirms[0].button("✅", on_click=user_confirms_speech, use_container_width=True)
-                    confirms[2].button("❌", on_click=user_cancels_speech, use_container_width=True)
+                    confirms[0].button("❌", on_click=user_cancels_speech, use_container_width=True)
+                    confirms[2].button("✅", on_click=user_confirms_speech, use_container_width=True)
 
 
 
@@ -508,46 +499,65 @@ def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
 
 
 
-
+# What is the newest AI model from Google?
 def init_graph(prompt, bots_reply_placeholder):
-    # bots_reply_placeholder.container()
+    #TODO
+    st.session_state.incomplete_stream = "" # so that the interrupt button works... but there's still no token counting!
+    st.session_state.token_cost_accumulator = 0
+    sats_left = load_sats_balance()
+
     with bots_reply_placeholder.chat_message("assistant", avatar=f"{ASSETS_PATH}/assistant_avatar.png"):
 
-        for node, output in get('construct').run(prompt):
+        # str(st.session_state.appstate.chat.messages)
+        # for node, output in get('construct').run(prompt):
+        # TODO - this does NOT provide a good enough context for an agent... at least when opening an stale conversation.
+        for node, output in get('construct').run(str(st.session_state.appstate.chat.messages)):
 
-            if node == "__end__":
-                message = output['messages'][-1]
-            else:
+            if node != "__end__":
                 message = output['messages'][0]
+                # num_tokens = len(message.content) # function calls have no context... so we have to look at the whole LLM output
+                num_tokens = len(str(message)) # NAHH.... # give the user a small discount because some of these tokens are just JSON formatting.
+                cost_for_this_chunk = math.ceil(num_tokens / TOKENS_PER_SAT) # tokens charged per satoshi
+                st.session_state.token_cost_accumulator += cost_for_this_chunk
+                sats_left = st.session_state.redis_conn.decrby(st.session_state.username, cost_for_this_chunk)
 
-            # <class 'langchain_core.messages.ai.AIMessage'>
-            # <class 'langchain_core.messages.function.FunctionMessage'>
-            # <class 'langchain_core.messages.human.HumanMessage'>
+                # st.markdown(f":red[{cost_for_this_chunk}]")
+                # content = f":red[{cost_for_this_chunk}]"
 
-            if type(message) is FunctionMessage:
+                if sats_left < -1000:
+                    interrupt() # TODO does this interrupt???
 
-                content = f"**Function returned:**\n{message.content}"
-                st.markdown(f"{content}")
 
-                st.session_state.appstate.chat.messages.append(
-                                        ChatMessage(role="assistant",
-                                        content=content))
+                # <class 'langchain_core.messages.ai.AIMessage'>
+                # <class 'langchain_core.messages.function.FunctionMessage'>
+                # <class 'langchain_core.messages.human.HumanMessage'>
 
-            elif hasattr(message, 'additional_kwargs'):
-                if message.additional_kwargs != {}:
-                    print(message.additional_kwargs)
-                    print(type(message.additional_kwargs))
-                    # {'function_call': {'arguments': '{"query":"weather in San Francisco"}', 'name': 'tavily_search_results_json'}}
+                if type(message) is FunctionMessage:
 
-                    function_name = message.additional_kwargs['function_call']['name']
+                    content = f"**Function returned:**\n{message.content}"
+                    st.markdown(f"{content}")
 
-                    content = f"**Calling Function:**\n{function_name}({message.additional_kwargs['function_call']['arguments']})"
-
-                    st.markdown(content)
                     st.session_state.appstate.chat.messages.append(
-                                        ChatMessage(role="assistant",
-                                        content=content))
+                                            ChatMessage(role="assistant",
+                                            content=content))
 
+                elif hasattr(message, 'additional_kwargs'):
+                    if message.additional_kwargs != {}:
+                        print(message.additional_kwargs)
+                        print(type(message.additional_kwargs))
+                        # {'function_call': {'arguments': '{"query":"weather in San Francisco"}', 'name': 'tavily_search_results_json'}}
+
+                        function_name = message.additional_kwargs['function_call']['name']
+
+                        content = f"**Calling Function:**\n{function_name}({message.additional_kwargs['function_call']['arguments']})"
+
+                        st.markdown(content)
+                        st.session_state.appstate.chat.messages.append(
+                                            ChatMessage(role="assistant",
+                                            content=content))
+
+            else:
+                message = output['messages'][-1]
 
     st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=message.content))
     return message.content

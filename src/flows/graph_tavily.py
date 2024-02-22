@@ -66,10 +66,7 @@ class TavilyBot(AIWorkflowAbsctractConstruct):
             # stream() yields dictionaries with output keyed by node name
             for key, value in output.items():
                 yield key, value
-            #     print(f"Output from node '{key}':")
-            #     print("---")
-            #     print(value)
-            # print("\n---\n")
+
 
 
 
@@ -91,7 +88,7 @@ class TavilyBot(AIWorkflowAbsctractConstruct):
 
 
 def compiled_graph():
-    tools = [TavilySearchResults(max_results=1)]
+    tools = [TavilySearchResults(max_results=1)] # TODO turn this into a setting!
     tool_executor = ToolExecutor(tools)
 
     model = ChatOpenAI(temperature=0, streaming=True)
