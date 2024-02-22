@@ -1,10 +1,15 @@
-# import redis
+import os
+import json
+import requests
 
 import streamlit as st
 
-from streamlit_javascript import st_javascript
+from src.common import set, get, not_init, INVOICES_PATH
 
-from src.common import get
+TOKENS_PER_SAT = 30
+
+# https://guides.getalby.com/developer-guide/v/alby-wallet-api/lightning-address-details-proxy
+
 
 
 def charge_user(amount: int = None):
@@ -20,21 +25,160 @@ def charge_user(amount: int = None):
 def load_sats_balance():
     return int(st.session_state.redis_conn.get(st.session_state.username) or 0)
 
-
-def add_sats(amount: int):
-    # current_sats = int(st.session_state.redis_conn.get(st.session_state.username) or 0)
-    # new_sats = current_sats + amount
-    # st.session_state.redis_conn.set(st.session_state.username, new_sats)
-
-    await_payment()
-
-
-
-
-
     
 
 
+def display_invoice_link():
+    payment_request = get('invoice')['pr']
+
+    # html = f"""<a href="lightning:{payment_request}" target="_blank">Buy tokens with Lightning ⚡️</a>"""
+    html = f"""<a href="lightning:{payment_request}" target="_blank">Click to pay with Lightning ⚡️</a>"""
+    st.markdown(html, unsafe_allow_html=True)
+    invoice_number = payment_request[:6] + "..." + payment_request[-6:]
+    st.write(f"Invoice: :green[{invoice_number}]")
+
+    if st.button("Check for payment status"):
+        if check_for_payment():
+            archive_invoice()
+
+
+
+
+def create_invoice_file(sats: int = 100):
+
+    ln_address = "turkeybiscuit@getalby.com"
+    url = "https://api.getalby.com/lnurl/generate-invoice"
+    params = {
+        "ln": ln_address,
+        "amount": sats * 1000, # in millisats
+         "comment": f"Purchased {sats * TOKENS_PER_SAT} PlebChat tokens (chat.plebby.me) 🗣️🤖💬"
+    }
+
+    response = requests.get(url, params=params)
+
+
+    if response.status_code == 200:
+        st.toast("Invoice created! 🎉")
+        print("CREATED INVOICE:")
+        print(response.json())
+    else:
+        st.error(f"Failed to create invoice: {response.status_code} {response.text}")
+        st.toast(f"Failed to create invoice: {response.status_code} {response.text}")
+        raise Exception(f"Failed to create invoice: {response.status_code} {response.text}")
+
+    invoice_filename = f"{INVOICES_PATH}/{get('username')}.invoice"
+    with open(invoice_filename, "w") as f:
+        f.write(json.dumps(response.json()))
+
+    st.session_state.invoice = response.json()['invoice']
+    # st.rerun()
+    # return response.json()
+
+
+def return_stored_invoice():
+    invoice_filename = f"{INVOICES_PATH}/{get('username')}.invoice"
+
+    try:
+        with open(invoice_filename, "r") as f:
+            invoice = json.load(f)['invoice']
+            print("INVOICE FILE FOUND:")
+            print(invoice)
+            return invoice
+
+    except FileNotFoundError:
+        # del st.session_state.invoice
+        # st.session_state.invoice = None
+        # st.error("No invoice file!")
+        return None
+
+    except json.JSONDecodeError:
+        st.error("INVALID INVOICE FILE")
+        # TODO - should probably delete this..
+        # ALSO... LOG THE ERROR AND SEND IT TO ME!!! look at that one mCoding youtube video
+        return None
+
+
+
+def display_create_invoice_button():
+    if st.button("Create invoice"):
+        st.session_state.invoice = return_stored_invoice()
+        if st.session_state.invoice is None:
+            create_invoice_file()
+
+        display_invoice_link()
+
+
+
+# def check_and_display_invoice():
+#     create
+
+
+def display_invoice_pane():
+    # check for stored invoice
+    # if not_init('invoice') or st.session_state.invoice is None:
+        # st.session_state.invoice = return_stored_invoice()
+
+    # print(get('invoice'))
+
+    # if not found, display create invoice button
+    if not_init('invoice') or st.session_state.invoice is None:
+        display_create_invoice_button()
+    else:
+        display_invoice_link()
+
+        # if st.button("Check for payment status"):
+        #     if check_for_payment():
+        #         archive_invoice()
+
+
+
+
+def archive_invoice():
+    # rename username.invoice to username.invoice.archive
+    payment_request = get('invoice')['pr']
+    # last 6 characters of payment_request
+    last6 = payment_request[-6:]
+    new_filename = f"{INVOICES_PATH}/{get('username')}.invoice.archive.{last6}"
+
+    invoice_filename = f"{INVOICES_PATH}/{get('username')}.invoice"
+    os.rename(invoice_filename, new_filename)
+
+    del st.session_state.invoice
+
+    import time
+    time.sleep(3)
+    st.rerun()
+
+
+
+
+def check_for_payment():
+    # return False
+
+    verify_url = get('invoice')['verify']
+
+    response = requests.get(verify_url)
+    if response.status_code == 200:
+        settled = response.json()['settled']
+        if settled:
+            st.success("Invoice has been paid! 🎉")
+            st.toast("Invoice has been paid! 🎉")
+
+            # TODO I don't want to hardcode 1000 here, but there's no amount in the invoice that I can see!
+            st.session_state.redis_conn.incrby(get('username'), 100 * TOKENS_PER_SAT)
+            return True
+    else:
+        print(response.status_code, response.text)
+        print("ERROR IN VERIFYING INVOICE PAYMENT STATUS")
+        st.error("ERROR IN VERIFYING INVOICE PAYMENT STATUS")
+        st.toast("ERROR IN VERIFYING INVOICE PAYMENT STATUS")
+
+    st.toast("Invoice has not been paid yet. 🤔")
+    return False
+
+
+
+# from streamlit_javascript import st_javascript
 # def await_payment():
 #     # html = """
 #     # <button id="pay">Pay</button>
@@ -88,14 +232,3 @@ def add_sats(amount: int):
 
 #     import time
 #     time.sleep(1)
-
-
-
-
-def await_payment():
-    import requests
-
-    pr = """lnbc1u1pjava5dpp5mg8du4vqnr4lqtlgrja5ml7t0qmcszsswj050zeff5kz5fzttytqhp5fwml5q5dckdwq4c2njau2jc9prswd0q43t5aauwv56zwdgw6h6pscqzzsxqyz5vqsp5pmljg7dg5rg38ww44c23w7lv86cru63x4qem63n2q6sn5xh55n0q9qyyssqmtq8a5stf46hshr9s269egpcp63rhg85jdszh7yxskc2tj05f03qm3y2zsatapv5hg3m4act8t9j7fqtc27n0m96n6wsnnxy9s8wf7sqdf5fg6"""
-
-    html = f"""<a href="lightning:{pr}" target="_blank">Pay with Lightning</a>"""
-    st.markdown(html, unsafe_allow_html=True)

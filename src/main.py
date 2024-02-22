@@ -48,7 +48,12 @@ from src.interface.interface import (
     centered_button_trick,
 )
 
-from src.sats import load_sats_balance, add_sats
+from src.sats import (
+    load_sats_balance,
+    TOKENS_PER_SAT,
+    display_invoice_link,
+    display_invoice_pane
+)
 
 from src.speech import TTS
 
@@ -387,8 +392,10 @@ def main_page():
 
         st.header("", divider="rainbow")
 
-        r = random.randint(1000, 5000)
-        st.button("⚡️ :green[add sats] ⚡️", key="add_sats", on_click=add_sats, args=(r,), use_container_width=True)
+        # r = random.randint(1000, 5000)
+        # st.button("⚡️ :green[add sats] ⚡️", key="add_sats", on_click=add_sats, args=(r,), use_container_width=True)
+        # display_invoice_link()
+        display_invoice_pane()
 
         with st.expander("Settings"):#,
             with st.container(border=True):
@@ -457,7 +464,7 @@ def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
         for chunk in get('construct').run(prompt):
 
             tokens = len(chunk) # TODO - this is not accurate, but it's a start
-            cost_for_this_chunk = tokens / 40 # tokens charged per satoshi
+            cost_for_this_chunk = tokens / TOKENS_PER_SAT # tokens charged per satoshi
 
             st.session_state.token_cost_accumulator += cost_for_this_chunk
             total_cost += cost_for_this_chunk
@@ -504,17 +511,17 @@ def init_graph(prompt, bots_reply_placeholder):
 
 
 
-def sats_display():
-    with st.sidebar:
-        sats_cols = st.columns((1, 1))
-        with sats_cols[0]:
-            # st.button("🔁 Refresh", on_click=load_sats_balance, key="refresh_sats", use_container_width=True)
-            # st.button("❇️ :green[add sats]", key="add_sats", use_container_width=True)
-            r = random.randint(0, 100)
-            st.button("⚡️ :green[add sats] ⚡️", key="add_sats", on_click=add_sats, args=(r,), use_container_width=True)
-        with sats_cols[1]:
-            sats = load_sats_balance()
-            st.write(f":orange[₿] `{sats:,.0f}` sats")
+# def sats_display():
+#     with st.sidebar:
+#         sats_cols = st.columns((1, 1))
+#         with sats_cols[0]:
+#             # st.button("🔁 Refresh", on_click=load_sats_balance, key="refresh_sats", use_container_width=True)
+#             # st.button("❇️ :green[add sats]", key="add_sats", use_container_width=True)
+#             r = random.randint(0, 100)
+#             st.button("⚡️ :green[add sats] ⚡️", key="add_sats", on_click=add_sats, args=(r,), use_container_width=True)
+#         with sats_cols[1]:
+#             sats = load_sats_balance()
+#             st.write(f":orange[₿] `{sats:,.0f}` sats")
 
 
 def show_tokens():

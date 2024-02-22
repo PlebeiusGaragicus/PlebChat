@@ -12,3 +12,5 @@ runlog/
 .shh
 
 preferences/*
+
+*.invoice.*
