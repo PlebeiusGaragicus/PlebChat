@@ -202,7 +202,7 @@ def main_page():
         if get('speech_input') is True:
             st.toggle(
                 # label="Confirm stt",
-                label="❓✅",
+                label="✅❌",
                 key="confirm_stt",
                 value=st.session_state.user_preferences["confirm_stt"],
                 on_change=save_user_preferences,

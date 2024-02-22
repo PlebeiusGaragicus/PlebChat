@@ -106,6 +106,8 @@ def display_create_invoice_button():
             create_invoice_file()
 
         display_invoice_link()
+        if check_for_payment():
+            archive_invoice()
 
 
 
