@@ -25,9 +25,9 @@ class AgentState(TypedDict):
 
 
 class TavilyBotSettings(BaseModel):
-    nothing: bool = False
-    something: bool = True
-    API_KEY: str = ""
+    max_results: int = 3
+    TAVILY_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
 
 
 
@@ -44,8 +44,6 @@ class TavilyBot(AIWorkflowAbsctractConstruct):
     def setup(self):
         self._is_setup = True
 
-        self.graph = compiled_graph()
-
         # load settings from file
         try:
             settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
@@ -54,6 +52,8 @@ class TavilyBot(AIWorkflowAbsctractConstruct):
                 self.settings = TavilyBotSettings(**settings)
         except (FileNotFoundError, json.JSONDecodeError):
             self.settings = TavilyBotSettings()
+
+        self.graph = compiled_graph(self.settings)
 
 
     def run(self, prompt, **kwargs):
@@ -80,18 +80,23 @@ class TavilyBot(AIWorkflowAbsctractConstruct):
             with open(settings_filename, "w") as f:
                 f.write(json.dumps(self.settings.model_dump()))
 
-        st.toggle("Nothing", key="nothing", value=self.settings.nothing, on_change=update, args=("nothing",))
-        st.toggle("Something", key="something", value=self.settings.something, on_change=update, args=("something",))
-        st.text_input("API_KEY", key="API_KEY", value=self.settings.API_KEY, on_change=update, args=("API_KEY",))
+            self.setup() # we have to re-init the graph with the new settings
+
+        st.select_slider("Number of Search Results", options=[1, 2, 3, 4, 5], key="max_results", value=self.settings.max_results, on_change=update, args=("max_results",))
+
+        st.text_input("TAVILY_API_KEY", key="TAVILY_API_KEY", value=self.settings.TAVILY_API_KEY, on_change=update, args=("TAVILY_API_KEY",))
+        st.text_input("OPENAI_API_KEY", key="OPENAI_API_KEY", value=self.settings.OPENAI_API_KEY, on_change=update, args=("OPENAI_API_KEY",))
 
 
 
 
-def compiled_graph():
-    tools = [TavilySearchResults(max_results=1)] # TODO turn this into a setting!
+def compiled_graph(settings: TavilyBotSettings):
+    # tools = [TavilySearchResults(max_results=1)] # TODO turn this into a setting!
+    tools = [TavilySearchResults(max_results=settings.max_results)]
     tool_executor = ToolExecutor(tools)
 
     model = ChatOpenAI(temperature=0, streaming=True)
+    # model = ChatOpenAI(temperature=0, streaming=True, api_key=settings.OPENAI_API_KEY)
 
     functions = [format_tool_to_openai_function(t) for t in tools]
     model = model.bind_functions(functions)

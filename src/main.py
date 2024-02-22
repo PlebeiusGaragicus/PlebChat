@@ -218,6 +218,7 @@ def main_page():
             debug_placeholder = st.container()
             debug_placeholder.write(get("construct"))
             debug_placeholder.write(st.session_state.appstate.chat.messages)
+        st.write(get("construct").settings)
 
     st.header("", divider="rainbow")
 

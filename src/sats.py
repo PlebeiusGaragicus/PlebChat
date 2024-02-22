@@ -45,11 +45,17 @@ def display_invoice_link():
 
     generate_qr()
 
-    if st.button("Check for payment status"):
+    if st.button(":green[Check for payment settlement]"):
         if check_for_payment():
             archive_invoice()
         else:
-            st.warning("Invoice has not been paid yet.")
+            invoice = get('invoice')
+            st.write(f"Status: {invoice['status']}")
+            # st.write(f"Settled :red[{invoice['settled']}]") # hmmmmmmmm, do we want to pass the verify result JSON in here?
+            # st.write(f"Settled: :red[false]")
+            st.markdown(f"""<a href="{invoice['verify']}" target="_blank">Payment status link</a>""", unsafe_allow_html=True)
+            st.warning("Invoice has not been settled.")
+            st.toast("Invoice has not been settled yet.", icon="⚡️")
 
 
 
@@ -153,11 +159,14 @@ def check_for_payment():
 
     response = requests.get(verify_url)
     if response.status_code == 200:
+        status = response.json()['status']
         settled = response.json()['settled']
 
         # status = "settled" if get('invoice')['settled'] else "pending"
-        status = "settled" if settled else "pending"
-        st.write(f"Status: :orange[{status}]")
+        # status = "settled" if settled else "pending"
+        # st.write(f"Status: {status} :blue[---] Settled :red[{settled}]")
+        # st.write(f"Status: {status}")
+        st.write(f"Settled: :red[{settled}]")
 
         if settled:
             st.success("Invoice has been paid! 🎉")
@@ -206,5 +215,9 @@ def generate_qr():
         # Save the QR code to a file inside the invoices folder
         img.save(qr_filename)
 
-    caption = f"Invoice: {pr[0:10]}...{pr[-10:]}"
-    st.image(qr_filename, caption=caption, use_column_width=True)
+    # caption = f"Invoice: {pr[0:8]}...{pr[-8:]}"
+    # st.image(qr_filename, caption=caption, use_column_width=True)
+    st.image(qr_filename, use_column_width=True)
+
+    caption = f":orange[{pr[0:14]} ... {pr[-14:]}]"
+    st.write(caption)
