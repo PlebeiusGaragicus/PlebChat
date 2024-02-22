@@ -13,4 +13,6 @@ runlog/
 
 preferences/*
 
-*.invoice*
+# *.invoice*
+
+invoices/

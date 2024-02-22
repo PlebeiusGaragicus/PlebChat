@@ -3,6 +3,8 @@ import time
 import json
 import requests
 
+import qrcode
+
 import streamlit as st
 
 from src.common import set, get, not_init, INVOICES_PATH
@@ -10,7 +12,9 @@ from src.common import set, get, not_init, INVOICES_PATH
 TOKENS_PER_SAT = 30
 
 # https://guides.getalby.com/developer-guide/v/alby-wallet-api/lightning-address-details-proxy
-
+# https://github.com/getAlby/js-lightning-tools
+# https://guides.getalby.com/developer-guide/v/lightning-tools/introduction/receiving-bitcoin-payments
+# https://guides.getalby.com/developer-guide/v/alby-wallet-api/reference/authorization
 
 
 def charge_user(amount: int = None):
@@ -35,8 +39,11 @@ def display_invoice_link():
     # html = f"""<a href="lightning:{payment_request}" target="_blank">Buy tokens with Lightning ⚡️</a>"""
     html = f"""<a href="lightning:{payment_request}" target="_blank">Click to pay with Lightning ⚡️</a>"""
     st.markdown(html, unsafe_allow_html=True)
-    invoice_number = payment_request[:6] + "..." + payment_request[-6:]
-    st.write(f"Invoice: :green[{invoice_number}]")
+
+    # invoice_number = payment_request[:6] + "..." + payment_request[-6:]
+    # st.write(f"Invoice: :green[{invoice_number}]")
+
+    generate_qr()
 
     if st.button("Check for payment status"):
         if check_for_payment():
@@ -167,3 +174,37 @@ def check_for_payment():
         st.toast("ERROR IN VERIFYING INVOICE PAYMENT STATUS")
 
         return False
+
+
+
+
+
+
+def generate_qr():
+    # look for QR code file
+    qr_filename = f"{INVOICES_PATH}/{get('username')}.qr.png"
+    pr = get('invoice')['pr']
+
+    if not os.path.exists(qr_filename):
+        # Prefix the invoice with "lightning:" to make it compatible with wallet apps
+        invoice_for_qr = f"lightning:{pr}"
+
+        # Generate the QR code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+
+        qr.add_data(invoice_for_qr)
+        qr.make(fit=True)
+
+        # Create an Image object from the QR Code instance
+        img = qr.make_image(fill_color="black", back_color="white")
+
+        # Save the QR code to a file inside the invoices folder
+        img.save(qr_filename)
+
+    caption = f"Invoice: {pr[0:10]}...{pr[-10:]}"
+    st.image(qr_filename, caption=caption, use_column_width=True)

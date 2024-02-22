@@ -7,13 +7,22 @@ import streamlit as st
 
 from streamlit_modal import Modal
 
-
 import ollama
 
 from src.flows import StreamingLLM
 from src.persist import PREFERENCES_PATH
 from src.common import get
 from src.chat_history import serialize_messages
+
+
+
+# https://github.com/ollama/ollama/blob/main/docs/api.md
+# https://python.langchain.com/docs/integrations/llms/ollama
+# https://github.com/ollama/ollama-python
+# https://js.langchain.com/docs/use_cases/question_answering/local_retrieval_qa
+
+
+
 
 # [c['name'] for c in ollama.list()['models']]
 OLLAMA_MODELS = ["mistral", "llama2"]
