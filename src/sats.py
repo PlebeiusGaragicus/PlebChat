@@ -1,4 +1,5 @@
 import os
+import time
 import json
 import requests
 
@@ -40,6 +41,8 @@ def display_invoice_link():
     if st.button("Check for payment status"):
         if check_for_payment():
             archive_invoice()
+        else:
+            st.warning("Invoice has not been paid yet.")
 
 
 
@@ -71,8 +74,7 @@ def create_invoice_file(sats: int = 100):
         f.write(json.dumps(response.json()))
 
     st.session_state.invoice = response.json()['invoice']
-    # st.rerun()
-    # return response.json()
+
 
 
 def return_stored_invoice():
@@ -86,21 +88,21 @@ def return_stored_invoice():
             return invoice
 
     except FileNotFoundError:
-        # del st.session_state.invoice
-        # st.session_state.invoice = None
-        # st.error("No invoice file!")
         return None
 
     except json.JSONDecodeError:
         st.error("INVALID INVOICE FILE")
-        # TODO - should probably delete this..
+        # TODO - should probably delete the file..
         # ALSO... LOG THE ERROR AND SEND IT TO ME!!! look at that one mCoding youtube video
         return None
 
 
 
 def display_create_invoice_button():
-    if st.button("Create invoice"):
+    add_sats_placeholder = st.empty()
+
+    if add_sats_placeholder.button("⚡️ :green[add sats] ⚡️", use_container_width=True):
+        add_sats_placeholder.empty()
         st.session_state.invoice = return_stored_invoice()
         if st.session_state.invoice is None:
             create_invoice_file()
@@ -111,35 +113,21 @@ def display_create_invoice_button():
 
 
 
-# def check_and_display_invoice():
-#     create
-
 
 def display_invoice_pane():
-    # check for stored invoice
-    # if not_init('invoice') or st.session_state.invoice is None:
-        # st.session_state.invoice = return_stored_invoice()
-
-    # print(get('invoice'))
-
-    # if not found, display create invoice button
-    if not_init('invoice') or st.session_state.invoice is None:
-        display_create_invoice_button()
-    else:
-        display_invoice_link()
-
-        # if st.button("Check for payment status"):
-        #     if check_for_payment():
-        #         archive_invoice()
-
+    with st.container(border=True):
+        if not_init('invoice') or st.session_state.invoice is None:
+            display_create_invoice_button()
+        else:
+            display_invoice_link()
 
 
 
 def archive_invoice():
-    # rename username.invoice to username.invoice.archive
+    """ rename {username}.invoice to {username}.invoice.archive.{last6} """
+
     payment_request = get('invoice')['pr']
-    # last 6 characters of payment_request
-    last6 = payment_request[-6:]
+    last6 = payment_request[-6:] # last 6 characters of payment_request
     new_filename = f"{INVOICES_PATH}/{get('username')}.invoice.archive.{last6}"
 
     invoice_filename = f"{INVOICES_PATH}/{get('username')}.invoice"
@@ -147,90 +135,35 @@ def archive_invoice():
 
     del st.session_state.invoice
 
-    import time
-    time.sleep(3)
+    time.sleep(3) # allow toast to display before rerunning
     st.rerun()
 
 
 
 
 def check_for_payment():
-    # return False
-
     verify_url = get('invoice')['verify']
 
     response = requests.get(verify_url)
     if response.status_code == 200:
         settled = response.json()['settled']
+
+        # status = "settled" if get('invoice')['settled'] else "pending"
+        status = "settled" if settled else "pending"
+        st.write(f"Status: :orange[{status}]")
+
         if settled:
             st.success("Invoice has been paid! 🎉")
-            st.toast("Invoice has been paid! 🎉")
 
-            # TODO I don't want to hardcode 1000 here, but there's no amount in the invoice that I can see!
+            # TODO I don't want to hardcode numbers here, but there's no amount in the invoice that I can see!
             st.session_state.redis_conn.incrby(get('username'), 100 * TOKENS_PER_SAT)
             return True
+        else:
+            return False
     else:
         print(response.status_code, response.text)
         print("ERROR IN VERIFYING INVOICE PAYMENT STATUS")
         st.error("ERROR IN VERIFYING INVOICE PAYMENT STATUS")
         st.toast("ERROR IN VERIFYING INVOICE PAYMENT STATUS")
 
-    st.toast("Invoice has not been paid yet. 🤔")
-    return False
-
-
-
-# from streamlit_javascript import st_javascript
-# def await_payment():
-#     # html = """
-#     # <button id="pay">Pay</button>
-#     # <p>Invoice: <span id="invoice"></span></p>
-#     # <p>Status: <span id="status">unpaid</span></p>
-
-#     # <script>
-#     # document.getElementById("pay").addEventListener("click", function() {
-#     #     document.getElementById("status").innerText = "paid";
-#     # });
-#     # </script>
-#     # """
-
-#     # st.components.v1.html(html)
-#     # st.markdown(html, unsafe_allow_html=True) # this displays the button, but the javascript doesn't work
-
-
-#     # st.components.v1.html("""<script src="https://unpkg.com/@getalby/lightning-tools"></script>""")
-
-#     st.components.v1.html("""<script type="module">
-#         import { LightningAddress } from "https://esm.sh/@getalby/lightning-tools@5.0.0"; // jsdelivr.net, skypack.dev also work
-#         """)
-
-
-#     sample = """await fetch("https://reqres.in/api/products/3").then(function(response) {
-#         return response.json();
-#     }) """
-
-#     # javascript = """const ln = new LightningAddress("turkeybiscuit@getalby.com");
-#     #     const invoice = ln.requestInvoice({ satoshi: 1000 });
-#     #     console.log("Invoice: ", invoice);
-
-#     #     // or use the convenenice method:
-#     #     // return invoice.isPaid();
-#     #     return 10
-#     # """
-
-#     javascript = """(async () => {
-#         console.log("hi")
-#         console.log(new LightningAddress("turkeybiscuit@getalby.com"))
-#         const ln = new LightningAddress("hello@getalby.com");
-#         await ln.fetch();
-#         console.log(ln.lnurlpData);
-#         })();
-#     """
-
-#     return_value = st_javascript(javascript)
-
-#     st.markdown(f"Return value was: {return_value}")
-#     print(f"Return value was: {return_value}")
-
-#     import time
-#     time.sleep(1)
+        return False

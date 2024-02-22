@@ -392,9 +392,6 @@ def main_page():
 
         st.header("", divider="rainbow")
 
-        # r = random.randint(1000, 5000)
-        # st.button("⚡️ :green[add sats] ⚡️", key="add_sats", on_click=add_sats, args=(r,), use_container_width=True)
-        # display_invoice_link()
         display_invoice_pane()
 
         with st.expander("Settings"):#,
@@ -405,7 +402,6 @@ def main_page():
 
             st.divider()
 
-            # authenticator.logout(f":red[Logout] `{st.session_state.username}`")
             st.session_state.authenticator.logout(f":red[Logout] `{st.session_state.username}`")
 
 
@@ -505,36 +501,13 @@ def init_graph(prompt, bots_reply_placeholder):
         st.write(f"Output from node '{node}':")
         st.write("---")
         st.write(output)
-        # st.session_state.incomplete_stream += chunk
-        # place_holder.markdown(st.session_state.incomplete_stream)
 
 
 
 
-# def sats_display():
-#     with st.sidebar:
-#         sats_cols = st.columns((1, 1))
-#         with sats_cols[0]:
-#             # st.button("🔁 Refresh", on_click=load_sats_balance, key="refresh_sats", use_container_width=True)
-#             # st.button("❇️ :green[add sats]", key="add_sats", use_container_width=True)
-#             r = random.randint(0, 100)
-#             st.button("⚡️ :green[add sats] ⚡️", key="add_sats", on_click=add_sats, args=(r,), use_container_width=True)
-#         with sats_cols[1]:
-#             sats = load_sats_balance()
-#             st.write(f":orange[₿] `{sats:,.0f}` sats")
 
 
 def show_tokens():
-    # with st.sidebar:
-        # cols2 = st.columns((1, 1))
-        # with cols2[0]:
-    # st.text_input(label=f":orange[Tokens Available:]", value=f"{get('sats'):,.0f}", disabled=True)
-        # sats = load_sats_balance()
-    # st.write(f":orange[Tokens Available:]   **{get('sats'):,.0f}**")
-
-    # st.write(f"⚡️ :green[{get('sats'):,.0f}]")
-
-    # sats = int(st.session_state.redis_conn.get(st.session_state.username))
     sats = load_sats_balance()
     if sats is None:
         sats = 0
@@ -548,25 +521,6 @@ def interrupt():
 
     st.session_state.redis_conn.decrby(st.session_state.username, st.session_state.token_cost_accumulator)
     st.session_state.token_cost_accumulator = 0
-    # save_sats_balance()
 
     if save_chat_history():
         st.session_state.appstate.load_chat_history()
-
-
-
-
-
-
-
-# # async def run_prompt(prompt, bots_reply_placeholder):
-# def run_prompt(prompt, bots_reply_placeholder):
-#     with bots_reply_placeholder.chat_message("assistant"):
-#         st.session_state.incomplete_stream = ""
-#         place_holder = st.empty()
-
-###########  OLD CODE  ############
-
-#         reply = st.session_state.incomplete_stream
-#         st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
-#         return reply
