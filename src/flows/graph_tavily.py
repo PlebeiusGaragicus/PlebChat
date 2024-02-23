@@ -34,6 +34,8 @@ class TavilyBotSettings(BaseModel):
 class TavilyBot(AIWorkflowAbsctractConstruct):
     emoji = "🔍"
     name = "Tavily"
+    avatar_filename = "assistant.png" # should I place this into the base class and overload it here?  Is that possible?
+    preamble = "Tavily is ready to help you find information!"
 
     def __init__(self):
         super().__init__()

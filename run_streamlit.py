@@ -2,11 +2,10 @@ if __name__ == "__main__":
     import dotenv
     dotenv.load_dotenv()
 
-    import os
-    # print(f"{os.environ['TAVILY_API_KEY']=}")
-
-    os.environ["LANGCHAIN_TRACING_V2"] = "true"
-    # print(f"{os.environ['LANGCHAIN_API_KEY']=}")
+    # TODO - move this into settings
+    # import os
+    # os.environ["LANGCHAIN_TRACING_V2"] = "true"
+    # os.environ["LANGCHAIN_PROJECT"] = "PlebChat"
 
 
     from src.interface.login import login_router_page
@@ -25,6 +24,4 @@ if __name__ == "__main__":
 
 
     # import pdb; pdb.set_trace()
-    # import asyncio
-    # asyncio.run(login_router_page())
     login_router_page()

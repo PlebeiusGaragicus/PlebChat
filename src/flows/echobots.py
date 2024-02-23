@@ -46,6 +46,10 @@ class testing_echobot(StreamingLLM):
 class echobot(testing_echobot):
     emoji = "🤖"
     name = "echobot"
+    avatar_filename = "echobot.png"
+    preamble = "What did you say?!"
+
+
     def __init__(self):
         super().__init__()
         # self.settings = echobot_settings()

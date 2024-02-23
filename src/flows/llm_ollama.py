@@ -40,6 +40,8 @@ class LLM_SETTINGS_OLLAMA(BaseModel):
 class LLM_OLLAMA(StreamingLLM):
     emoji = "🦙"
     name = "Ollama"
+    avatar_filename = "ollama.png"
+    preamble = "FREEEEEDOM!"
 
     def __init__(self):
         super().__init__()

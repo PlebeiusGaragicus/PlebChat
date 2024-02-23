@@ -23,6 +23,7 @@ log = logging.getLogger(__file__)
 from src.VERSION import VERSION
 from src.common import (
     ASSETS_PATH,
+    AVATAR_PATH,
     is_init,
     not_init,
     get,
@@ -214,21 +215,27 @@ def main_page():
 
 
     if os.getenv("DEBUG", False):
-        with st.expander("Debug", expanded=False):
-            debug_placeholder = st.container()
-            debug_placeholder.write(get("construct"))
-            debug_placeholder.write(st.session_state.appstate.chat.messages)
         st.write(get("construct").settings)
         st.write(os.getenv("OPENAI_API_KEY"))
         st.write(os.getenv("TAVILY_API_KEY"))
 
+        with st.expander("Debug", expanded=False):
+            debug_placeholder = st.container()
+            debug_placeholder.write(get("construct"))
+            debug_placeholder.write(st.session_state.appstate.chat.messages)
+
+    st.markdown(f"{get('construct').preamble}")
     st.header("", divider="rainbow")
 
-
-    human_avatar = f"{ASSETS_PATH}/human_avatar.png"
-    ai_avatar = f"{ASSETS_PATH}/assistant_avatar.png"
-
     ####### CONVERSATION #######
+
+
+
+    # TODO - turn this into a settings
+    human_avatar = f"{AVATAR_PATH}/user0.png"
+    # ai_avatar = f"{AVATAR_PATH}/assistant.png"
+    ai_avatar = f"{AVATAR_PATH}/{get('construct').avatar_filename}"
+
     for message in appstate.chat.messages:
         with st.chat_message(message.role, avatar=ai_avatar if message.role == "assistant" else human_avatar):
             st.markdown(message.content)
@@ -451,8 +458,8 @@ def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
     total_cost = 0
     st.session_state.token_cost_accumulator = 0
 
-
-    with bots_reply_placeholder.chat_message("assistant", avatar=f"{ASSETS_PATH}/assistant_avatar.png"):
+    avatar_filename = f"{AVATAR_PATH}/{get('construct').avatar_filename}" # TODO - if none?
+    with bots_reply_placeholder.chat_message("assistant", avatar=avatar_filename):
 
         st.session_state.incomplete_stream = ""
         place_holder = st.empty()
@@ -511,9 +518,9 @@ def init_graph(prompt, bots_reply_placeholder):
 
     st.write(os.getenv("TAVILY_API_KEY"))
     st.write(os.getenv("OPENAI_API_KEY"))
-    st.write("keys written")
 
-    with bots_reply_placeholder.chat_message("assistant", avatar=f"{ASSETS_PATH}/assistant_avatar.png"):
+    avatar_filename = f"{AVATAR_PATH}/{get('construct').avatar_filename}" # TODO - if none?
+    with bots_reply_placeholder.chat_message("assistant", avatar=avatar_filename):
 
         # str(st.session_state.appstate.chat.messages)
         # for node, output in get('construct').run(prompt):

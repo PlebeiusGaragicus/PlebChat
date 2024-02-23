@@ -1,4 +1,3 @@
-import time
 import json
 
 from pydantic import BaseModel
@@ -15,7 +14,7 @@ OPENAI_MODELS = [
         "gpt-4-0125-preview",
         "gpt-4-turbo-preview",
         "gpt-4-1106-preview",
-        "gpt-4-vision-preview",
+        # "gpt-4-vision-preview",
         "gpt-4",
         "gpt-4-0314",
         "gpt-4-0613",
@@ -41,8 +40,9 @@ class LLM_SETTINGS_OPENAI_GPT(BaseModel):
 
 class LLM_OPENAI_GPT(StreamingLLM):
     emoji = "💫"
-    # name = "GPT-3.5"
     name = "OpenAI"
+    avatar_filename = "chatgpt.png"
+    preamble = "Closed source and ready to take your money!!\n\n...sucker 😒"
 
     def __init__(self):
         super().__init__()
@@ -65,14 +65,22 @@ class LLM_OPENAI_GPT(StreamingLLM):
         if not self._is_setup:
             raise Exception("StreamingLLM.run(): not setup yet! Run `setup()` first!")
 
-        from openai import OpenAI
-        client = OpenAI(api_key=self.settings.api_key)
+        import openai
+        # from openai import OpenAI
+        client = openai.OpenAI(api_key=self.settings.api_key)
 
-        generator = client.chat.completions.create(
-            model=self.settings.model,
-            messages=st.session_state.appstate.chat.messages,
-            stream=True,
-        )
+        try:
+            generator = client.chat.completions.create(
+                model=self.settings.model,
+                messages=st.session_state.appstate.chat.messages,
+                stream=True,
+            )
+        # except openai._exceptions.OpenAIError:
+        # except E
+        except openai._exceptions.APIConnectionError:
+            st.error("Connection failed - double check your API key?")
+            return
+
         for chunk in generator:
             # print(chunk)
             yield chunk.choices[0].delta.content
