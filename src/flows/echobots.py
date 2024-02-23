@@ -38,7 +38,6 @@ class testing_echobot(StreamingLLM):
 
         for e in echo:
             time.sleep(self.settings.sleep_time)
-            # yield f"{e} "
             yield f"{e}"
 
 

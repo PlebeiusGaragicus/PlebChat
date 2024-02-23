@@ -42,7 +42,7 @@ class LLM_OPENAI_GPT(StreamingLLM):
     emoji = "💫"
     name = "OpenAI"
     avatar_filename = "chatgpt.png"
-    preamble = "Closed source and ready to take your money!!\n\n...sucker 😒"
+    preamble = "Closed source and ready to take your money."
 
     def __init__(self):
         super().__init__()
@@ -78,7 +78,7 @@ class LLM_OPENAI_GPT(StreamingLLM):
         # except openai._exceptions.OpenAIError:
         # except E
         except openai._exceptions.APIConnectionError:
-            st.error("Connection failed - double check your API key?")
+            yield "Connection failed - double check your API key?"
             return
 
         for chunk in generator:

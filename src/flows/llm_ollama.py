@@ -41,7 +41,7 @@ class LLM_OLLAMA(StreamingLLM):
     emoji = "🦙"
     name = "Ollama"
     avatar_filename = "ollama.png"
-    preamble = "What does the LLaMA say? 🎤🎵🦙"
+    preamble = "What does the LLaMA say? 🎤🦙"
 
     def __init__(self):
         super().__init__()

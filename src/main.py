@@ -186,7 +186,10 @@ def main_page():
     construct_names = [c.name for c in ALL_CONSTRUCTS]
     construct_icons = [c.emoji for c in ALL_CONSTRUCTS]
     pill_index = get("persistance")['chosen_pill']
-    construct = pills(label="AI Construct",
+    # if we play around in debug and switch to production, we need to make sure we don't go out of bounds
+    if pill_index > len(construct_names):
+        pill_index = 0
+    construct = pills(label="Choose an AI workflow:",
                     options=construct_names,
                     icons=construct_icons,
                     index=pill_index
@@ -515,6 +518,7 @@ def init_graph(prompt, bots_reply_placeholder):
     sats_left = load_sats_balance()
 
     avatar_filename = f"{AVATAR_PATH}/{get('construct').avatar_filename}" # TODO - if none?
+    print(avatar_filename)
     with bots_reply_placeholder.chat_message("assistant", avatar=avatar_filename):
 
         # str(st.session_state.appstate.chat.messages)

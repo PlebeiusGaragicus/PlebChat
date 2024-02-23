@@ -9,7 +9,7 @@ import json
 
 
 from pydantic import BaseModel
-from src.common import get, PREFERENCES_PATH
+from src.common import get, PREFERENCES_PATH, AVATAR_PATH
 from src.flows import AIWorkflowAbsctractConstruct
 
 import streamlit as st
@@ -34,7 +34,6 @@ class ChainReflectionBot(AIWorkflowAbsctractConstruct):
     def __init__(self):
         super().__init__()
         self.agentic = True # TODO - move this into the base class
-        self.avatar_filename = ""
 
 
     def setup(self):
@@ -42,7 +41,7 @@ class ChainReflectionBot(AIWorkflowAbsctractConstruct):
 
         # load settings from file
         try:
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            settings_filename = AVATAR_PATH / f"{get('username')}_botsettings_{self.name}.json"
             with open(settings_filename, "r") as f:
                 settings = json.loads(f.read())
                 # TODO - can I move this boilerplate function into the base class?
@@ -57,7 +56,7 @@ class ChainReflectionBot(AIWorkflowAbsctractConstruct):
         if not self._is_setup:
             raise Exception("TavilyBot.run(): not setup yet! Run `setup()` first!")
         
-        yield "this is text"
+        yield ("__end__", "this is text")
 
 
 
