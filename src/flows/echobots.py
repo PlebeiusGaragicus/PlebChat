@@ -54,7 +54,6 @@ class echobot(testing_echobot):
 
     def setup(self):
         self._is_setup = True
-        print("Setting up Echobot...")
         # load settings from file
         try:
             settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
@@ -115,7 +114,6 @@ class dummybot(testing_echobot):
 
     def setup(self):
         self._is_setup = True
-        print("Setting up Dummybot...")
 
         # load settings from file
         try:
@@ -163,7 +161,6 @@ class tommybot(testing_echobot):
 
     def setup(self):
         self._is_setup = True
-        print("Setting up Tommybot...")
 
         # load settings from file
         try:

@@ -75,8 +75,8 @@ def create_invoice_file(sats: int = 100):
 
     if response.status_code == 200:
         st.toast("Invoice created! 🎉")
-        print("CREATED INVOICE:")
-        print(response.json())
+        # print("CREATED INVOICE:")
+        # print(response.json())
     else:
         st.error(f"Failed to create invoice: {response.status_code} {response.text}")
         st.toast(f"Failed to create invoice: {response.status_code} {response.text}")
@@ -96,8 +96,8 @@ def return_stored_invoice():
     try:
         with open(invoice_filename, "r") as f:
             invoice = json.load(f)['invoice']
-            print("INVOICE FILE FOUND:")
-            print(invoice)
+            # print("INVOICE FILE FOUND:")
+            # print(invoice)
             return invoice
 
     except FileNotFoundError:
@@ -177,8 +177,8 @@ def check_for_payment():
         else:
             return False
     else:
-        print(response.status_code, response.text)
-        print("ERROR IN VERIFYING INVOICE PAYMENT STATUS")
+        # print(response.status_code, response.text)
+        # print("ERROR IN VERIFYING INVOICE PAYMENT STATUS")
         st.error("ERROR IN VERIFYING INVOICE PAYMENT STATUS")
         st.toast("ERROR IN VERIFYING INVOICE PAYMENT STATUS")
 

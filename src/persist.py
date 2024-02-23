@@ -17,7 +17,7 @@ from src.common import (
 def load_persistance():
     if is_init("persistance"):
         # st.write(f"persistance already loaded... {get('persistance')}")
-        print("persistance already loaded... returning")
+        # print("persistance already loaded... returning")
         return
         # set("persistance", {})
 
@@ -30,13 +30,13 @@ def load_persistance():
         set("persistance", default_persistance)
         update_persistance()
 
-    print(get('persistance'))
+    # print(get('persistance'))
 
 
 # TODO seems hacky... but whatevs.... there could be a better way to have consistent naming and "scoop" all persistance keys... nevermind.
 # def update_persistance(key, value):
 def update_persistance(key = None, value = None):
-    print(f"update_persistance()")
+    # print(f"update_persistance()")
 
     if key is not None and value is not None:
         st.session_state["persistance"][key] = value

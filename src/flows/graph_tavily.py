@@ -32,13 +32,12 @@ class TavilyBotSettings(BaseModel):
 
 
 class TavilyBot(AIWorkflowAbsctractConstruct):
-    emoji = "🤖"
-    name = "tavily"
+    emoji = "🔍"
+    name = "Tavily"
 
     def __init__(self):
         super().__init__()
         self.agentic = True
-        self.preamble = "TavilyBot is ready to search the web for you!"
 
 
     def setup(self):
@@ -53,13 +52,12 @@ class TavilyBot(AIWorkflowAbsctractConstruct):
         except (FileNotFoundError, json.JSONDecodeError):
             self.settings = TavilyBotSettings()
 
-        self.graph = compiled_graph(self.settings)
+        self.graph = compile_runnable(self.settings)
 
 
     def run(self, prompt, **kwargs):
         if not self._is_setup:
             raise Exception("TavilyBot.run(): not setup yet! Run `setup()` first!")
-        # yield "TavilyBot is ready to search the web for you!"
 
         inputs = {"messages": [HumanMessage(content=prompt)]}
         for output in self.graph.stream(inputs):
@@ -90,7 +88,7 @@ class TavilyBot(AIWorkflowAbsctractConstruct):
 
 
 
-def compiled_graph(settings: TavilyBotSettings):
+def compile_runnable(settings: TavilyBotSettings):
     # tools = [TavilySearchResults(max_results=1)] # TODO turn this into a setting!
     tools = [TavilySearchResults(max_results=settings.max_results)]
     tool_executor = ToolExecutor(tools)
@@ -144,56 +142,3 @@ def compiled_graph(settings: TavilyBotSettings):
     workflow.add_edge("action", "agent")
     app = workflow.compile()
     return app
-
-
-
-
-
-
-
-
-
-# USE IT
-
-
-
-# from langchain_core.messages import HumanMessage
-
-# inputs = {"messages": [HumanMessage(content="what is the weather in sf")]}
-# app.invoke(inputs)
-
-
-
-
-
-
-
-# ### STREAM THE STEPS OF THE CHAIN
-# inputs = {"messages": [HumanMessage(content="what is the weather in sf")]}
-# for output in app.stream(inputs):
-#     # stream() yields dictionaries with output keyed by node name
-#     for key, value in output.items():
-#         print(f"Output from node '{key}':")
-#         print("---")
-#         print(value)
-#     print("\n---\n")
-
-
-
-
-
-
-# ## STREAM THE ACTUAL TOKENS FROM THE AGENTS 
-# inputs = {"messages": [HumanMessage(content="what is the weather in sf?")]}
-
-# async for output in app.astream_log(inputs, include_types=["llm"]):
-#     # astream_log() yields the requested logs (here LLMs) in JSONPatch format
-#     for op in output.ops:
-#         if op["path"] == "/streamed_output/-":
-#             # this is the output from .stream()
-#             ...
-#         elif op["path"].startswith("/logs/") and op["path"].endswith(
-#             "/streamed_output/-"
-#         ):
-#             # because we chose to only include LLMs, these are LLM tokens
-#             print(op["value"])

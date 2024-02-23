@@ -153,7 +153,7 @@ def load_proper_flow(construct):
         else:
             return
 
-    print("load_proper_flow() - building contruct")
+    # print("load_proper_flow() - building contruct")
 
     # Use ALL_CONSTRUCTS to dynamically instantiate the correct construct
     for Construct in ALL_CONSTRUCTS:
@@ -219,6 +219,8 @@ def main_page():
             debug_placeholder.write(get("construct"))
             debug_placeholder.write(st.session_state.appstate.chat.messages)
         st.write(get("construct").settings)
+        st.write(os.getenv("OPENAI_API_KEY"))
+        st.write(os.getenv("TAVILY_API_KEY"))
 
     st.header("", divider="rainbow")
 
@@ -489,9 +491,9 @@ def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
             st.session_state.incomplete_stream += chunk
             place_holder.markdown(st.session_state.incomplete_stream)
 
-        print(sats_left)
-        remaining = st.session_state.redis_conn.decrby(st.session_state.username, math.ceil(st.session_state.token_cost_accumulator))
-        print(remaining)
+        # print(sats_left)
+        # remaining = st.session_state.redis_conn.decrby(st.session_state.username, math.ceil(st.session_state.token_cost_accumulator))
+        # print(remaining)
 
         reply = st.session_state.incomplete_stream
         st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
@@ -506,6 +508,10 @@ def init_graph(prompt, bots_reply_placeholder):
     st.session_state.incomplete_stream = "" # so that the interrupt button works... but there's still no token counting!
     st.session_state.token_cost_accumulator = 0
     sats_left = load_sats_balance()
+
+    st.write(os.getenv("TAVILY_API_KEY"))
+    st.write(os.getenv("OPENAI_API_KEY"))
+    st.write("keys written")
 
     with bots_reply_placeholder.chat_message("assistant", avatar=f"{ASSETS_PATH}/assistant_avatar.png"):
 

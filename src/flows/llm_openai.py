@@ -33,13 +33,13 @@ OPENAI_MODELS = [
 
 
 
-class LLM_SETTINGS_OPENAI(BaseModel):
+class LLM_SETTINGS_OPENAI_GPT(BaseModel):
     model: str = OPENAI_MODELS[0]
     # temperature: float = 0.7
     api_key: str = ""
 
 
-class LLM_OPENAI_GPT_3_5(StreamingLLM):
+class LLM_OPENAI_GPT(StreamingLLM):
     emoji = "💫"
     # name = "GPT-3.5"
     name = "OpenAI"
@@ -55,9 +55,9 @@ class LLM_OPENAI_GPT_3_5(StreamingLLM):
             settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
             with open(settings_filename, "r") as f:
                 settings = json.loads(f.read())
-                self.settings = LLM_SETTINGS_OPENAI(**settings)
+                self.settings = LLM_SETTINGS_OPENAI_GPT(**settings)
         except (FileNotFoundError, json.JSONDecodeError):
-            self.settings = LLM_SETTINGS_OPENAI()
+            self.settings = LLM_SETTINGS_OPENAI_GPT()
 
 
 
@@ -74,7 +74,7 @@ class LLM_OPENAI_GPT_3_5(StreamingLLM):
             stream=True,
         )
         for chunk in generator:
-            print(chunk)
+            # print(chunk)
             yield chunk.choices[0].delta.content
 
 
@@ -98,6 +98,6 @@ class LLM_OPENAI_GPT_3_5(StreamingLLM):
             st.text_input(":blue[API_KEY]", key="api_key", value=self.settings.api_key, on_change=update, args=("api_key",))
             # st.slider("Temperature", min_value=0.0, max_value=1.0, key="temperature", value=self.settings.temperature, on_change=update, args=("temperature",))
         except ValueError:
-            self.settings = LLM_SETTINGS_OPENAI()
+            self.settings = LLM_SETTINGS_OPENAI_GPT()
             save_settings() # might this cause endless recursion?
             self.display_settings()
