@@ -103,8 +103,10 @@ class LLM_OPENAI_GPT(StreamingLLM):
 
         try:
             st.selectbox("Model", options=OPENAI_MODELS, key="model", index=OPENAI_MODELS.index(self.settings.model), on_change=update, args=("model",))
-            st.text_input(":blue[API_KEY]", key="api_key", value=self.settings.api_key, on_change=update, args=("api_key",))
             # st.slider("Temperature", min_value=0.0, max_value=1.0, key="temperature", value=self.settings.temperature, on_change=update, args=("temperature",))
+
+            with st.expander(":blue[API KEYS]", expanded=False):
+                st.text_input(":blue[OPENAI_API_KEY]", key="api_key", value=self.settings.api_key, on_change=update, args=("api_key",))
         except ValueError:
             self.settings = LLM_SETTINGS_OPENAI_GPT()
             save_settings() # might this cause endless recursion?

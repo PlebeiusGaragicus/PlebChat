@@ -5,7 +5,10 @@ import json
 from langchain_core.messages import BaseMessage, FunctionMessage, HumanMessage
 from langchain.tools.render import format_tool_to_openai_function
 from langgraph.prebuilt import ToolExecutor, ToolInvocation
+
+from langchain_community.utilities.tavily_search import TavilySearchAPIWrapper
 from langchain_community.tools.tavily_search import TavilySearchResults
+
 from langchain_openai import ChatOpenAI
 
 from langgraph.graph import StateGraph, END
@@ -26,16 +29,18 @@ class AgentState(TypedDict):
 
 class TavilyBotSettings(BaseModel):
     max_results: int = 3
+    temperature: float = 0.7
     TAVILY_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
 
 
+# TODO which OpenAI model do I want to use for this chain?  I should hardcode this, right?
 
 class TavilyBot(AIWorkflowAbsctractConstruct):
     emoji = "🔍"
     name = "Tavily"
     avatar_filename = "assistant.png" # should I place this into the base class and overload it here?  Is that possible?
-    preamble = "Tavily is ready to help you find information!"
+    preamble = "OpenAI equipped with a Tavily internet search tool."
 
     def __init__(self):
         super().__init__()
@@ -82,20 +87,23 @@ class TavilyBot(AIWorkflowAbsctractConstruct):
 
             self.setup() # we have to re-init the graph with the new settings
 
-        st.select_slider("Number of Search Results", options=[1, 2, 3, 4, 5], key="max_results", value=self.settings.max_results, on_change=update, args=("max_results",))
+        st.select_slider("Number of :green[Search Results]", options=[1, 2, 3, 4, 5], key="max_results", value=self.settings.max_results, on_change=update, args=("max_results",))
+        st.slider("LLM :red[Temperature]", min_value=0.0, max_value=1.0, key="temperature", value=self.settings.temperature, on_change=update, args=("temperature",))
 
-        st.text_input("TAVILY_API_KEY", key="TAVILY_API_KEY", value=self.settings.TAVILY_API_KEY, on_change=update, args=("TAVILY_API_KEY",))
-        st.text_input("OPENAI_API_KEY", key="OPENAI_API_KEY", value=self.settings.OPENAI_API_KEY, on_change=update, args=("OPENAI_API_KEY",))
+        with st.expander(":blue[API KEYS]", expanded=False):
+            st.text_input(":blue[TAVILY_API_KEY]", key="TAVILY_API_KEY", value=self.settings.TAVILY_API_KEY, on_change=update, args=("TAVILY_API_KEY",))
+            st.text_input(":blue[OPENAI_API_KEY]", key="OPENAI_API_KEY", value=self.settings.OPENAI_API_KEY, on_change=update, args=("OPENAI_API_KEY",))
 
 
 
 
 def compile_runnable(settings: TavilyBotSettings):
-    # tools = [TavilySearchResults(max_results=1)] # TODO turn this into a setting!
-    tools = [TavilySearchResults(max_results=settings.max_results)]
+
+    tavily_basetool = TavilySearchAPIWrapper(tavily_api_key=settings.TAVILY_API_KEY)
+    tools = [TavilySearchResults(max_results=settings.max_results, api_wrapper=tavily_basetool)]
     tool_executor = ToolExecutor(tools)
 
-    model = ChatOpenAI(temperature=0, streaming=True)
+    model = ChatOpenAI(temperature=settings.temperature, streaming=True, api_key=settings.OPENAI_API_KEY)
     # model = ChatOpenAI(temperature=0, streaming=True, api_key=settings.OPENAI_API_KEY)
 
     functions = [format_tool_to_openai_function(t) for t in tools]
@@ -127,6 +135,11 @@ def compile_runnable(settings: TavilyBotSettings):
         response = tool_executor.invoke(action)
         function_message = FunctionMessage(content=str(response), name=action.tool)
         return {"messages": [function_message]}
+
+
+    # TODO - if there's no API key.. the tool fails and I need the AI to understand this and stop the flow
+    # TODO... alternatively... we could prevent the user from even starting the flow if the API key is missing
+    ## Function returned: HTTPError('400 Client Error: Bad Request for url: https://api.tavily.com/search')
 
 
     workflow = StateGraph(AgentState)

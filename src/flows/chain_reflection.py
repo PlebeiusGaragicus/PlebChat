@@ -78,7 +78,8 @@ class ChainReflectionBot(AIWorkflowAbsctractConstruct):
 
         st.select_slider("Number of Search Results", options=[1, 2, 3, 4, 5], key="max_results", value=self.settings.max_results, on_change=update, args=("max_results",))
 
-        st.text_input("OPENAI_API_KEY", key="OPENAI_API_KEY", value=self.settings.OPENAI_API_KEY, on_change=update, args=("OPENAI_API_KEY",))
+        with st.expander(":blue[API KEYS]", expanded=False):
+            st.text_input(":blue[OPENAI_API_KEY]", key="OPENAI_API_KEY", value=self.settings.OPENAI_API_KEY, on_change=update, args=("OPENAI_API_KEY",))
 
 
 

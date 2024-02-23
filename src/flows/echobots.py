@@ -47,14 +47,11 @@ class echobot(testing_echobot):
     emoji = "🤖"
     name = "echobot"
     avatar_filename = "echobot.png"
-    preamble = "What did you say?!"
+    preamble = "Huh - what did you say?!"
 
 
     def __init__(self):
         super().__init__()
-        # self.settings = echobot_settings()
-        # self.agentic = False
-        self.preamble = "Echobot is ready to echo your prompt!"
 
     def setup(self):
         self._is_setup = True

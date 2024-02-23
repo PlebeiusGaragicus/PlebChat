@@ -215,16 +215,13 @@ def main_page():
 
 
     if os.getenv("DEBUG", False):
-        st.write(get("construct").settings)
-        st.write(os.getenv("OPENAI_API_KEY"))
-        st.write(os.getenv("TAVILY_API_KEY"))
-
         with st.expander("Debug", expanded=False):
             debug_placeholder = st.container()
             debug_placeholder.write(get("construct"))
             debug_placeholder.write(st.session_state.appstate.chat.messages)
 
-    st.markdown(f"{get('construct').preamble}")
+    # st.markdown(f"{get('construct').preamble}")
+    st.caption(f"{get('construct').preamble}")
     st.header("", divider="rainbow")
 
     ####### CONVERSATION #######
@@ -378,7 +375,8 @@ def main_page():
     ######################  SIDEBAR  ######################
     with st.sidebar:
         st.header("", divider="rainbow")
-        st.write("## Past Conversations")
+        # st.write("## :rainbow[Past Conversations]")
+        st.write("## :orange[Past Conversations]")
 
         if len(appstate.chat.messages) > 0:
             sidebar_new_button_placeholder = st.columns((1, 1))
@@ -423,7 +421,7 @@ def main_page():
     # we don't use an expander becuase the construct settings may need to have one
     # with construct_settings_placeholder.expander("Construct settings", expanded=True):
     with construct_settings_placeholder.container(border=False):
-        st.write("## Construct configuration")
+        st.write("## :orange[Configuration]")
         get('construct').display_settings()
 
 
@@ -515,9 +513,6 @@ def init_graph(prompt, bots_reply_placeholder):
     st.session_state.incomplete_stream = "" # so that the interrupt button works... but there's still no token counting!
     st.session_state.token_cost_accumulator = 0
     sats_left = load_sats_balance()
-
-    st.write(os.getenv("TAVILY_API_KEY"))
-    st.write(os.getenv("OPENAI_API_KEY"))
 
     avatar_filename = f"{AVATAR_PATH}/{get('construct').avatar_filename}" # TODO - if none?
     with bots_reply_placeholder.chat_message("assistant", avatar=avatar_filename):
