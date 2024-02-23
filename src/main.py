@@ -187,7 +187,7 @@ def main_page():
     construct_icons = [c.emoji for c in ALL_CONSTRUCTS]
     pill_index = get("persistance")['chosen_pill']
     # if we play around in debug and switch to production, we need to make sure we don't go out of bounds
-    if pill_index > len(construct_names):
+    if pill_index >= len(construct_names):
         pill_index = 0
     construct = pills(label="Choose an AI workflow:",
                     options=construct_names,
