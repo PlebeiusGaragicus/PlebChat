@@ -10,8 +10,13 @@ from src.common import ASSETS_PATH
 from src.interface.root_panel import root_panel
 from src.main import main_page, init_if_needed
 
+from src.common import not_init, get, cprint, Colors
 
-print("\n\n!!! STREAMLIT SERVER RE-RUN\n\n")
+
+# cprint(">>> LOGIN ROUTER PAGE", Colors.CYAN)
+cprint(">>> Streamlit Server rerun~!", Colors.CYAN)
+
+# print(f"\nf{colorize}>>> STREAMLIT SERVER RE-RUN")
 
 
 # def login_router_page():
@@ -81,14 +86,6 @@ print("\n\n!!! STREAMLIT SERVER RE-RUN\n\n")
 
 
 
-
-
-
-
-
-
-
-from src.common import not_init, get
 
 
 

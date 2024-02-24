@@ -28,6 +28,8 @@ from src.common import (
     not_init,
     get,
     set,
+    cprint,
+    Colors,
 )
 
 from src.chat_history import (
@@ -169,7 +171,8 @@ def load_proper_flow(construct):
 
 
 def main_page():
-    print("\n\n\nRERUN!!!!!!\n")
+    # print("\n\n\nRERUN!!!!!!\n")
+    cprint("\n\nRERUN!!!!!!\n", Colors.YELLOW)
 
     load_persistance()
     load_settings()

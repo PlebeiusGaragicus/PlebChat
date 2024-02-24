@@ -44,7 +44,6 @@ class TavilyBot(LangChainConstruct):
 
     def __init__(self):
         super().__init__()
-        # self.agentic = True
 
 
     def setup(self):

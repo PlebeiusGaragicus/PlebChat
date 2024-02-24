@@ -195,5 +195,5 @@ def run_graph(prompt, bots_reply_placeholder):
 
 
 def main():
-    st.write("main()")
+    # st.write("main()")
     main_page()
