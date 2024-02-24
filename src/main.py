@@ -122,7 +122,6 @@ def init_if_needed():
             st.error(e)
             st.exception(e)
             st.stop()
-    
     # not sure if this should be here or in main...
     # st.session_state.sats = load_sats_balance()
 
@@ -195,8 +194,13 @@ def main_page():
                     index=pill_index
                 )
 
-    load_proper_flow(construct)
-    
+    try:
+        load_proper_flow(construct)
+    except Exception as e:
+        st.error(e)
+        st.exception(e)
+        # st.stop()
+
     cols2 = st.columns((1, 1, 1))
     with cols2[0]:
         st.toggle("🗣️🤖", key="speech_input", value=False)
@@ -215,18 +219,19 @@ def main_page():
         show_tokens()
 
 
+    ### info card
+    with st.expander("Information about this AI workflow", expanded=False):
+        get('construct').display_model_card()
+
+    st.header("", divider="rainbow")
+
 
 
     if os.getenv("DEBUG", False):
-        with st.expander("Debug", expanded=False):
+        with st.expander(":red[Debug] ❤️‍🩹", expanded=False):
             debug_placeholder = st.container()
             debug_placeholder.write(get("construct"))
             debug_placeholder.write(st.session_state.appstate.chat.messages)
-
-    # st.markdown(f"{get('construct').preamble}")
-    st.caption(f"{get('construct').preamble}")
-    st.header("", divider="rainbow")
-
     ####### CONVERSATION #######
 
 
@@ -332,7 +337,7 @@ def main_page():
 
 
         if get("construct").agentic:
-            reply = init_graph(prompt, bots_reply_placeholder)
+            reply = run_graph(prompt, bots_reply_placeholder)
         else:
             with st.spinner("🧠 Thinking..."):
                 reply = run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder)
@@ -459,7 +464,7 @@ def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
     total_cost = 0
     st.session_state.token_cost_accumulator = 0
 
-    avatar_filename = f"{AVATAR_PATH}/{get('construct').avatar_filename}" # TODO - if none?
+    avatar_filename = f"{AVATAR_PATH}/{get('construct').avatar_filename}"
     with bots_reply_placeholder.chat_message("assistant", avatar=avatar_filename):
 
         st.session_state.incomplete_stream = ""
@@ -499,9 +504,6 @@ def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
             st.session_state.incomplete_stream += chunk
             place_holder.markdown(st.session_state.incomplete_stream)
 
-        # print(sats_left)
-        # remaining = st.session_state.redis_conn.decrby(st.session_state.username, math.ceil(st.session_state.token_cost_accumulator))
-        # print(remaining)
 
         reply = st.session_state.incomplete_stream
         st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
@@ -509,20 +511,23 @@ def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
 
 
 
+def run_graph(prompt, bots_reply_placeholder):
+    # if not hasattr(st.session_state, "redis_conn"):
+    #     st.session_state.redis_conn = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+    if get('construct').graph is None:
+        error_reply = "I'm not configured properly... 🥺  Check my settings.  Do I have all my API keys?"
+        st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=error_reply))
+        return error_reply
 
-# What is the newest AI model from Google?
-def init_graph(prompt, bots_reply_placeholder):
+
     #TODO
     st.session_state.incomplete_stream = "" # so that the interrupt button works... but there's still no token counting!
     st.session_state.token_cost_accumulator = 0
     sats_left = load_sats_balance()
 
-    avatar_filename = f"{AVATAR_PATH}/{get('construct').avatar_filename}" # TODO - if none?
-    print(avatar_filename)
+    avatar_filename = f"{AVATAR_PATH}/{get('construct').avatar_filename}"
     with bots_reply_placeholder.chat_message("assistant", avatar=avatar_filename):
 
-        # str(st.session_state.appstate.chat.messages)
-        # for node, output in get('construct').run(prompt):
         # TODO - this does NOT provide a good enough context for an agent... at least when opening an stale conversation.
         for node, output in get('construct').run(str(st.session_state.appstate.chat.messages)):
 
@@ -570,11 +575,18 @@ def init_graph(prompt, bots_reply_placeholder):
                                             content=content))
 
             else:
-                message = output['messages'][-1]
+                # TODO - FIX THIS.... this logic should be placed inside the Graph class for each chain
+                try:
+                    message = output['messages'][-1]
+                    st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=message.content))
+                except TypeError:
+                    message = output
+                    st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=message))
 
-    st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=message.content))
-    return message.content
-
+    try:
+        return message.content
+    except AttributeError:
+        return message
 
 
 

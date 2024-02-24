@@ -24,14 +24,12 @@ class testing_echobot(StreamingLLM):
         if not self._is_setup:
             raise Exception("Echobot.run(): not setup yet! Run `setup()` first!")
 
-        # echo = prompt.split(" ")
         echo = prompt
 
         if self.settings.reverse:
             echo = echo[::-1]
 
         if self.settings.uppercase:
-            # echo = [e.upper() for e in echo]
             echo = echo.upper()
 
         echo = [echo[i:i+5] for i in range(0, len(prompt), 5)]
@@ -66,18 +64,6 @@ class echobot(testing_echobot):
 
     def run(self, prompt, **kwargs):
         return self.just_echo(prompt, **kwargs)
-        # if not self._is_setup:
-        #     raise Exception("Echobot.run(): not setup yet! Run `setup()` first!")
-
-        # echo = prompt.split(" ")
-        # if self.settings.uppercase:
-        #     echo = [e.upper() for e in echo]
-        # if self.settings.reverse:
-        #     echo = echo[::-1]
-
-        # for e in echo:
-        #     time.sleep(self.settings.sleep_time)
-        #     yield f"{e} "
 
 
     
@@ -96,8 +82,11 @@ class echobot(testing_echobot):
         st.toggle("Uppercase", key="uppercase", value=self.settings.uppercase, on_change=update, args=("uppercase",))
         st.toggle("Reverse", key="reverse", value=self.settings.reverse, on_change=update, args=("reverse",))
         st.slider("Sleep time", min_value=0.0, max_value=0.5, key="sleep_time", value=self.settings.sleep_time, on_change=update, args=("sleep_time",))
-        # st.text_input("Caboose", key="caboose", value=self.settings.caboose, on_change=update, args=("caboose",))
 
+
+    def display_model_card(self):
+        st.caption(self.preamble)
+        st.warning("This bot is just for testing!!!")
 
 
 

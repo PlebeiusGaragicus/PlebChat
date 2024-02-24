@@ -78,7 +78,8 @@ class LLM_OPENAI_GPT(StreamingLLM):
         # except openai._exceptions.OpenAIError:
         # except E
         except openai._exceptions.APIConnectionError:
-            yield "Connection failed - double check your API key?"
+            # yield "Connection failed - double check your API key?"
+            yield "🥺 Oops... my connection failed.  Ensure I have my API key and try again?"
             return
 
         for chunk in generator:

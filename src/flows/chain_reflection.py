@@ -3,63 +3,67 @@ import operator
 import json
 
 
+from langchain_community.chat_models.fireworks import ChatFireworks
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+
+from langchain_openai import ChatOpenAI
 
 
+from typing import List, Sequence
+
+from langgraph.graph import END, MessageGraph
 
 
 
 from pydantic import BaseModel
 from src.common import get, PREFERENCES_PATH, AVATAR_PATH
-from src.flows import AIWorkflowAbsctractConstruct
+from src.flows import LangChainConstruct
 
 import streamlit as st
 
 
 
+class WorkflowVariables(BaseModel):
+    # TODO this should NOT be blank!!! just give an example because the user is stupid!!!
+    reflection_goal: str = ""
+
+
 
 
 class ChainReflectionBotSETTINGS(BaseModel):
-    max_results: int = 3
-    reflection_goal: str = "" # TODO this should NOT be blank!!! just give an example because the user is stupid!!!
+    max_iterations: int = 3
     OPENAI_API_KEY: str = ""
 
 
 
-class ChainReflectionBot(AIWorkflowAbsctractConstruct):
+class ChainReflectionBot(LangChainConstruct):
     emoji = "🧠"
     name = "Reflection"
     avatar_filename = "reflection.png"
     preamble = "Let's reflect on this for a moment... 🤔"
 
+
     def __init__(self):
         super().__init__()
-        self.agentic = True # TODO - move this into the base class
 
 
     def setup(self):
-        self._is_setup = True
+        self._is_setup = True # TODO - deprecate this.
 
         # load settings from file
         try:
-            settings_filename = AVATAR_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
             with open(settings_filename, "r") as f:
                 settings = json.loads(f.read())
                 # TODO - can I move this boilerplate function into the base class?
                 self.settings = ChainReflectionBotSETTINGS(**settings)
-        except (FileNotFoundError, json.JSONDecodeError):
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            st.exception(e)
             self.settings = ChainReflectionBotSETTINGS()
 
-        self.graph = compile_runnable(self.settings)
-
-
-    def run(self, prompt, **kwargs):
-        if not self._is_setup:
-            raise Exception("TavilyBot.run(): not setup yet! Run `setup()` first!")
-        
-        yield ("__end__", "this is text")
-
-
-
+        self.workflow_vars = WorkflowVariables()
+        self.graph = compile_runnable(self.settings, self.workflow_vars)
 
 
     def display_settings(self):
@@ -75,13 +79,130 @@ class ChainReflectionBot(AIWorkflowAbsctractConstruct):
 
             self.setup() # we have to re-init the graph with the new settings
 
-        st.select_slider("Number of Search Results", options=[1, 2, 3, 4, 5], key="max_results", value=self.settings.max_results, on_change=update, args=("max_results",))
+        st.select_slider("Number of :red[Iterations]", options=[1, 2, 3, 4, 5], key="max_iterations", value=self.settings.max_iterations, on_change=update, args=("max_iterations",))
 
         with st.expander(":blue[API KEYS]", expanded=False):
             st.text_input(":blue[OPENAI_API_KEY]", key="OPENAI_API_KEY", value=self.settings.OPENAI_API_KEY, on_change=update, args=("OPENAI_API_KEY",))
 
 
 
+    def run(self, prompt, **kwargs):
+        if not self._is_setup:
+            raise Exception("Run `setup()` first!")
+        
+        ### EXAMPLE FROM TAVILY CHAIN
+        # inputs = {"messages": [HumanMessage(content=prompt)]}
+        # for output in self.graph.stream(inputs):
+        #     # stream() yields dictionaries with output keyed by node name
+        #     for key, value in output.items():
+        #         yield key, value
 
-def compile_runnable(settings: ChainReflectionBotSETTINGS):
-    pass
+        # async for event in self.graph.astream(
+        #     [
+        #         HumanMessage(
+        #             content="Generate an essay on the topicality of The Little Prince and its message in modern life"
+        #         )
+        #     ],
+        # ):
+        # print(event)
+        # print("---")
+
+        yield ("__end__", "this is text")
+
+
+    def invoke(self, prompt, **kwargs):
+        pass
+
+
+
+
+# def compile_runnable(settings: ChainReflectionBotSETTINGS, workflowvars: WorkflowVariables) -> RunnableSerializable:
+def compile_runnable(settings: ChainReflectionBotSETTINGS, workflow_vars: WorkflowVariables):
+
+    if not settings.OPENAI_API_KEY or settings.OPENAI_API_KEY == "":
+        st.error("settings.OPENAI_API_KEY is blank")
+        # raise ValueError("settings.OPENAI_API_KEY is blank")
+        return None
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                "You are an essay assistant tasked with writing excellent 5-paragraph essays."
+                " Generate the best essay possible for the user's request."
+                " If the user provides critique, respond with a revised version of your previous attempts.",
+            ),
+            MessagesPlaceholder(variable_name="messages"),
+        ]
+    )
+
+    llm = ChatOpenAI(streaming=True, api_key=settings.OPENAI_API_KEY)
+    # llm = ChatFireworks(
+    #     model="accounts/fireworks/models/mixtral-8x7b-instruct",
+    #     model_kwargs={"max_tokens": 32768},
+    # )
+    generate = prompt | llm # RunnableSerializable
+
+    # essay = ""
+    # request = HumanMessage(
+    #     content="Write an essay on why the little prince is relevant in modern childhood"
+    # )
+    # for chunk in generate.stream({"messages": [request]}):
+    #     print(chunk.content, end="")
+    #     essay += chunk.content
+
+    reflection_prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "You are a teacher grading an essay submission. Generate critique and recommendations for the user's submission."
+            " Provide detailed recommendations, including requests for length, depth, style, etc.",
+        ),
+        MessagesPlaceholder(variable_name="messages"),
+    ])
+    reflect = reflection_prompt | llm
+
+
+    # reflection = ""
+    # for chunk in reflect.stream({"messages": [request, HumanMessage(content=essay)]}):
+    #     print(chunk.content, end="")
+    #     reflection += chunk.content
+
+
+    # for chunk in generate.stream({"messages": [request, AIMessage(content=essay), HumanMessage(content=reflection)]}):
+    #     print(chunk.content, end="")
+
+
+    async def generation_node(state: Sequence[BaseMessage]):
+        return await generate.ainvoke({"messages": state})
+
+
+    async def reflection_node(messages: Sequence[BaseMessage]) -> List[BaseMessage]:
+        # Other messages we need to adjust
+        cls_map = {"ai": HumanMessage, "human": AIMessage}
+        # First message is the original user request. We hold it the same for all nodes
+        translated = [messages[0]] + [
+            cls_map[msg.type](content=msg.content) for msg in messages[1:]
+        ]
+        res = await reflect.ainvoke({"messages": translated})
+        # We treat the output of this as human feedback for the generator
+        return HumanMessage(content=res.content)
+
+
+    builder = MessageGraph()
+    builder.add_node("generate", generation_node)
+    builder.add_node("reflect", reflection_node)
+    builder.set_entry_point("generate")
+
+
+    def should_continue(state: List[BaseMessage]):
+        if len(state) > 6:
+            # End after 3 iterations
+            return END
+        return "reflect"
+
+
+    builder.add_conditional_edges("generate", should_continue)
+    builder.add_edge("reflect", "generate")
+    graph = builder.compile() # returns a Pregel
+    return graph
