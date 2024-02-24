@@ -247,14 +247,16 @@ def login_router_page():
     landing_page_container = st.empty()
     with landing_page_container.container(border=True):
         st.markdown("# PlebChat!")
-        assistant_image = f"{ASSETS_PATH}/assistant2sm.png"
-        st.image(assistant_image)
+        # NOTE: don't use images - they flash...
+        # ... in fact, maybe a landing page isn't a good idea...
+        # assistant_image = f"{ASSETS_PATH}/assistant2sm.png"
+        # st.image(assistant_image)
 
     # loginform_placeholder = st.empty()
 
     # if st.button("Login to PlebChat"):
     # import time
-    # time.sleep(0.02)
+    # time.sleep(0.02) # This runs EVERY action/st.rerun().. dont' use.
     # print("SLEEPING!!!")
     with st.expander("Login to plebchat", expanded=False):
         # https://blog.streamlit.io/streamlit-authenticator-part-1-adding-an-authentication-component-to-your-app/
