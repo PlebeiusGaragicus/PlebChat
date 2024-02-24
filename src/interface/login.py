@@ -244,16 +244,30 @@ def login_router_page():
     if st.session_state["authentication_status"] is False:
         st.error("Username/password is incorrect")
 
-    # https://blog.streamlit.io/streamlit-authenticator-part-1-adding-an-authentication-component-to-your-app/
-    # https://github.com/mkhorasani/Streamlit-Authenticator?ref=blog.streamlit.io
-    st.session_state.authenticator.login(location="main", max_concurrent_users=1, fields={
-        "Form name": "PlebChat login",
-        "Username": "Username",
-        "Password": "Password",
-        "Login": "Enter ye!",
-    })
+    landing_page_container = st.empty()
+    with landing_page_container.container(border=True):
+        st.markdown("# PlebChat!")
+        assistant_image = f"{ASSETS_PATH}/assistant2sm.png"
+        st.image(assistant_image)
+
+    # loginform_placeholder = st.empty()
+
+    # if st.button("Login to PlebChat"):
+    # import time
+    # time.sleep(0.02)
+    # print("SLEEPING!!!")
+    with st.expander("Login to plebchat", expanded=False):
+        # https://blog.streamlit.io/streamlit-authenticator-part-1-adding-an-authentication-component-to-your-app/
+        # https://github.com/mkhorasani/Streamlit-Authenticator?ref=blog.streamlit.io
+        st.session_state.authenticator.login(location="main", max_concurrent_users=1, fields={
+            "Form name": "PlebChat login",
+            "Username": "Username",
+            "Password": "Password",
+            "Login": "Enter ye!",
+        })
 
     if st.session_state["authentication_status"]:
+        landing_page_container.empty()
 
         if st.session_state.username == 'root':
             root_panel()

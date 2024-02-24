@@ -529,10 +529,14 @@ def run_graph(prompt, bots_reply_placeholder):
     with bots_reply_placeholder.chat_message("assistant", avatar=avatar_filename):
 
         # TODO - this does NOT provide a good enough context for an agent... at least when opening an stale conversation.
-        for node, output in get('construct').run(str(st.session_state.appstate.chat.messages)):
+        # for node, output in get('construct').run(str(st.session_state.appstate.chat.messages)):
+        for node, output in get('construct').invoke(str(st.session_state.appstate.chat.messages)): # TODO - don't typecast to a str() dude.. don't be a noob!
 
             if node != "__end__":
-                message = output['messages'][0]
+                try:
+                    message = output['messages'][0]
+                except KeyError:
+                    message = output
                 # num_tokens = len(message.content) # function calls have no context... so we have to look at the whole LLM output
                 num_tokens = len(str(message)) # NAHH.... # give the user a small discount because some of these tokens are just JSON formatting.
                 cost_for_this_chunk = math.ceil(num_tokens / TOKENS_PER_SAT) # tokens charged per satoshi
