@@ -111,7 +111,12 @@ class ChainReflectionBot(LangChainConstruct):
 
     def invoke(self, prompt, **kwargs):
         import asyncio
-        return asyncio.run(self.run(prompt, **kwargs))
+
+        async def run_generator():
+            async for item in self.run(prompt, **kwargs):
+                st.write("item:", item[1])
+
+        return asyncio.run(run_generator())
 
 
 

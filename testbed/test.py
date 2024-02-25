@@ -1,11 +1,6 @@
 import streamlit as st
 
 
-import streamlit as st
-
-
-
-
 
 from mistralai.models.chat_completion import ChatMessage
 
@@ -26,6 +21,8 @@ from src.common import (
     not_init,
     get,
     set,
+    cprint,
+    Colors
 )
 
 
@@ -53,7 +50,7 @@ def main_page():
 
     ################### TOP OF MAIN CHAT ###################
     column_fix()
-    center_text("p", "🔬🧪", size=60) # or h1, whichever
+    center_text("p", "🔬🧪", size=60)
 
 
     #### TODO init construct here, if not
@@ -62,7 +59,7 @@ def main_page():
 
 
     # TODO - turn this into a settings
-    human_avatar = f"{AVATAR_PATH}/user0.png"
+    human_avatar = f"{AVATAR_PATH}/user5.png"
     ai_avatar = f"{AVATAR_PATH}/assistant.png"
 
     for message in get('thread').messages:
@@ -93,7 +90,7 @@ def main_page():
         # interrupt_button_placeholder.button("🛑 Interrupt", on_click=interrupt, key="button_interrupt")
 
         my_next_prompt_placeholder.chat_message("user", avatar=human_avatar).markdown(prompt)
-        st.session_state.appstate.chat.messages.append( ChatMessage(role="user", content=prompt) )
+        get('thread').messages.append( ChatMessage(role="user", content=prompt) )
 
 
         if get("construct").agentic:
@@ -107,8 +104,6 @@ def main_page():
     ### READ IT AND NEW BUTTONS
     with before_speech_placeholder:
         if len(get('thread').messages) > 0:
-            # if last message was from the bot, then we can read it aloud
-            # if col2[2].button("🌱 :green[New]", on_click=lambda: appstate.new_thread(), use_container_width=True)
             col2 = st.columns((1, 1, 1))
             if col2[2].button("🌱 :green[New]", use_container_width=True):
                 st.session_state.thread = ChatThread()
@@ -131,7 +126,7 @@ def main_page():
 def run_graph(prompt, bots_reply_placeholder):
     if get('construct').graph is None:
         error_reply = "I'm not configured properly... 🥺  Check my settings.  Do I have all my API keys?"
-        st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=error_reply))
+        get('thread').messages.append(ChatMessage(role="assistant", content=error_reply))
         return error_reply
 
 
@@ -140,7 +135,8 @@ def run_graph(prompt, bots_reply_placeholder):
 
         # TODO - this does NOT provide a good enough context for an agent... at least when opening an stale conversation.
         # for node, output in get('construct').run(str(st.session_state.appstate.chat.messages)):
-        for node, output in get('construct').invoke(str(st.session_state.appstate.chat.messages)): # TODO - don't typecast to a str() dude.. don't be a noob!
+        # for node, output in get('construct').invoke(str(st.session_state.appstate.chat.messages)): # TODO - don't typecast to a str() dude.. don't be a noob!
+        for node, output in get('construct').invoke(str(get('thread').messages)):
 
             if node != "__end__":
                 try:
@@ -157,7 +153,7 @@ def run_graph(prompt, bots_reply_placeholder):
                     content = f"**Function returned:**\n{message.content}"
                     st.markdown(f"{content}")
 
-                    st.session_state.appstate.chat.messages.append(
+                    get('thread').messages.append(
                                             ChatMessage(role="assistant",
                                             content=content))
 
@@ -172,7 +168,7 @@ def run_graph(prompt, bots_reply_placeholder):
                         content = f"**Calling Function:**\n{function_name}({message.additional_kwargs['function_call']['arguments']})"
 
                         st.markdown(content)
-                        st.session_state.appstate.chat.messages.append(
+                        get('thread').messages.append(
                                             ChatMessage(role="assistant",
                                             content=content))
 
@@ -180,10 +176,10 @@ def run_graph(prompt, bots_reply_placeholder):
                 # TODO - FIX THIS.... this logic should be placed inside the Graph class for each chain
                 try:
                     message = output['messages'][-1]
-                    st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=message.content))
+                    get('thread').messages.append(ChatMessage(role="assistant", content=message.content))
                 except TypeError:
                     message = output
-                    st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=message))
+                    get('thread').messages.append(ChatMessage(role="assistant", content=message))
 
     try:
         return message.content
@@ -192,8 +188,7 @@ def run_graph(prompt, bots_reply_placeholder):
 
 
 
-
-
 def main():
     # st.write("main()")
+    cprint("\n\nRERUN!!!!!!\n", Colors.RED)
     main_page()
