@@ -12,4 +12,5 @@ if os.getenv("DEBUG", False):
     ALL_CONSTRUCTS = [echobot, LLM_OPENAI_GPT, LLM_OLLAMA, ChainReflectionBot, TavilyBot, CustomLangFlow]
 else:
     # NOTE: only include the bots that are ready for production!
-    ALL_CONSTRUCTS = [LLM_OPENAI_GPT, TavilyBot]
+    # ALL_CONSTRUCTS = [LLM_OPENAI_GPT, TavilyBot]
+    ALL_CONSTRUCTS = [LLM_OPENAI_GPT]
