@@ -7,6 +7,35 @@ PREFERENCES_PATH = pathlib.Path(__file__).parent.parent / "preferences"
 
 
 
+# def load_settings():
+#     appstate = st.session_state
+
+#     if 'user_preferences' not in st.session_state:
+#         try:
+#             preferences_file = PREFERENCES_PATH / f"{appstate.username}.yaml"
+#             appstate.user_preferences = yaml.load(open(preferences_file), Loader=yaml.loader.SafeLoader)
+
+#         except FileNotFoundError:
+#             # Use default preferences
+#             from src.settings import LLM_OPTIONS, STT_OPTIONS, TTS_OPTIONS, TTS_VOICE_CHOICES
+#             appstate.user_preferences = {
+#                 "assemblyai_api_key": None,
+#                 "language_model": LLM_OPTIONS.MISTRAL_API,
+#                 "mistral_api_key": None,
+#                 "mistral_model": "mistral-medium",
+#                 "mistral_safemode": True,
+#                 "openai_api_key": None,
+#                 "openai_tts_rate": 1.2,
+#                 "openai_voice": TTS_VOICE_CHOICES[0],
+#                 "settings_on_sidebar": False,
+#                 "stt": STT_OPTIONS.PYTHON,
+#                 "tts": TTS_OPTIONS.GOOGLE,
+#                 "confirm_stt": True,
+#             }
+
+#             st.error("user preferences yaml file not found. Creating a new one with default settings.")
+#             with open(preferences_file, "w") as f:
+#                 yaml.dump(appstate.user_preferences, f)
 def load_settings():
     appstate = st.session_state
 
@@ -17,17 +46,8 @@ def load_settings():
 
         except FileNotFoundError:
             # Use default preferences
-            from src.settings import LLM_OPTIONS, STT_OPTIONS, TTS_OPTIONS, TTS_VOICE_CHOICES
+            from src.settings import STT_OPTIONS, TTS_OPTIONS
             appstate.user_preferences = {
-                "assemblyai_api_key": None,
-                "language_model": LLM_OPTIONS.MISTRAL_API,
-                "mistral_api_key": None,
-                "mistral_model": "mistral-medium",
-                "mistral_safemode": True,
-                "openai_api_key": None,
-                "openai_tts_rate": 1.2,
-                "openai_voice": TTS_VOICE_CHOICES[0],
-                "settings_on_sidebar": False,
                 "stt": STT_OPTIONS.PYTHON,
                 "tts": TTS_OPTIONS.GOOGLE,
                 "confirm_stt": True,

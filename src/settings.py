@@ -116,7 +116,8 @@ class TTS_OPTIONS:
 
 def settings_stt():
     # with st.container(border=True):
-    stt_options = [STT_OPTIONS.PYTHON, STT_OPTIONS.ASSEMBLYAI]
+    # stt_options = [STT_OPTIONS.PYTHON, STT_OPTIONS.ASSEMBLYAI]
+    stt_options = [STT_OPTIONS.PYTHON]
     selected_stt = stt_options.index(st.session_state.user_preferences["stt"])
     st.selectbox(
             label="🗣️🤖 Voice transcription",
@@ -154,7 +155,8 @@ def settings_stt():
 
 def settings_tts():
     # with st.container(border=True):
-    tts_options = [TTS_OPTIONS.GOOGLE, TTS_OPTIONS.OPENAI]
+    # tts_options = [TTS_OPTIONS.GOOGLE, TTS_OPTIONS.OPENAI]
+    tts_options = [TTS_OPTIONS.GOOGLE]
     selected_tts = tts_options.index(st.session_state.user_preferences["tts"])
     st.selectbox(
         label="🤖💬 Text to speech",
