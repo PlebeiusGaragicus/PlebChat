@@ -37,14 +37,15 @@ from src.flows import ChatThread
 
 
 def init():
+    if not_init('username'):
+        st.session_state.username = "satoshi"
+
     if not_init('thread'):
         st.session_state.thread = ChatThread()
     
     if not_init('construct'):
         st.session_state.construct = ChainReflectionBot()
 
-    if not_init('username'):
-        st.session_state.username = "satoshi"
 
 
 def main_page():
@@ -62,10 +63,15 @@ def main_page():
     with st.expander("debug", expanded=False):
         st.write(get('construct').settings)
 
-    # st.write("Generate an essay on the topicality of The Little Prince and its message in modern life")
-    prompt_copy_paste = """
-    Generate a short essay on the topicality of The Little Prince and its message in modern life. Keep it no more than 200 words.
-    """
+    if get('construct').agentic:
+        with st.container(border=True):
+            st.markdown("`workflow variables:`")
+            get('construct').display_workplace_variables()
+
+    st.divider()
+
+    # prompt_copy_paste = """Generate an essay on the topicality of The Little Prince and its message in modern life."""
+    prompt_copy_paste = """Generate a short essay on the topicality of The Little Prince and its message in modern life. Keep it no more than 200 words."""
     st.write(prompt_copy_paste)
 
 
@@ -77,10 +83,6 @@ def main_page():
         with st.chat_message(message.role, avatar=ai_avatar if message.role == "assistant" else human_avatar):
             st.markdown(message.content)
     
-    if get('construct').agentic:
-        with st.container(border=True):
-            st.markdown("`workflow variables:`")
-            get('construct').display_workplace_variables()
 
 
     my_next_prompt_placeholder = st.empty()
@@ -148,13 +150,14 @@ def invoke_graph(prompt, bots_reply_placeholder):
 
         async for event in run_generator(prompt):
             node = list(event.keys())[0]
-            cprint(f"node: {node}", Colors.BLUE)
             output = event[node]
+
+            cprint(f"node: {node}", Colors.BLUE)
             cprint(f"output: {output}", Colors.GREEN)
 
             if node == "__end__":
                 return "__end__"
-            
+
 
 
             with bots_reply_placeholder.chat_message("assistant", avatar=f"{AVATAR_PATH}/assistant.png"):

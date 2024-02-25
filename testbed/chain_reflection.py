@@ -29,13 +29,19 @@ If the user provides critique, respond with a revised version of your previous a
 DEFAULT_REFLECTION = """You are a teacher grading an essay submission. Generate critique and recommendations for the user's submission.
 Provide detailed recommendations, including requests for length, depth, style, etc."""
 
-
-# class WorkflowVariables(BaseModel):
-class WorkflowVariables():
+class SingleWorkflowConfig(BaseModel):
+# class SingleWorkflowConfig():
     # TODO this should NOT be blank!!! just give an example because the user is stupid!!!
-    the_goal: str = DEFAULT_GOAL
-
+    workflow_name: str = "Little Prince Essay"
+    goal: str = DEFAULT_GOAL
     reflection_goal: str = DEFAULT_REFLECTION
+
+
+class WorkflowConfigurationSet(BaseModel):
+    selected_workflow_index: int = 0
+    workflows: List[SingleWorkflowConfig] = [SingleWorkflowConfig()]
+
+
 
 
 
@@ -61,10 +67,8 @@ class ChainReflectionBot(LangChainConstruct):
     def setup(self):
         self._is_setup = True # TODO - deprecate this.
 
-        # load settings from file
         try:
-            # settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
-            settings_filename = PREFERENCES_PATH / f"testbed_botsettings_{self.name}.json"
+            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
             with open(settings_filename, "r") as f:
                 settings = json.loads(f.read())
                 # TODO - can I move this boilerplate function into the base class?
@@ -73,8 +77,20 @@ class ChainReflectionBot(LangChainConstruct):
             st.exception(e)
             self.settings = ChainReflectionBotSETTINGS()
 
-        self.workflow_vars = WorkflowVariables()
-        self.graph = compile_runnable(self.settings, self.workflow_vars)
+        
+        try:
+            workflows_filename = PREFERENCES_PATH / f"{get('username')}_workflows_{self.name}.json"
+            with open(workflows_filename, "r") as f:
+                all_workflows = json.loads(f.read())
+                # TODO - can I move this boilerplate function into the base class?
+                self.all_workflows = WorkflowConfigurationSet(**all_workflows)
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            st.exception(e)
+            self.all_workflows = WorkflowConfigurationSet()
+            with open(workflows_filename, "w") as f:
+                f.write(json.dumps(self.all_workflows.model_dump()))
+
+        self.graph = compile_runnable(self.settings, self.all_workflows.workflows[self.all_workflows.selected_workflow_index])
 
 
     def display_settings(self):
@@ -84,7 +100,7 @@ class ChainReflectionBot(LangChainConstruct):
             self.settings.__dict__[key] = new_value
 
             # save to file
-            settings_filename = PREFERENCES_PATH / f"testbed_botsettings_{self.name}.json"
+            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
             with open(settings_filename, "w") as f:
                 f.write(json.dumps(self.settings.model_dump()))
 
@@ -96,43 +112,57 @@ class ChainReflectionBot(LangChainConstruct):
             st.text_input(":blue[OPENAI_API_KEY]", key="OPENAI_API_KEY", value=self.settings.OPENAI_API_KEY, on_change=update, args=("OPENAI_API_KEY",))
 
 
-    "Generate an essay on the topicality of The Little Prince and its message in modern life"
     async def run(self, prompt, **kwargs):
         if not self._is_setup:
             raise Exception("Run `setup()` first!")
 
-
-        async for event in self.graph.astream(
-            [
-                HumanMessage(content=prompt)
-            ],
-        ):
-            # yield ("Reflection Bot:", event)
+        async for event in self.graph.astream([HumanMessage(content=prompt)],):
             # {
             #   "generate": "AIMessage(content='\"The Little Prince\" by Antoine de Saint-Exupéry is a timeless classic that continues to resonate with readers of all ages due to its profound messages and themes that are still relevant in modern life. This novella, originally published in 1943, may seem like a simple children\\'s story on the surface, but its deeper meaning and philosophical insights make it a powerful and thought-provoking work that offers valuable lessons for today\\'s world.\\n\\nOne of the central themes in \"The Little Prince\" is the importance of seeing beyond the surface and looking with the heart. In a society that is increasingly focused on materialism and superficial appearances, this message is more relevant than ever. The Little Prince teaches us the value of connecting with others on a deeper level, understanding their true essence, and appreciating the beauty that lies beneath the surface.\\n\\nMoreover, the novella highlights the significance of imagination and creativity in a world that often prioritizes logic and practicality. The Little Prince\\'s ability to see the world through a childlike perspective reminds us of the importance of maintaining a sense of wonder and curiosity in our lives. In a time where innovation and originality are highly valued, this message serves as a reminder of the power of imagination in shaping our perceptions and experiences.\\n\\nAnother key theme in \"The Little Prince\" is the exploration of human relationships and the complexities of love, friendship, and loss. The interactions between the Little Prince and the various characters he encounters during his journey serve as a reflection of the diverse relationships we navigate in our own lives. Through these encounters, the novella prompts readers to reflect on the nature of human connections, the importance of empathy and understanding, and the impact of our actions on those around us.\\n\\nFurthermore, the novella touches upon themes of loneliness, isolation, and the search for meaning and purpose in life. In today\\'s fast-paced and interconnected world, many people struggle with feelings of loneliness and alienation despite being constantly surrounded by others. The Little Prince\\'s journey to find his place in the universe and his quest for connection and understanding resonate with individuals who are searching for their own sense of belonging and purpose in a complex and often overwhelming world.\\n\\nIn conclusion, \"The Little Prince\" continues to be a relevant and poignant work that offers valuable insights and lessons for modern life. Its timeless themes of love, friendship, imagination, and the importance of looking beyond the surface serve as a powerful reminder of the enduring human experience and the universal truths that connect us all. As we navigate the complexities of the modern world, the messages of The Little Prince remind us to approach life with an open heart, a curious mind, and a deep appreciation for the beauty and wonder that surrounds us.')"
             # }
+            # yield ("Reflection Bot:", event)
             yield event # {"node_name": output}
 
 
     def display_workplace_variables(self):
-        # if st.text_input("the_goal", value=self.workflow_vars.the_goal, key="the_goal"):
-        if st.text_area("the_goal", value=self.workflow_vars.the_goal, key="the_goal"):
-            
-            self.workflow_vars.the_goal = st.session_state.the_goal
-            st.session_state.workflow_vars = self.workflow_vars
+        def update(key):
 
-        if st.text_area("reflection_goal", value=self.workflow_vars.reflection_goal, key="reflection_goal"):
-            self.workflow_vars.reflection_goal = st.session_state.reflection_goal
-            st.session_state.workflow_vars = self.workflow_vars
+            if key == "selected_workflow_index":
+                new_value = st.session_state[key]
+                # get first instance of this name in the list
+                # [wf for wf in self.all_workflows.workflows if wf.workflow_name == new_value][0]
+                self.all_workflows.selected_workflow_index = [index for index, wf in enumerate(self.all_workflows.workflows) if wf.workflow_name == new_value][0]
+            else:
+                new_value = st.session_state[key]
+                self.all_workflows.workflows[self.all_workflows.selected_workflow_index].__dict__[key] = new_value
+
+            # save to file
+            workflows_filename = PREFERENCES_PATH / f"{get('username')}_workflows_{self.name}.json"
+            with open(workflows_filename, "w") as f:
+                f.write(json.dumps(self.all_workflows.model_dump()))
+
+            self.setup()
+
+        st.selectbox("Select Workflow", options=[wf.workflow_name for wf in self.all_workflows.workflows], key="selected_workflow_index", index=self.all_workflows.selected_workflow_index, on_change=update, args=("selected_workflow_index",))
+        st.button("New Workflow", on_click=lambda: self.all_workflows.workflows.append(SingleWorkflowConfig()))
+        st.divider()
+
+        st.text_input("Workflow name:", value=self.all_workflows.workflows[self.all_workflows.selected_workflow_index].workflow_name, key="workflow_name", on_change=update, args=("workflow_name",))
+        st.text_area("Generation goal:", value=self.all_workflows.workflows[self.all_workflows.selected_workflow_index].goal, key="goal", on_change=update, args=("goal",))
+
+        st.text_area("Reflection prompt", value=self.all_workflows.workflows[self.all_workflows.selected_workflow_index].reflection_goal, key="reflection_goal", on_change=update, args=("reflection_goal",))
+    
 
 
 
 
 
-def compile_runnable(settings: ChainReflectionBotSETTINGS, workflow_vars: WorkflowVariables):
+def compile_runnable(settings: ChainReflectionBotSETTINGS, workflow_vars: SingleWorkflowConfig):
 
     if not_init('workflow_vars'):
-        st.session_state.workflow_vars = WorkflowVariables()
+        # st.session_state.workflow_vars = SingleWorkflowConfig()
+        st.session_state.workflow_vars = workflow_vars
+
 
     if not settings.OPENAI_API_KEY or settings.OPENAI_API_KEY == "":
         st.error("settings.OPENAI_API_KEY is blank")
@@ -142,7 +172,7 @@ def compile_runnable(settings: ChainReflectionBotSETTINGS, workflow_vars: Workfl
         [
             (
                 "system",
-                workflow_vars.the_goal, # This is a 2-tuple of (role, content) with role being 'human', 'user', 'ai', 'assistant', or 'system'.
+                workflow_vars.goal, # This is a 2-tuple of (role, content) with role being 'human', 'user', 'ai', 'assistant', or 'system'.
             ),
             MessagesPlaceholder(variable_name="messages"),
         ]
