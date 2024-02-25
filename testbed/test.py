@@ -1,5 +1,6 @@
-import streamlit as st
+import asyncio
 
+import streamlit as st
 
 
 from mistralai.models.chat_completion import ChatMessage
@@ -56,6 +57,16 @@ def main_page():
     #### TODO init construct here, if not
     init()
 
+    with st.expander("message history", expanded=False):
+        st.write(get('thread').messages)
+    with st.expander("debug", expanded=False):
+        st.write(get('construct').settings)
+
+    # st.write("Generate an essay on the topicality of The Little Prince and its message in modern life")
+    prompt_copy_paste = """
+    Generate a short essay on the topicality of The Little Prince and its message in modern life. Keep it no more than 200 words.
+    """
+    st.write(prompt_copy_paste)
 
 
     # TODO - turn this into a settings
@@ -65,6 +76,11 @@ def main_page():
     for message in get('thread').messages:
         with st.chat_message(message.role, avatar=ai_avatar if message.role == "assistant" else human_avatar):
             st.markdown(message.content)
+    
+    if get('construct').agentic:
+        with st.container(border=True):
+            st.markdown("`workflow variables:`")
+            get('construct').display_workplace_variables()
 
 
     my_next_prompt_placeholder = st.empty()
@@ -94,9 +110,11 @@ def main_page():
 
 
         if get("construct").agentic:
-            reply = run_graph(prompt, bots_reply_placeholder)
+            reply = invoke_graph(prompt, bots_reply_placeholder)
         else:
             raise Exception("only agentic workflows are tested here")
+        
+        st.rerun()
 
 
 
@@ -117,74 +135,129 @@ def main_page():
 
 
 
+def invoke_graph(prompt, bots_reply_placeholder):
+    async def run_generator(prompt):
+        construct = get('construct')
+        async for event in construct.run(prompt):
+            # cprint(f"event: {event}", Colors.YELLOW)
+            yield event # {"node_name": output}
 
 
+    # NOTE: yield is not allowed in this function... we simply return the ultimate result of the graph
+    async def update_UI(prompt, bots_reply_placeholder):
+
+        async for event in run_generator(prompt):
+            node = list(event.keys())[0]
+            cprint(f"node: {node}", Colors.BLUE)
+            output = event[node]
+            cprint(f"output: {output}", Colors.GREEN)
+
+            if node == "__end__":
+                return "__end__"
+            
 
 
+            with bots_reply_placeholder.chat_message("assistant", avatar=f"{AVATAR_PATH}/assistant.png"):
 
+                content = None
+                get('thread').messages.append( ChatMessage(role="assistant", content=output.content) )
 
-def run_graph(prompt, bots_reply_placeholder):
-    if get('construct').graph is None:
-        error_reply = "I'm not configured properly... 🥺  Check my settings.  Do I have all my API keys?"
-        get('thread').messages.append(ChatMessage(role="assistant", content=error_reply))
-        return error_reply
+                # if type(output) is AIMessage: # no.. the reflect step returns a HumanMessage for the AI's benefit
+                if type(output) is FunctionMessage:
+                    content = f"**Function returned:**\n{output.content}"
 
-
-    avatar_filename = f"{AVATAR_PATH}/{get('construct').avatar_filename}"
-    with bots_reply_placeholder.chat_message("assistant", avatar=avatar_filename):
-
-        # TODO - this does NOT provide a good enough context for an agent... at least when opening an stale conversation.
-        # for node, output in get('construct').run(str(st.session_state.appstate.chat.messages)):
-        # for node, output in get('construct').invoke(str(st.session_state.appstate.chat.messages)): # TODO - don't typecast to a str() dude.. don't be a noob!
-        for node, output in get('construct').invoke(str(get('thread').messages)):
-
-            if node != "__end__":
-                try:
-                    message = output['messages'][0]
-                except KeyError:
-                    message = output
-
-                # <class 'langchain_core.messages.ai.AIMessage'>
-                # <class 'langchain_core.messages.function.FunctionMessage'>
-                # <class 'langchain_core.messages.human.HumanMessage'>
-
-                if type(message) is FunctionMessage:
-
-                    content = f"**Function returned:**\n{message.content}"
-                    st.markdown(f"{content}")
-
-                    get('thread').messages.append(
-                                            ChatMessage(role="assistant",
-                                            content=content))
-
-                elif hasattr(message, 'additional_kwargs'):
-                    if message.additional_kwargs != {}:
-                        print(message.additional_kwargs)
-                        print(type(message.additional_kwargs))
+                elif hasattr(output, 'additional_kwargs'):
+                    if output.additional_kwargs != {}:
+                        print(output.additional_kwargs)
+                        print(type(output.additional_kwargs))
                         # {'function_call': {'arguments': '{"query":"weather in San Francisco"}', 'name': 'tavily_search_results_json'}}
 
-                        function_name = message.additional_kwargs['function_call']['name']
+                        function_name = output.additional_kwargs['function_call']['name']
+                        content = f"**Calling Function:**\n{function_name}({output.additional_kwargs['function_call']['arguments']})"
 
-                        content = f"**Calling Function:**\n{function_name}({message.additional_kwargs['function_call']['arguments']})"
+                if content is None:
+                    content = output.content
+                st.markdown(content)
 
-                        st.markdown(content)
-                        get('thread').messages.append(
-                                            ChatMessage(role="assistant",
-                                            content=content))
 
-            else:
-                # TODO - FIX THIS.... this logic should be placed inside the Graph class for each chain
-                try:
-                    message = output['messages'][-1]
-                    get('thread').messages.append(ChatMessage(role="assistant", content=message.content))
-                except TypeError:
-                    message = output
-                    get('thread').messages.append(ChatMessage(role="assistant", content=message))
 
-    try:
-        return message.content
-    except AttributeError:
-        return message
+    # NOTE: asyncio.run() cannot be a generator!!!  So we have to wrap it and deal with all interface updates, state changes and sats deductions there.
+    ret = asyncio.run(update_UI(prompt, bots_reply_placeholder))
+    return ret
+
+
+
+
+
+
+
+
+# def run_graph(prompt, bots_reply_placeholder):
+#     if get('construct').graph is None:
+#         error_reply = "I'm not configured properly... 🥺  Check my settings.  Do I have all my API keys?"
+#         get('thread').messages.append(ChatMessage(role="assistant", content=error_reply))
+#         return error_reply
+
+
+#     avatar_filename = f"{AVATAR_PATH}/{get('construct').avatar_filename}"
+#     with bots_reply_placeholder.chat_message("assistant", avatar=avatar_filename):
+
+#         # TODO - this does NOT provide a good enough context for an agent... at least when opening an stale conversation.
+#         # for node, output in get('construct').run(str(st.session_state.appstate.chat.messages)):
+#         # for node, output in get('construct').invoke(str(st.session_state.appstate.chat.messages)): # TODO - don't typecast to a str() dude.. don't be a noob!
+#         for node, output in get('construct').invoke(str(get('thread').messages)):
+
+#             if node is None:
+#                 cprint("node is None", Colors.RED)
+#                 break
+
+#             if node != "__end__":
+#                 try:
+#                     message = output['messages'][0]
+#                 except KeyError:
+#                     message = output
+
+#                 # <class 'langchain_core.messages.ai.AIMessage'>
+#                 # <class 'langchain_core.messages.function.FunctionMessage'>
+#                 # <class 'langchain_core.messages.human.HumanMessage'>
+
+#                 if type(message) is FunctionMessage:
+
+#                     content = f"**Function returned:**\n{message.content}"
+#                     st.markdown(f"{content}")
+
+#                     get('thread').messages.append(
+#                                             ChatMessage(role="assistant",
+#                                             content=content))
+
+#                 elif hasattr(message, 'additional_kwargs'):
+#                     if message.additional_kwargs != {}:
+#                         print(message.additional_kwargs)
+#                         print(type(message.additional_kwargs))
+#                         # {'function_call': {'arguments': '{"query":"weather in San Francisco"}', 'name': 'tavily_search_results_json'}}
+
+#                         function_name = message.additional_kwargs['function_call']['name']
+
+#                         content = f"**Calling Function:**\n{function_name}({message.additional_kwargs['function_call']['arguments']})"
+
+#                         st.markdown(content)
+#                         get('thread').messages.append(
+#                                             ChatMessage(role="assistant",
+#                                             content=content))
+
+#             else:
+#                 # TODO - FIX THIS.... this logic should be placed inside the Graph class for each chain
+#                 try:
+#                     message = output['messages'][-1]
+#                     get('thread').messages.append(ChatMessage(role="assistant", content=message.content))
+#                 except TypeError:
+#                     message = output
+#                     get('thread').messages.append(ChatMessage(role="assistant", content=message))
+
+#     try:
+#         return message.content
+#     except AttributeError:
+#         return message
 
 
 

@@ -17,16 +17,26 @@ from langgraph.graph import END, MessageGraph
 
 
 from pydantic import BaseModel
-from src.common import get, PREFERENCES_PATH
+from src.common import get, not_init, PREFERENCES_PATH
 from src.flows import LangChainConstruct
 
 import streamlit as st
 
+DEFAULT_GOAL = """You are an essay assistant tasked with writing excellent 5-paragraph essays.
+Generate the best essay possible for the user's request.
+If the user provides critique, respond with a revised version of your previous attempts."""
+
+DEFAULT_REFLECTION = """You are a teacher grading an essay submission. Generate critique and recommendations for the user's submission.
+Provide detailed recommendations, including requests for length, depth, style, etc."""
 
 
-class WorkflowVariables(BaseModel):
+# class WorkflowVariables(BaseModel):
+class WorkflowVariables():
     # TODO this should NOT be blank!!! just give an example because the user is stupid!!!
-    reflection_goal: str = ""
+    the_goal: str = DEFAULT_GOAL
+
+    reflection_goal: str = DEFAULT_REFLECTION
+
 
 
 
@@ -80,7 +90,7 @@ class ChainReflectionBot(LangChainConstruct):
 
             self.setup() # we have to re-init the graph with the new settings
 
-        st.select_slider("Number of :red[Iterations]", options=[1, 2, 3, 4, 5], key="max_iterations", value=self.settings.max_iterations, on_change=update, args=("max_iterations",))
+        st.select_slider("Number of :red[Review Iterations]", options=[1, 2, 3, 4, 5], key="max_iterations", value=self.settings.max_iterations, on_change=update, args=("max_iterations",))
 
         with st.expander(":blue[API KEYS]", expanded=False):
             st.text_input(":blue[OPENAI_API_KEY]", key="OPENAI_API_KEY", value=self.settings.OPENAI_API_KEY, on_change=update, args=("OPENAI_API_KEY",))
@@ -90,52 +100,49 @@ class ChainReflectionBot(LangChainConstruct):
     async def run(self, prompt, **kwargs):
         if not self._is_setup:
             raise Exception("Run `setup()` first!")
-        
-        ### EXAMPLE FROM TAVILY CHAIN
-        # inputs = {"messages": [HumanMessage(content=prompt)]}
-        # for output in self.graph.stream(inputs):
-        #     # stream() yields dictionaries with output keyed by node name
-        #     for key, value in output.items():
-        #         yield key, value
+
 
         async for event in self.graph.astream(
             [
                 HumanMessage(content=prompt)
             ],
         ):
-            # print(event)
-            yield ("Reflection Bot:", event)
-
-        yield ("__end__", "ok, I'm done!")
-
-
-    def invoke(self, prompt, **kwargs):
-        import asyncio
-
-        async def run_generator():
-            async for item in self.run(prompt, **kwargs):
-                st.write("item:", item[1])
-
-        return asyncio.run(run_generator())
+            # yield ("Reflection Bot:", event)
+            # {
+            #   "generate": "AIMessage(content='\"The Little Prince\" by Antoine de Saint-Exupéry is a timeless classic that continues to resonate with readers of all ages due to its profound messages and themes that are still relevant in modern life. This novella, originally published in 1943, may seem like a simple children\\'s story on the surface, but its deeper meaning and philosophical insights make it a powerful and thought-provoking work that offers valuable lessons for today\\'s world.\\n\\nOne of the central themes in \"The Little Prince\" is the importance of seeing beyond the surface and looking with the heart. In a society that is increasingly focused on materialism and superficial appearances, this message is more relevant than ever. The Little Prince teaches us the value of connecting with others on a deeper level, understanding their true essence, and appreciating the beauty that lies beneath the surface.\\n\\nMoreover, the novella highlights the significance of imagination and creativity in a world that often prioritizes logic and practicality. The Little Prince\\'s ability to see the world through a childlike perspective reminds us of the importance of maintaining a sense of wonder and curiosity in our lives. In a time where innovation and originality are highly valued, this message serves as a reminder of the power of imagination in shaping our perceptions and experiences.\\n\\nAnother key theme in \"The Little Prince\" is the exploration of human relationships and the complexities of love, friendship, and loss. The interactions between the Little Prince and the various characters he encounters during his journey serve as a reflection of the diverse relationships we navigate in our own lives. Through these encounters, the novella prompts readers to reflect on the nature of human connections, the importance of empathy and understanding, and the impact of our actions on those around us.\\n\\nFurthermore, the novella touches upon themes of loneliness, isolation, and the search for meaning and purpose in life. In today\\'s fast-paced and interconnected world, many people struggle with feelings of loneliness and alienation despite being constantly surrounded by others. The Little Prince\\'s journey to find his place in the universe and his quest for connection and understanding resonate with individuals who are searching for their own sense of belonging and purpose in a complex and often overwhelming world.\\n\\nIn conclusion, \"The Little Prince\" continues to be a relevant and poignant work that offers valuable insights and lessons for modern life. Its timeless themes of love, friendship, imagination, and the importance of looking beyond the surface serve as a powerful reminder of the enduring human experience and the universal truths that connect us all. As we navigate the complexities of the modern world, the messages of The Little Prince remind us to approach life with an open heart, a curious mind, and a deep appreciation for the beauty and wonder that surrounds us.')"
+            # }
+            yield event # {"node_name": output}
 
 
+    def display_workplace_variables(self):
+        # if st.text_input("the_goal", value=self.workflow_vars.the_goal, key="the_goal"):
+        if st.text_area("the_goal", value=self.workflow_vars.the_goal, key="the_goal"):
+            
+            self.workflow_vars.the_goal = st.session_state.the_goal
+            st.session_state.workflow_vars = self.workflow_vars
+
+        if st.text_area("reflection_goal", value=self.workflow_vars.reflection_goal, key="reflection_goal"):
+            self.workflow_vars.reflection_goal = st.session_state.reflection_goal
+            st.session_state.workflow_vars = self.workflow_vars
 
 
-# def compile_runnable(settings: ChainReflectionBotSETTINGS, workflowvars: WorkflowVariables) -> RunnableSerializable:
+
+
+
 def compile_runnable(settings: ChainReflectionBotSETTINGS, workflow_vars: WorkflowVariables):
+
+    if not_init('workflow_vars'):
+        st.session_state.workflow_vars = WorkflowVariables()
 
     if not settings.OPENAI_API_KEY or settings.OPENAI_API_KEY == "":
         st.error("settings.OPENAI_API_KEY is blank")
-        # raise ValueError("settings.OPENAI_API_KEY is blank")
         return None
 
     prompt = ChatPromptTemplate.from_messages(
         [
             (
                 "system",
-                "You are an essay assistant tasked with writing excellent 5-paragraph essays."
-                " Generate the best essay possible for the user's request."
-                " If the user provides critique, respond with a revised version of your previous attempts.",
+                workflow_vars.the_goal, # This is a 2-tuple of (role, content) with role being 'human', 'user', 'ai', 'assistant', or 'system'.
             ),
             MessagesPlaceholder(variable_name="messages"),
         ]
@@ -150,8 +157,7 @@ def compile_runnable(settings: ChainReflectionBotSETTINGS, workflow_vars: Workfl
     [
         (
             "system",
-            "You are a teacher grading an essay submission. Generate critique and recommendations for the user's submission."
-            " Provide detailed recommendations, including requests for length, depth, style, etc.",
+            workflow_vars.reflection_goal, # This is a 2-tuple of (role, content) with role being 'human', 'user', 'ai', 'assistant', or 'system'.
         ),
         MessagesPlaceholder(variable_name="messages"),
     ])
@@ -183,8 +189,7 @@ def compile_runnable(settings: ChainReflectionBotSETTINGS, workflow_vars: Workfl
 
 
     def should_continue(state: List[BaseMessage]):
-        if len(state) > 6:
-            # End after 3 iterations
+        if len(state) / 2 > settings.max_iterations: # TODO... hmmm
             return END
         return "reflect"
 

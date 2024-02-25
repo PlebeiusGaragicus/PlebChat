@@ -31,3 +31,33 @@ https://github.com/m-wrzr/streamlit-searchbox
 
 https://github.com/cedricvlt/streamlit-condition-tree
 
+## KVM/QEMU
+
+https://www.youtube.com/watch?v=YUCDUPg9LFc
+
+https://ubuntu.com/server/docs/virtualization-virt-tools
+
+## NixOS
+
+https://www.youtube.com/watch?v=a67Sv4Mbxmc
+
+grok.computer
+
+## MCTS
+
+https://www.youtube.com/watch?v=xmImNoDc9Z4 <<--
+
+https://www.youtube.com/watch?v=Fbs4lnGLS8M
+
+https://www.youtube.com/watch?v=lhFXKNyA0QA
+
+## Pregel
+
+https://blog.acolyer.org/2015/05/26/pregel-a-system-for-large-scale-graph-processing/
+
+https://medium.com/@AdityaChatterjee/googles-pregel-graph-processing-system-90341156848a
+
+## formatting inputs to LLMs
+
+https://cookbook.openai.com/examples/how_to_format_inputs_to_chatgpt_models
+
