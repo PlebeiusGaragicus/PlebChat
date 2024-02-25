@@ -1,6 +1,7 @@
 from typing import TypedDict, Annotated, Sequence
 import operator
 import json
+import random
 
 
 # from langchain_community.chat_models.fireworks import ChatFireworks
@@ -17,7 +18,7 @@ from langgraph.graph import END, MessageGraph
 
 
 from pydantic import BaseModel
-from src.common import get, not_init, PREFERENCES_PATH
+from src.common import get, not_init, PREFERENCES_PATH, cprint, Colors
 from src.flows import LangChainConstruct
 
 import streamlit as st
@@ -89,8 +90,25 @@ class ChainReflectionBot(LangChainConstruct):
             self.all_workflows = WorkflowConfigurationSet()
             with open(workflows_filename, "w") as f:
                 f.write(json.dumps(self.all_workflows.model_dump()))
+        
+        # clamp selected_workflow_index to 0, len(workflows)
+        self.all_workflows.selected_workflow_index = max(0, min(self.all_workflows.selected_workflow_index, len(self.all_workflows.workflows) - 1))
+
+        # index = self.all_workflows.selected_workflow_index if self.all_workflows.selected_workflow_index < len(self.all_workflows.workflows) else 0
+        # cprint(f"Selected workflow index: {self.all_workflows.selected_workflow_index}", Colors.YELLOW)
+        # index = max(0, min(self.all_workflows.selected_workflow_index, len(self.all_workflows.workflows) - 1))  # clamp to 0, len(workflows)
+        # try:
+        #     index = self.all_workflows.selected_workflow_index
+        #     workflow = self.all_workflows.workflows[index]
+        # except Exception as e:
+        #     index = 0
+        #     workflow = self.all_workflows.workflows[index]
+
+        if len(self.all_workflows.workflows) == 0:
+                self.all_workflows.workflows.append(SingleWorkflowConfig())
 
         self.graph = compile_runnable(self.settings, self.all_workflows.workflows[self.all_workflows.selected_workflow_index])
+        # self.graph = compile_runnable(self.settings, workflow)
 
 
     def display_settings(self):
@@ -134,7 +152,11 @@ class ChainReflectionBot(LangChainConstruct):
                 self.all_workflows.selected_workflow_index = [index for index, wf in enumerate(self.all_workflows.workflows) if wf.workflow_name == new_value][0]
             else:
                 new_value = st.session_state[key]
-                self.all_workflows.workflows[self.all_workflows.selected_workflow_index].__dict__[key] = new_value
+                # check if this name already exists in the list
+                if new_value not in [wf.workflow_name for wf in self.all_workflows.workflows]:
+                    self.all_workflows.workflows[self.all_workflows.selected_workflow_index].__dict__[key] = new_value
+                else:
+                    self.all_workflows.workflows[self.all_workflows.selected_workflow_index].__dict__[key] = f"{new_value}_{random.randint(100, 999)}"
 
             # save to file
             workflows_filename = PREFERENCES_PATH / f"{get('username')}_workflows_{self.name}.json"
@@ -143,8 +165,43 @@ class ChainReflectionBot(LangChainConstruct):
 
             self.setup()
 
+        def save_as_new():
+            if st.session_state.workflow_name in [wf.workflow_name for wf in self.all_workflows.workflows]:
+                workflow_name = f"{st.session_state.workflow_name}_{random.randint(100, 999)}"
+            else:
+                workflow_name = st.session_state.workflow_name
+
+            current_wf = SingleWorkflowConfig(workflow_name=workflow_name, goal=st.session_state.goal, reflection_goal=st.session_state.reflection_goal)
+
+            # make index the last one
+            self.all_workflows.workflows.append(current_wf)
+            self.all_workflows.selected_workflow_index = len(self.all_workflows.workflows) - 1
+
+            workflows_filename = PREFERENCES_PATH / f"{get('username')}_workflows_{self.name}.json"
+            with open(workflows_filename, "w") as f:
+                f.write(json.dumps(self.all_workflows.model_dump()))
+
+            self.setup()
+
+
+        def delete_workflow():
+            del self.all_workflows.workflows[self.all_workflows.selected_workflow_index]
+            self.all_workflows.selected_workflow_index = max(0, min(self.all_workflows.selected_workflow_index, len(self.all_workflows.workflows) - 1))
+
+            # if no workflows left, add a new one
+            if len(self.all_workflows.workflows) == 0:
+                self.all_workflows.workflows.append(SingleWorkflowConfig())
+
+            workflows_filename = PREFERENCES_PATH / f"{get('username')}_workflows_{self.name}.json"
+            with open(workflows_filename, "w") as f:
+                f.write(json.dumps(self.all_workflows.model_dump()))
+
+            self.setup()
+
         st.selectbox("Select Workflow", options=[wf.workflow_name for wf in self.all_workflows.workflows], key="selected_workflow_index", index=self.all_workflows.selected_workflow_index, on_change=update, args=("selected_workflow_index",))
-        st.button("New Workflow", on_click=lambda: self.all_workflows.workflows.append(SingleWorkflowConfig()))
+        # st.button(":green[New Workflow]", on_click=lambda: self.all_workflows.workflows.append(SingleWorkflowConfig()))
+        st.button(":green[Save as New Workflow]", on_click=save_as_new)
+        st.button(":red[Delete Workflow]", on_click=delete_workflow)
         st.divider()
 
         st.text_input("Workflow name:", value=self.all_workflows.workflows[self.all_workflows.selected_workflow_index].workflow_name, key="workflow_name", on_change=update, args=("workflow_name",))

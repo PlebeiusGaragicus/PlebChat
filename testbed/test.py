@@ -65,7 +65,7 @@ def main_page():
 
     if get('construct').agentic:
         with st.container(border=True):
-            st.markdown("`workflow variables:`")
+            st.markdown("### :red[workflow variables:]")
             get('construct').display_workplace_variables()
 
     st.divider()
