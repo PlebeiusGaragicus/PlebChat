@@ -164,6 +164,7 @@ class ChainReflectionBot(LangChainConstruct):
                 f.write(json.dumps(self.all_workflows.model_dump()))
 
             self.setup()
+            st.toast("Updated!")
 
         def save_as_new():
             if st.session_state.workflow_name in [wf.workflow_name for wf in self.all_workflows.workflows]:

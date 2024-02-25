@@ -138,26 +138,31 @@ def main_page():
 
 
 def invoke_graph(prompt, bots_reply_placeholder):
-    async def run_generator(prompt):
-        construct = get('construct')
-        async for event in construct.run(prompt):
-            # cprint(f"event: {event}", Colors.YELLOW)
-            yield event # {"node_name": output}
+    # async def run_generator(prompt):
+    #     construct = get('construct')
+    #     async for event in construct.run(prompt):
+    #         # cprint(f"event: {event}", Colors.YELLOW)
+    #         yield event # {"node_name": output}
 
 
     # NOTE: yield is not allowed in this function... we simply return the ultimate result of the graph
     async def update_UI(prompt, bots_reply_placeholder):
 
-        async for event in run_generator(prompt):
+        # async for event in run_generator(prompt):
+        construct = get('construct')
+        async for event in construct.run(prompt):
             node = list(event.keys())[0]
             output = event[node]
 
             cprint(f"node: {node}", Colors.BLUE)
             cprint(f"output: {output}", Colors.GREEN)
 
+            # This causes the generator to stop and the function to return.. this is not what we want as LangSmith sees a GeneratorExit exception.
+            # if node == "__end__":
+            #     return "__end__"
             if node == "__end__":
-                return "__end__"
-
+                # break
+                continue # this allows the generator to continue at signal that it's done
 
 
             with bots_reply_placeholder.chat_message("assistant", avatar=f"{AVATAR_PATH}/assistant.png"):
@@ -182,6 +187,7 @@ def invoke_graph(prompt, bots_reply_placeholder):
                     content = output.content
                 st.markdown(content)
 
+        return "__end__"
 
 
     # NOTE: asyncio.run() cannot be a generator!!!  So we have to wrap it and deal with all interface updates, state changes and sats deductions there.
