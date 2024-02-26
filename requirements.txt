@@ -20,5 +20,6 @@ langchain_community
 gtts
 ollama
 openai
+google-generativeai
 assemblyai
 mistralai

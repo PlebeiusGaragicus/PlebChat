@@ -108,8 +108,6 @@ class ChatAppVars:
 
             with open(os.path.join(dir, runlog), "r") as f:
                 try:
-                    # print(f.read())
-                    # f.seek(0)  # Reset file pointer after read
                     file_contents = json.load(f)
                     description = file_contents["description"]
                 except (json.decoder.JSONDecodeError, UnicodeDecodeError):
@@ -251,7 +249,11 @@ def main_page():
 
 
     # TODO - turn this into a settings
-    human_avatar = f"{AVATAR_PATH}/user0.png"
+    if os.getenv("DEBUG", False):
+        human_avatar = f"{AVATAR_PATH}/user69.png"
+    else:
+        human_avatar = f"{AVATAR_PATH}/user0.png"
+
     # ai_avatar = f"{AVATAR_PATH}/assistant.png"
     ai_avatar = f"{AVATAR_PATH}/{get('construct').avatar_filename}"
 
@@ -441,8 +443,8 @@ def main_page():
         st.caption(caption)
 
 
-        # with st.expander("API Keys"):
-        #     st.write("here")
+        with st.expander("API Keys"):
+            st.write("here")
 
 
     # we don't use an expander becuase the construct settings may need to have one
