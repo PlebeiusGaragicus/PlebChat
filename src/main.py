@@ -77,7 +77,7 @@ class ChatAppVars:
 
         self.chat_history_depth = 20
         self.chat_history = None # the list of past conversations list of (description, runlog file name)
-        self.load_chat_history()
+        # self.load_chat_history()
 
 
     def new_thread(self):
@@ -89,21 +89,32 @@ class ChatAppVars:
 
     def load_chat_history(self):
         # make sure the runlog directory exists
-        os.makedirs(st.session_state.runlog_dir, exist_ok=True)
+        dir = os.path.join(st.session_state.runlog_dir, get('construct').name)
+        # os.makedirs(st.session_state.runlog_dir, exist_ok=True)
+        os.makedirs(dir, exist_ok=True)
 
         self.chat_history = []
-        runlogs = os.listdir(st.session_state.runlog_dir)
+        runlogs = os.listdir(dir)
         runlogs.sort(reverse=True)
         self.truncated = len(runlogs) > self.chat_history_depth
         if self.truncated:
             runlogs = runlogs[:self.chat_history_depth]
         for runlog in runlogs:
-            with open(os.path.join(st.session_state.runlog_dir, runlog), "r") as f:
+            # continue if runlog is a directory
+            if os.path.isdir(os.path.join(st.session_state.runlog_dir, runlog)):
+                continue
+            # Create directory if it doesn't exist
+            # os.makedirs(os.path.join(st.session_state.runlog_dir, runlog), exist_ok=True)
+
+            with open(os.path.join(dir, runlog), "r") as f:
                 try:
+                    # print(f.read())
+                    # f.seek(0)  # Reset file pointer after read
                     file_contents = json.load(f)
                     description = file_contents["description"]
-                except json.decoder.JSONDecodeError:
-                    # file load error - skip this file
+                except (json.decoder.JSONDecodeError, UnicodeDecodeError):
+                    # file load error or UnicodeDecodeError - skip this file
+                    st.toast(f"Error loading {runlog}", icon="⚠️")
                     continue
             self.chat_history.append((description, runlog))
 
@@ -112,7 +123,7 @@ class ChatAppVars:
 
 
 def init_if_needed():
-    st.session_state.runlog_dir = os.path.join(os.getcwd(), "runlog", st.session_state.username)
+    # st.session_state.runlog_dir = os.path.join(os.getcwd(), "runlog", st.session_state.username)
 
     # initialize the appstate on first run
     if not_init('appstate'):
@@ -384,6 +395,11 @@ def main_page():
 
 
     ######################  SIDEBAR  ######################
+    if not_init('runlog_dir'):
+        st.session_state.runlog_dir = os.path.join(os.getcwd(), "runlog", st.session_state.username)
+    appstate.load_chat_history()
+    
+
     with st.sidebar:
         st.header("", divider="rainbow")
         # st.write("## :rainbow[Past Conversations]")

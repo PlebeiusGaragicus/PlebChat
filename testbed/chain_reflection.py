@@ -167,10 +167,11 @@ class ChainReflectionBot(LangChainConstruct):
             st.toast("Updated!")
 
         def save_as_new():
-            if st.session_state.workflow_name in [wf.workflow_name for wf in self.all_workflows.workflows]:
-                workflow_name = f"{st.session_state.workflow_name}_{random.randint(100, 999)}"
-            else:
-                workflow_name = st.session_state.workflow_name
+            workflow_name = f"{st.session_state.workflow_name} copy"
+            # if st.session_state.workflow_name in [wf.workflow_name for wf in self.all_workflows.workflows]:
+            #     workflow_name = f"{st.session_state.workflow_name}_{random.randint(100, 999)}"
+            # else:
+            #     workflow_name = st.session_state.workflow_name
 
             current_wf = SingleWorkflowConfig(workflow_name=workflow_name, goal=st.session_state.goal, reflection_goal=st.session_state.reflection_goal)
 
@@ -199,10 +200,14 @@ class ChainReflectionBot(LangChainConstruct):
 
             self.setup()
 
+
         st.selectbox("Select Workflow", options=[wf.workflow_name for wf in self.all_workflows.workflows], key="selected_workflow_index", index=self.all_workflows.selected_workflow_index, on_change=update, args=("selected_workflow_index",))
-        # st.button(":green[New Workflow]", on_click=lambda: self.all_workflows.workflows.append(SingleWorkflowConfig()))
-        st.button(":green[Save as New Workflow]", on_click=save_as_new)
-        st.button(":red[Delete Workflow]", on_click=delete_workflow)
+
+        cols2 = st.columns((1, 1))
+        with cols2[0]:
+            st.button(":green[Copy this Workflow]", on_click=save_as_new)
+        with cols2[1]:
+            st.button(":red[Delete Workflow]", on_click=delete_workflow)
         st.divider()
 
         st.text_input("Workflow name:", value=self.all_workflows.workflows[self.all_workflows.selected_workflow_index].workflow_name, key="workflow_name", on_change=update, args=("workflow_name",))

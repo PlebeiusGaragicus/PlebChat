@@ -6,6 +6,8 @@ import streamlit as st
 
 from mistralai.models.chat_completion import ChatMessage
 
+from src.common import get
+
 
 def serialize_messages(msg: ChatMessage):
     return {
@@ -25,8 +27,9 @@ def load_convo(runlog):
     st.toast(f"Loading {runlog}...")
 
     # load the runlog file
-    os.path.join(os.getcwd(), "runlog", st.session_state.username)
-    with open(os.path.join(st.session_state.runlog_dir, runlog), "r") as f:
+    # os.path.join(os.getcwd(), "runlog", st.session_state.username)
+    dir = os.path.join(os.getcwd(), "runlog", st.session_state.username, get('construct').name)
+    with open(os.path.join(dir, runlog), "r") as f:
         file_contents = json.load(f)
 
         messages = file_contents["messages"]
@@ -40,8 +43,8 @@ def load_convo(runlog):
 def delete_this_chat():
     """ Delete the current chat history """
 
-    runlog_file = os.path.join(st.session_state.runlog_dir, f'{st.session_state.appstate.chat.session_start_time}.txt')
-    os.remove(runlog_file)
+    runlog_file = os.path.join(st.session_state.runlog_dir, get('construct').name, f'{st.session_state.appstate.chat.session_start_time}.txt')
+    os.remove(runlog_file) # FileNotFoundError
 
     st.session_state.appstate.new_thread()
     st.session_state.appstate.load_chat_history()
@@ -80,7 +83,9 @@ def save_chat_history() -> bool:
     messages = [serialize_messages(m) for m in st.session_state.appstate.chat.messages]
 
     # save the chat history to a file
-    runlog_file = os.path.join(st.session_state.runlog_dir, f'{st.session_state.appstate.chat.session_start_time}.txt')
+    runlog_file = os.path.join(st.session_state.runlog_dir, get('construct').name, f'{st.session_state.appstate.chat.session_start_time}.txt')
+    # ensure the directory exists
+    os.makedirs(os.path.dirname(runlog_file), exist_ok=True)
     with open(runlog_file, "w") as f:
         json.dump(
             {

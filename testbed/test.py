@@ -148,21 +148,20 @@ def invoke_graph(prompt, bots_reply_placeholder):
     # NOTE: yield is not allowed in this function... we simply return the ultimate result of the graph
     async def update_UI(prompt, bots_reply_placeholder):
 
-        # async for event in run_generator(prompt):
         construct = get('construct')
         async for event in construct.run(prompt):
+        # async for event in run_generator(prompt):
             node = list(event.keys())[0]
             output = event[node]
 
-            cprint(f"node: {node}", Colors.BLUE)
-            cprint(f"output: {output}", Colors.GREEN)
 
-            # This causes the generator to stop and the function to return.. this is not what we want as LangSmith sees a GeneratorExit exception.
-            # if node == "__end__":
-            #     return "__end__"
             if node == "__end__":
-                # break
+                # return "__end__" # This causes the generator to stop and the function to return.. this is not what we want as LangSmith sees a GeneratorExit exception.
                 continue # this allows the generator to continue at signal that it's done
+
+
+            cprint(f"node: {node}", Colors.BLUE)
+            cprint(output.content, Colors.GREEN)
 
 
             with bots_reply_placeholder.chat_message("assistant", avatar=f"{AVATAR_PATH}/assistant.png"):
