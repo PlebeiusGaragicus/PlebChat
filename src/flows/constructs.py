@@ -15,4 +15,4 @@ if os.getenv("DEBUG", False):
 else:
     # NOTE: only include the bots that are ready for production!
     # ALL_CONSTRUCTS = [LLM_OPENAI_GPT, TavilyBot]
-    ALL_CONSTRUCTS = [LLM_OPENAI_GPT]
+    ALL_CONSTRUCTS = [LLM_OPENAI_GPT, LLM_GOOGLE_GEMINI, LLM_MISTRAL]

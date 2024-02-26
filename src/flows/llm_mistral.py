@@ -1,3 +1,4 @@
+import requests
 import json
 
 from pydantic import BaseModel
@@ -11,11 +12,27 @@ from src.common import get
 
 # TODO - too many choices... also, should I provide pricing/info for each model...? model info card?
 MISTRAL_MODELS = [
-        "mistral-large-latest",
-        "mistral-medium",
-        "mistral-small",
-        "mistral-tiny",
-    ]
+    #     "mistral-large-latest",
+    #     "mistral-medium",
+    #     "mistral-small",
+    #     "mistral-tiny",
+    # ]
+
+    'open-mixtral-8x7b',
+    'open-mistral-7b',
+    'mistral-large-latest',
+    'mistral-medium',
+    'mistral-small',
+    'mistral-tiny',
+    # 'mistral-large-2402',
+    # 'mistral-medium-latest',
+    # 'mistral-medium-2312',
+    # 'mistral-small-latest',
+    # 'mistral-small-2402',
+    # 'mistral-small-2312',
+    # 'mistral-tiny-2312',
+    # 'mistral-embed'
+]
 
 
 
@@ -45,6 +62,34 @@ class LLM_MISTRAL(StreamingLLM):
                 self.settings = LLM_SETTINGS_MISTRAL(**settings)
         except (FileNotFoundError, json.JSONDecodeError):
             self.settings = LLM_SETTINGS_MISTRAL()
+
+        # self.get_availble_models()
+
+
+
+    # def get_availble_models(self):
+    #     st.toast("Loading Mistral models...", icon="⏳")
+    #     """
+    #     curl --location "https://api.mistral.ai/v1/models" \
+    #     --header 'Content-Type: application/json' \
+    #     --header 'Accept: application/json' \
+    #     --header "Authorization: Bearer ecdOj2CwLfDgXUhdgy71eaeT08lenlYj"
+    #     """
+    #     response = requests.get(
+    #         "https://api.mistral.ai/v1/models",
+    #         headers={
+    #             "Content-Type": "application/json",
+    #             "Accept": "application/json",
+    #             "Authorization": f"Bearer {self.settings.api_key}"
+    #         }
+    #     )
+    #     if response.status_code != 200:
+    #         raise Exception(f"Mistral API error: {response.status_code} - {response.text}")
+        
+    #     models = response.json()
+    #     self.model_list = [m["id"] for m in models['data']]
+
+    #     print(self.model_list)
 
 
 
@@ -105,6 +150,7 @@ class LLM_MISTRAL(StreamingLLM):
 
         try:
             st.selectbox("Model", options=MISTRAL_MODELS, key="model", index=MISTRAL_MODELS.index(self.settings.model), on_change=update, args=("model",))
+            # st.selectbox("Model", options=self.model_list, key="model", index=self.model_list.index(self.settings.model), on_change=update, args=("model",))
             # st.slider("Temperature", min_value=0.0, max_value=1.0, key="temperature", value=self.settings.temperature, on_change=update, args=("temperature",))
 
             if get("username") == "satoshi": # TODO - don't hardcode... also, this is just a temp workaround

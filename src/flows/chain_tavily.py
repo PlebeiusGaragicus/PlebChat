@@ -4,6 +4,7 @@ import json
 
 from langchain_core.messages import BaseMessage, FunctionMessage, HumanMessage
 from langchain.tools.render import format_tool_to_openai_function
+from langchain_core.utils.function_calling import convert_to_openai_function
 from langgraph.prebuilt import ToolExecutor, ToolInvocation
 
 from langchain_community.utilities.tavily_search import TavilySearchAPIWrapper
@@ -123,6 +124,7 @@ def compile_runnable(settings: TavilyBotSettings):
 
     model = ChatOpenAI(temperature=settings.temperature, streaming=True, api_key=settings.OPENAI_API_KEY)
 
+    # TODO use this instead langchain_core.utils.function_calling.convert_to_openai_function
     functions = [format_tool_to_openai_function(t) for t in tools]
     model = model.bind_functions(functions)
 
