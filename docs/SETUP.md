@@ -8,7 +8,9 @@ I recommend a dedicated Debian vitrual machine.
 apt-update
 apt-upgrade -y
 
-apt-get install -y git curl python3-venv python3-pip redis-server
+apt-get install -y git curl python3-venv python3-pip redis-server pkg-config
+
+# pkg-config required for python sepsecp256k1 library, and therefore bolt11 library
 
 ```
 

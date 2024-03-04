@@ -122,20 +122,24 @@ class LLM_MISTRAL(StreamingLLM):
         # for chunk in generator:
         #     # print(chunk)
         #     yield chunk.choices[0].delta.content
-        if self.settings.api_key in [None, ""]:
-            raise Exception("Mistral API key not set.")
+
+        # if self.settings.api_key in [None, ""]:
+            # raise Exception("Mistral API key not set.")
 
         from mistralai.client import MistralClient
         self.client = MistralClient(api_key=self.settings.api_key)
 
 
-        for chunk in self.client.chat_stream(
-            model=self.settings.model,
-            messages=st.session_state.appstate.chat.messages,
-            # safe_mode=st.session_state.user_preferences['mistral_safemode']
-            safe_mode=False
-        ):
-            yield chunk.choices[0].delta.content
+        try:
+            for chunk in self.client.chat_stream(
+                model=self.settings.model,
+                messages=st.session_state.appstate.chat.messages,
+                # safe_mode=st.session_state.user_preferences['mistral_safemode']
+                safe_mode=False
+            ):
+                yield chunk.choices[0].delta.content
+        except Exception as e:
+            yield f"🥺 Oops... my connection failed.  Ensure I have my API key and try again? ({e})"
 
 
 

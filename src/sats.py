@@ -16,7 +16,14 @@ TOKENS_PER_SAT = 30
 # https://github.com/getAlby/js-lightning-tools
 # https://guides.getalby.com/developer-guide/v/lightning-tools/introduction/receiving-bitcoin-payments
 # https://guides.getalby.com/developer-guide/v/alby-wallet-api/reference/authorization
-
+# https://lndecode.com/
+# https://www.bolt11.org/
+# https://lightningdecoder.com/
+# https://github.com/lnbits/bolt11/blob/main/bolt11/decode.py
+# https://github.com/rustyrussell/lightning-payencode/blob/master/lightning-address.py
+# https://github.com/moogmodular/lnapp-starter
+# https://github.com/lightning/bolts/blob/master/11-payment-encoding.md
+# https://github.com/lnbits/lnurl
 
 def charge_user(amount: int = None):
     if amount is None:
