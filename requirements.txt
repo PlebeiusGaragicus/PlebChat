@@ -23,3 +23,7 @@ openai
 google-generativeai
 assemblyai
 mistralai
+
+bolt11
+# bech32
+# bitstring

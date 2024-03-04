@@ -9,6 +9,8 @@ from src.persist import PREFERENCES_PATH
 from src.common import get
 
 
+# https://aistudio.google.com/app/prompts/new_chat
+
 
 
 class GoogleSafetySettings():

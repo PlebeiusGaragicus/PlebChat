@@ -59,7 +59,6 @@ from src.interface.interface import (
 from src.sats import (
     load_sats_balance,
     TOKENS_PER_SAT,
-    display_invoice_link,
     display_invoice_pane
 )
 

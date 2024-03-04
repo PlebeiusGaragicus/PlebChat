@@ -4,6 +4,7 @@ import json
 import requests
 
 import qrcode
+import bolt11
 
 import streamlit as st
 
@@ -36,12 +37,8 @@ def load_sats_balance():
 def display_invoice_link():
     payment_request = get('invoice')['pr']
 
-    # html = f"""<a href="lightning:{payment_request}" target="_blank">Buy tokens with Lightning ⚡️</a>"""
     html = f"""<a href="lightning:{payment_request}" target="_blank">Click to pay with Lightning ⚡️</a>"""
     st.markdown(html, unsafe_allow_html=True)
-
-    # invoice_number = payment_request[:6] + "..." + payment_request[-6:]
-    # st.write(f"Invoice: :green[{invoice_number}]")
 
     generate_qr()
 
@@ -98,7 +95,7 @@ def return_stored_invoice():
             invoice = json.load(f)['invoice']
             # print("INVOICE FILE FOUND:")
             # print(invoice)
-            return invoice
+            # return invoice
 
     except FileNotFoundError:
         return None
@@ -109,6 +106,46 @@ def return_stored_invoice():
         # ALSO... LOG THE ERROR AND SEND IT TO ME!!! look at that one mCoding youtube video
         return None
 
+    pr = invoice['pr']
+    invoice_date = bolt11.decode(pr).date
+    print(f"Invoice created: {invoice_date}")
+
+    amount = bolt11.decode(pr).amount_msat / 1000
+    tags: bolt11.models.tags.Tags = bolt11.decode(pr).tags
+
+    # if not tags.has(bolt11.models.tags.TagChar.description):
+    #     st.error("Invoice is missing a description tag")
+    #     return None
+    
+    if not tags.has(bolt11.models.tags.TagChar.expire_time):
+        print("ERROR: Invoice is missing an expiry tag")
+        # expiry = 86400
+        expiry = 3600 # 60 minutes ... why default to this? Because I'm a bad programmer.
+        # return None
+    else:
+        expiry = tags.get(bolt11.models.tags.TagChar.expire_time).data
+        print(f"Expiry: {expiry} seconds")
+
+    # current time in seconds since epoch
+    now = int(time.time())
+    print(f"Now: {now}")
+    # invoice expiry time in seconds since epoch
+    invoice_expiry = invoice_date + expiry
+    # time remaining in seconds
+    time_remaining = invoice_expiry - now
+    print(f"Time remaining: {time_remaining} seconds")
+
+    # if time_remaining < 0:
+    if time_remaining < 60: # if less than 60 seconds remaining... just consider it expired
+        print("ERROR: Invoice has expired")
+        return None
+
+
+    # print(f"Amount: {amount} sats")
+    # for t in tags:
+    #     print(f"Tag: {t.char} : {t.data}")
+
+    return invoice
 
 
 def display_create_invoice_button():

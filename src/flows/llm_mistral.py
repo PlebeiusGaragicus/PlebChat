@@ -10,6 +10,11 @@ from src.persist import PREFERENCES_PATH
 from src.common import get
 
 
+# https://docs.mistral.ai/platform/client/
+# https://docs.mistral.ai/guides/model-selection/
+
+
+
 # TODO - too many choices... also, should I provide pricing/info for each model...? model info card?
 MISTRAL_MODELS = [
     #     "mistral-large-latest",
