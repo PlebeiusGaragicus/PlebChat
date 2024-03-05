@@ -515,7 +515,7 @@ def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
                 sats_left_placeholder.markdown(f":red[-{total_cost:,.0f}]")
 
             if st.session_state.token_cost_accumulator >= 10:
-                st.session_state.redis_conn.decrby(st.session_state.username, int(st.session_state.token_cost_accumulator))
+                st.session_state.redis_conn.decrby(st.session_state.username, math.floor(st.session_state.token_cost_accumulator))
                 st.session_state.token_cost_accumulator -= 10
 
             if sats_left < -1000:
@@ -524,6 +524,7 @@ def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
             st.session_state.incomplete_stream += chunk
             place_holder.markdown(st.session_state.incomplete_stream)
 
+        st.session_state.redis_conn.decrby(st.session_state.username, math.ceil(st.session_state.token_cost_accumulator))
 
         reply = st.session_state.incomplete_stream
         st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))

@@ -257,9 +257,11 @@ def login_router_page():
     # # print("SLEEPING!!!")
     # with st.expander("Login to plebchat", expanded=False):
 
-    login_button_placeholder = st.empty()
-    login_with_url = str(ASSETS_PATH / "loginwithln.png")
-    login_button_placeholder.image(login_with_url, use_column_width=True)
+    ### LOGIN WITH LIGHTNING IMAGE
+    # login_button_placeholder = st.empty()
+    # login_with_url = str(ASSETS_PATH / "loginwithln.png")
+    # login_button_placeholder.image(login_with_url, use_column_width=True)
+
     # https://blog.streamlit.io/streamlit-authenticator-part-1-adding-an-authentication-component-to-your-app/
     # https://github.com/mkhorasani/Streamlit-Authenticator?ref=blog.streamlit.io
     st.session_state.authenticator.login(location="main", max_concurrent_users=1, fields={
@@ -271,7 +273,7 @@ def login_router_page():
 
     if st.session_state["authentication_status"]:
         # landing_page_container.empty()
-        login_button_placeholder.empty()
+        # login_button_placeholder.empty()
 
         if st.session_state.username == 'root':
             root_panel()
