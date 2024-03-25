@@ -24,6 +24,16 @@ TOKENS_PER_SAT = 30
 # https://github.com/moogmodular/lnapp-starter
 # https://github.com/lightning/bolts/blob/master/11-payment-encoding.md
 # https://github.com/lnbits/lnurl
+# AUTH
+# https://sdk-doc.breez.technology/guide/lnurl_auth.html
+# https://github.com/lightning-login/lnurl-auth-demo/blob/main/app.js
+# https://github.com/lightning-login/lnurl-auth-demo
+# https://lightninglogin.live/login
+# https://github.com/lnurl/luds/blob/legacy/lnurl-auth.md
+# https://github.com/Donate4Fun/donate4fun/blob/cdf047365b7d2df83a952f5bb9544c29051fbdbd/scripts/lnurl-auth-login.py#L4
+# https://github.com/breez/breez-sdk-docs/blob/625456048837e87f62e9b6afd86a9438acc08b06/snippets/python/src/lnurl_auth.py#L5
+# https://github.com/breez/breez-sdk-docs/blob/625456048837e87f62e9b6afd86a9438acc08b06/snippets/python/src/getting_started.py
+
 
 def charge_user(amount: int = None):
     if amount is None:

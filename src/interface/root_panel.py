@@ -11,11 +11,11 @@ from src.chat_history import (
 )
 
 
-def root_panel():
+def root_panel(authenticator):
 # def root_panel():
     st.write("# 🤴🏻 ROOT PANEL")
     # st.session_state.authenticator.logout()
-    # authenticator.logout()
+    authenticator.logout()
     st.session_state.authenticator.logout(f"Logout `{st.session_state.username}`", "main")
     st.header("", divider="rainbow")
 
