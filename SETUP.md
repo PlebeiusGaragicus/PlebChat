@@ -5,8 +5,8 @@ I recommend a dedicated Debian vitrual machine.
 ## `apt-update` and install prerequesties
 
 ```sh
-apt-update
-apt-upgrade -y
+apt-get update
+apt-get upgrade -y
 
 apt-get install -y git curl python3-venv python3-pip redis-server pkg-config
 
