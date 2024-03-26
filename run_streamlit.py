@@ -10,8 +10,6 @@ if __name__ == "__main__":
 
     from src.interface.login import login_router_page
 
-    from src import logger
-    logger.setup_logging()
     import logging
     logging.getLogger("fsevents").setLevel(logging.WARNING)
     logging.getLogger("PIL").setLevel(logging.WARNING)

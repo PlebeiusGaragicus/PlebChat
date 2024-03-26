@@ -3,6 +3,8 @@ import json
 import random
 import math
 
+import redis
+
 import streamlit as st
 from streamlit_pills import pills
 
@@ -54,11 +56,11 @@ from src.interface.interface import (
     centered_button_trick,
 )
 
-# from DEPRECATED.sats import (
-#     load_sats_balance,
-#     TOKENS_PER_SAT,
-#     display_invoice_pane
-# )
+from src.sats import (
+    load_sats_balance,
+    TOKENS_PER_SAT,
+    display_invoice_pane
+)
 
 from src.speech import TTS
 
@@ -133,6 +135,17 @@ def init_if_needed():
     # not sure if this should be here or in main...
     # st.session_state.sats = load_sats_balance()
 
+
+    st.session_state.redis_conn = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+
+    user_sats = st.session_state.redis_conn.get(st.session_state.username)
+
+    if user_sats is None:
+        st.session_state.redis_conn.set(st.session_state.username, 0)
+        st.toast("Welcome to the chat app!", icon="🎉")
+
+
+
     if not_init('speak_this'):
         set('speak_this', None)
 
@@ -165,7 +178,7 @@ def load_proper_flow(construct):
 
 
 
-def main_page():
+def main_page(authenticator):
     # print("\n\n\nRERUN!!!!!!\n")
     cprint("\n\nRERUN!!!!!!\n", Colors.YELLOW)
 
@@ -213,6 +226,9 @@ def main_page():
     with cols2[1]:
         st.toggle("🤖💬", key="read_to_me", value=False)
     
+    with cols2[2]:
+        show_tokens()
+
 
     ### info card
     with st.expander("Information about this AI workflow", expanded=False):
@@ -277,42 +293,47 @@ def main_page():
 
 
 
-    if not get("speech_input"):
-            prompt = st.chat_input("Ask a question.")
+    sats = load_sats_balance()
+    if sats <= 0:
+        st.error("You are out of tokens! Please add more to continue.")
+        prompt = None
     else:
-        # TODO - naive thinking that let me to think having us import here would increase page performance... lol, oh well
-        from streamlit_mic_recorder import speech_to_text
+        if not get("speech_input"):
+                prompt = st.chat_input("Ask a question.")
+        else:
+            # TODO - naive thinking that let me to think having us import here would increase page performance... lol, oh well
+            from streamlit_mic_recorder import speech_to_text
 
-        with centered_button_trick():
-            # https://pypi.org/project/SpeechRecognition/
-            speech_draft = speech_to_text(
-                            start_prompt="🎤 Speak",
-                            stop_prompt="🛑 Stop",
-                            language='en',
-                            use_container_width=True,
-                            just_once=True,
-                            key='STT'
-                    )
-        if st.session_state.confirm_stt is False:
-            prompt = speech_draft
-            speech_draft = None
+            with centered_button_trick():
+                # https://pypi.org/project/SpeechRecognition/
+                speech_draft = speech_to_text(
+                                start_prompt="🎤 Speak",
+                                stop_prompt="🛑 Stop",
+                                language='en',
+                                use_container_width=True,
+                                just_once=True,
+                                key='STT'
+                        )
+            if st.session_state.confirm_stt is False:
+                prompt = speech_draft
+                speech_draft = None
 
-        if speech_draft:
-            with st.container(border=True):
+            if speech_draft:
+                with st.container(border=True):
 
-                st.text_area("You said:", value=speech_draft, key="speech_draft_edit")
+                    st.text_area("You said:", value=speech_draft, key="speech_draft_edit")
 
-                def user_confirms_speech():
-                    st.session_state.speech_confirmed = True
-                    st.session_state.speech_draft = st.session_state.speech_draft_edit
+                    def user_confirms_speech():
+                        st.session_state.speech_confirmed = True
+                        st.session_state.speech_draft = st.session_state.speech_draft_edit
 
-                def user_cancels_speech():
-                    st.session_state.speech_confirmed = False
-                    st.session_state.speech_draft = None
+                    def user_cancels_speech():
+                        st.session_state.speech_confirmed = False
+                        st.session_state.speech_draft = None
 
-                confirms = st.columns((2, 1, 1))
-                confirms[0].button("❌", on_click=user_cancels_speech, use_container_width=True)
-                confirms[2].button("✅", on_click=user_confirms_speech, use_container_width=True)
+                    confirms = st.columns((2, 1, 1))
+                    confirms[0].button("❌", on_click=user_cancels_speech, use_container_width=True)
+                    confirms[2].button("✅", on_click=user_confirms_speech, use_container_width=True)
 
 
 
@@ -401,6 +422,8 @@ def main_page():
 
         st.header("", divider="rainbow")
 
+        display_invoice_pane()
+
         with st.expander("Settings"):#,
             with st.container(border=True):
                 settings_stt()
@@ -410,7 +433,8 @@ def main_page():
             st.divider()
 
             # st.session_state.authenticator.logout(f":red[Logout] `{st.session_state.username}`")
-            st.button(f":red[NUKE DATA 🔥]")
+            authenticator.logout(f":red[Logout] `{st.session_state.username}`")
+            # st.button(f":red[NUKE DATA 🔥]")
 
 
         caption = f"Version :green[{VERSION}] | "
@@ -458,6 +482,10 @@ def main_page():
 
 def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
 
+    sats_left = load_sats_balance()
+    total_cost = 0
+    st.session_state.token_cost_accumulator = 0
+
     avatar_filename = f"{AVATAR_PATH}/{get('construct').avatar_filename}"
     with bots_reply_placeholder.chat_message("assistant", avatar=avatar_filename):
 
@@ -468,8 +496,37 @@ def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
         # reply = st.write_stream(get('construct').run(prompt))
         for chunk in get('construct').run(prompt):
 
+            if chunk is None:
+                num_tokens = 0
+                chunk = ""
+            else:
+                # TODO - this is not accurate, but it's a start
+                num_tokens = len(chunk)
+                # num_tokens = num_tokens_from_string(chunk) # nah.... we'll go by chunk count
+
+            # num_tokens = len(chunk) # OpenAI returns a last token of {...content=None}
+            cost_for_this_chunk = num_tokens / TOKENS_PER_SAT # tokens charged per satoshi
+
+            st.session_state.token_cost_accumulator += cost_for_this_chunk
+            total_cost += cost_for_this_chunk
+            sats_left -= cost_for_this_chunk
+
+            if os.getenv("DEBUG", True):
+                sats_left_placeholder.markdown(f"⚡️ :red[-{total_cost:,.0f}] / :green[{sats_left:,.0f}]")
+            else:
+                sats_left_placeholder.markdown(f":red[-{total_cost:,.0f}]")
+
+            if st.session_state.token_cost_accumulator >= 10:
+                st.session_state.redis_conn.decrby(st.session_state.username, math.floor(st.session_state.token_cost_accumulator))
+                st.session_state.token_cost_accumulator -= 10
+
+            if sats_left < -1000:
+                interrupt()
+
             st.session_state.incomplete_stream += chunk
             place_holder.markdown(st.session_state.incomplete_stream)
+
+        st.session_state.redis_conn.decrby(st.session_state.username, math.ceil(st.session_state.token_cost_accumulator))
 
         reply = st.session_state.incomplete_stream
         st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
@@ -478,11 +535,18 @@ def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
 
 
 def run_graph(prompt, bots_reply_placeholder):
+    # if not hasattr(st.session_state, "redis_conn"):
+    #     st.session_state.redis_conn = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
     if get('construct').graph is None:
         error_reply = "I'm not configured properly... 🥺  Check my settings.  Do I have all my API keys?"
         st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=error_reply))
         return error_reply
 
+
+    #TODO
+    st.session_state.incomplete_stream = "" # so that the interrupt button works... but there's still no token counting!
+    st.session_state.token_cost_accumulator = 0
+    sats_left = load_sats_balance()
 
     avatar_filename = f"{AVATAR_PATH}/{get('construct').avatar_filename}"
     with bots_reply_placeholder.chat_message("assistant", avatar=avatar_filename):
@@ -496,6 +560,18 @@ def run_graph(prompt, bots_reply_placeholder):
                     message = output['messages'][0]
                 except KeyError:
                     message = output
+                # num_tokens = len(message.content) # function calls have no context... so we have to look at the whole LLM output
+                num_tokens = len(str(message)) # NAHH.... # give the user a small discount because some of these tokens are just JSON formatting.
+                cost_for_this_chunk = math.ceil(num_tokens / TOKENS_PER_SAT) # tokens charged per satoshi
+                st.session_state.token_cost_accumulator += cost_for_this_chunk
+                sats_left = st.session_state.redis_conn.decrby(st.session_state.username, cost_for_this_chunk)
+
+                # st.markdown(f":red[{cost_for_this_chunk}]")
+                # content = f":red[{cost_for_this_chunk}]"
+
+                if sats_left < -1000:
+                    interrupt() # TODO does this interrupt???
+
 
                 # <class 'langchain_core.messages.ai.AIMessage'>
                 # <class 'langchain_core.messages.function.FunctionMessage'>
@@ -542,10 +618,21 @@ def run_graph(prompt, bots_reply_placeholder):
 
 
 
+
+def show_tokens():
+    sats = load_sats_balance()
+    if sats is None:
+        sats = 0
+    st.write(f"⚡️ :green[{sats:,.0f}]")
+
+
 def interrupt():
     """ callback for the interrupt button """
     st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=st.session_state.incomplete_stream))
     st.session_state.appstate.chat.messages.append(ChatMessage(role="user", content="<INTERRUPTS>"))
+
+    st.session_state.redis_conn.decrby(st.session_state.username, st.session_state.token_cost_accumulator)
+    st.session_state.token_cost_accumulator = 0
 
     if save_chat_history():
         st.session_state.appstate.load_chat_history()

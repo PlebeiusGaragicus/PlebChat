@@ -41,6 +41,10 @@ def update_persistance(key = None, value = None):
     if key is not None and value is not None:
         st.session_state["persistance"][key] = value
     # st.write(f"updating {key} to {value}...")
+        
+    # ensure persistance directory exists
+    if not PREFERENCES_PATH.exists():
+        PREFERENCES_PATH.mkdir()
 
     persistance_file = PREFERENCES_PATH / f"{get('username')}.json"
     with open(persistance_file, "w") as f:
