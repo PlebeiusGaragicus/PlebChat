@@ -5,8 +5,6 @@ from pydantic import BaseModel
 
 import streamlit as st
 
-from streamlit_modal import Modal
-
 import ollama
 
 from src.flows import StreamingLLM
@@ -128,19 +126,19 @@ class LLM_OLLAMA(StreamingLLM):
             st.write("Available models: https://ollama.com/library")
 
 
-            modal = Modal("Demo Modal", key="demo-modal")
-            open_modal = st.button(":green[model info card]", key="model_info")
-            if open_modal:
-                modal.open()
+            # modal = Modal("Demo Modal", key="demo-modal")
+            # open_modal = st.button(":green[model info card]", key="model_info")
+            # if open_modal:
+            #     modal.open()
 
-            if modal.is_open():
-                with modal.container():
-                    info = ollama.show(self.settings.model)
+            # if modal.is_open():
+            #     with modal.container():
+            #         info = ollama.show(self.settings.model)
 
-                    # format the info JSON
-                    info = json.dumps(info, indent=4)
-                    # st.markdown(info)
-                    st.write(info)
+            #         # format the info JSON
+            #         info = json.dumps(info, indent=4)
+            #         # st.markdown(info)
+            #         st.write(info)
 
             st.write("---")
 

@@ -165,7 +165,7 @@ def load_proper_flow(construct):
 
 
 
-def main_page():
+def main_page(authenticator):
     # print("\n\n\nRERUN!!!!!!\n")
     cprint("\n\nRERUN!!!!!!\n", Colors.YELLOW)
 
@@ -410,7 +410,8 @@ def main_page():
             st.divider()
 
             # st.session_state.authenticator.logout(f":red[Logout] `{st.session_state.username}`")
-            st.button(f":red[NUKE DATA 🔥]")
+            authenticator.logout(f":red[Logout] `{st.session_state.username}`")
+            # st.button(f":red[NUKE DATA 🔥]")
 
 
         caption = f"Version :green[{VERSION}] | "
