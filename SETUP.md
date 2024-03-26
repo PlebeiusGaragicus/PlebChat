@@ -86,9 +86,14 @@ bash generate_auth_yaml.sh
 
 ```sh
 cat << EOF > .env
-TAVILY_API_KEY=
+LANGCHAIN_TRACING_V2=true
+LANGCHAIN_PROJECT="PlebChat development"
 LANGCHAIN_API_KEY=
+
+TAVILY_API_KEY=
 OPENAI_API_KEY=
+MISTRAL_API_KEY=
+GEMINI_API_KEY=
 EOF
 
 nano .env
