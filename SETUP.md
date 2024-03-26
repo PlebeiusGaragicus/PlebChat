@@ -2,6 +2,12 @@
 
 I recommend a dedicated Debian vitrual machine.
 
+## change `root` prompt
+```sh
+echo 'export PS1="\n\[\e[1;35m\](\[\e[1;31m\]\u\[\e[1;35m\]@\[\e[1;34m\]\h\[\e[1;35m\]) [\w]\n\[\e[1;36m\]\$ \[\e[0m\]"' >> ~/.bashrc
+source .bashrc
+```
+
 ## `apt-update` and install prerequesties
 
 ```sh
@@ -11,7 +17,11 @@ apt-get upgrade -y
 apt-get install -y git curl python3-venv python3-pip redis-server pkg-config
 
 # pkg-config required for python sepsecp256k1 library, and therefore bolt11 library
+```
 
+## configure time zone
+```sh
+dpkg-reconfigure tzdata
 ```
 
 ## Configure Redis database
@@ -46,7 +56,7 @@ Then, log out of `root` and log in as this user
 # signal that we are non-root
 echo 'export PS1="\n\[\e[1;35m\](\[\e[1;31m\]\u\[\e[1;35m\]@\[\e[1;34m\]\h\[\e[1;35m\]) [\w] \[\e[33;3m\]\A\[\e[0m\] \[\e[1;36m\]\$ \[\e[0m\]\n"' >> ~/.bashrc
 
-# log out and in again...
+source .bashrc
 ```
 
 ## clone the repo
@@ -58,6 +68,7 @@ cd PlebChat
 
 ## configure the Python virtual environment
 
+note: use 3.10 on MacOS for development, but Debian 12 comes with 3.11, which probably works
 ```sh
 python3 -m venv venv
 source venv/bin/activate
@@ -68,51 +79,7 @@ pip install -r requirements.txt
 ## create user accounts for the application
 
 ```sh
-cat << EOF > auth.yaml
-credentials:
-  usernames:
-    root:
-      email: root@plebby.me
-      name: root
-      password: 
-    satoshi:
-      email: satoshi@plebby.me
-      name: satoshi
-      password: 
-cookie:
-  expiry_days: 7
-  key: plebchat_auth_widget_key
-  name: plebchat_auth
-preauthorized:
-  emails:
-    - root@plebby.me
-EOF
-
-nano auth.yaml
-```
-
->> the above command isn't properly escaped... so here are some stupid default TESTING ONLY hashed passwords to use
-
-```sh
-# toor
-$2b$12$M6w0b2cIDfKU5YA8o4AlQOrMs2npZZOoGUBTDKpTwVYFNbj8ztsDK
-# go
-$2b$12$V9LB8zbysAe/CfHWQlgYs.WXfGIp4MWSzQSYRaUBpoV0Q/VwHeGzC
-```
-
-**Note:** A default `root` user is created with a password of `toor`.  Log in to root and (1) change this default password as well as (2) create additional users.  If you create a `demo` user account then API keys will not be able to be edited or viewed and you can safety allow others to user your app.  Editing of these API keys by root is not yet enabled.  soon...
-
-The passwords are actually "salted" hashes.  Do not put the actual password in the .yaml file.
-
-To save an exit - use Ctrl-X, accept changes with 'y' and press 'Enter'
-
-*How do I generated the salted password hash?*
-
-Good question - run a Python REPL session and enter this code:
-
-```python
-import streamlit_authenticator as stauth
-print(stauth.Hasher([input("Enter password: ")]).generate()[0])
+bash generate_auth_yaml.sh
 ```
 
 ## create the `.env` file with API keys
