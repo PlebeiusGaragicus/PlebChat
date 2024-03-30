@@ -180,7 +180,7 @@ def main_page(authenticator):
     column_fix()
     center_text("p", "🗣️🤖💬", size=60) # or h1, whichever
 
-    return
+    # return
 
     construct_names = [c.name for c in ALL_CONSTRUCTS]
     construct_icons = [c.emoji for c in ALL_CONSTRUCTS]
