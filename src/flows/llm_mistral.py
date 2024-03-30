@@ -1,5 +1,6 @@
-import requests
+import os
 import json
+import requests
 
 from pydantic import BaseModel
 
@@ -44,7 +45,6 @@ MISTRAL_MODELS = [
 class LLM_SETTINGS_MISTRAL(BaseModel):
     model: str = MISTRAL_MODELS[0]
     # temperature: float = 0.7
-    api_key: str = ""
 
 
 class LLM_MISTRAL(StreamingLLM):
@@ -61,7 +61,7 @@ class LLM_MISTRAL(StreamingLLM):
 
         # load settings from file
         try:
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            settings_filename = PREFERENCES_PATH / f"botsettings_{self.name}.json"
             with open(settings_filename, "r") as f:
                 settings = json.loads(f.read())
                 self.settings = LLM_SETTINGS_MISTRAL(**settings)
@@ -125,9 +125,14 @@ class LLM_MISTRAL(StreamingLLM):
 
         # if self.settings.api_key in [None, ""]:
             # raise Exception("Mistral API key not set.")
+        
+        api_key = os.getenv("MISTRAL_API_KEY")
+        if api_key in [None, ""]:
+            st.error("MISTRAL_API_KEY not set in environment variables.")
+            st.stop()
 
         from mistralai.client import MistralClient
-        self.client = MistralClient(api_key=self.settings.api_key)
+        self.client = MistralClient(api_key=api_key)
 
 
         try:
@@ -146,7 +151,7 @@ class LLM_MISTRAL(StreamingLLM):
     
     def display_settings(self):
         def save_settings():
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            settings_filename = PREFERENCES_PATH / f"botsettings_{self.name}.json"
             with open(settings_filename, "w") as f:
                 f.write(json.dumps(self.settings.model_dump()))
 
@@ -162,9 +167,6 @@ class LLM_MISTRAL(StreamingLLM):
             # st.selectbox("Model", options=self.model_list, key="model", index=self.model_list.index(self.settings.model), on_change=update, args=("model",))
             # st.slider("Temperature", min_value=0.0, max_value=1.0, key="temperature", value=self.settings.temperature, on_change=update, args=("temperature",))
 
-            # if get("username") == "satoshi": # TODO - don't hardcode... also, this is just a temp workaround
-            with st.expander(":blue[API KEYS]", expanded=False):
-                st.text_input(":blue[MISTRAL_API_KEY]", key="api_key", value=self.settings.api_key, on_change=update, args=("api_key",))
         except ValueError:
             self.settings = LLM_SETTINGS_MISTRAL()
             save_settings() # might this cause endless recursion?

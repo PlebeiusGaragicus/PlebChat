@@ -37,9 +37,6 @@ from src.flows import ChatThread
 
 
 def init():
-    if not_init('username'):
-        st.session_state.username = "satoshi"
-
     if not_init('thread'):
         st.session_state.thread = ChatThread()
     

@@ -44,7 +44,7 @@ from src.user_preferences import (
     load_settings,
 )
 
-from src.interface.interface import (
+from src.interface import (
     column_fix,
     center_text,
     centered_button_trick,
@@ -114,8 +114,6 @@ class ChatAppVars:
 
 
 def init_if_needed():
-    # st.session_state.runlog_dir = os.path.join(os.getcwd(), "runlog", st.session_state.username)
-
     # initialize the appstate on first run
     if not_init('appstate'):
         try:
@@ -161,7 +159,7 @@ def load_proper_flow(construct):
 
 
 
-def main_page(authenticator):
+def main_page():
     # print("\n\n\nRERUN!!!!!!\n")
     cprint("\n\nRERUN!!!!!!\n", Colors.YELLOW)
 
@@ -375,7 +373,8 @@ def main_page(authenticator):
 
     ######################  SIDEBAR  ######################
     if not_init('runlog_dir'):
-        st.session_state.runlog_dir = os.path.join(os.getcwd(), "runlog", st.session_state.username)
+        # st.session_state.runlog_dir = os.path.join(os.getcwd(), "runlog", st.session_state.username)
+        st.session_state.runlog_dir = os.path.join(os.getcwd(), "runlog")
     appstate.load_chat_history()
     
 
@@ -409,7 +408,7 @@ def main_page(authenticator):
             st.divider()
 
             # st.session_state.authenticator.logout(f":red[Logout] `{st.session_state.username}`")
-            authenticator.logout(f":red[Logout] `{st.session_state.username}`")
+            # authenticator.logout(f":red[Logout] `{st.session_state.username}`")
             # st.button(f":red[NUKE DATA 🔥]")
 
 

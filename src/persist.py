@@ -21,7 +21,8 @@ def load_persistance():
         return
         # set("persistance", {})
 
-    persistance_file = PREFERENCES_PATH / f"{get('username')}.json"
+    # persistance_file = PREFERENCES_PATH / f"{get('username')}.json"
+    persistance_file = PREFERENCES_PATH / "preferences.json"
     try:
         with open(persistance_file, "r") as f:  # Change "w" to "r"
             set("persistance", json.loads(f.read()))
@@ -46,7 +47,8 @@ def update_persistance(key = None, value = None):
     if not PREFERENCES_PATH.exists():
         PREFERENCES_PATH.mkdir()
 
-    persistance_file = PREFERENCES_PATH / f"{get('username')}.json"
+    # persistance_file = PREFERENCES_PATH / f"{get('username')}.json"
+    persistance_file = PREFERENCES_PATH / "preferences.json"
     with open(persistance_file, "w") as f:
         f.write(json.dumps(get("persistance")))
 

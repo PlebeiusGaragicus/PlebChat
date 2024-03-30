@@ -54,7 +54,7 @@ class echobot(testing_echobot):
         self._is_setup = True
         # load settings from file
         try:
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            settings_filename = PREFERENCES_PATH / f"botsettings_{self.name}.json"
             with open(settings_filename, "r") as f:
                 settings = json.loads(f.read())
                 self.settings = echobot_settings(**settings)
@@ -75,7 +75,7 @@ class echobot(testing_echobot):
             self.settings.__dict__[key] = new_value
 
             # save to file
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            settings_filename = PREFERENCES_PATH / f"botsettings_{self.name}.json"
             with open(settings_filename, "w") as f:
                 f.write(json.dumps(self.settings.model_dump()))
 
@@ -106,7 +106,7 @@ class dummybot(testing_echobot):
 
         # load settings from file
         try:
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            settings_filename = PREFERENCES_PATH / f"botsettings_{self.name}.json"
             with open(settings_filename, "r") as f:
                 settings = json.loads(f.read())
                 self.settings = echobot_settings(**settings)
@@ -126,7 +126,7 @@ class dummybot(testing_echobot):
             self.settings.__dict__[key] = new_value
 
             # save to file
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            settings_filename = PREFERENCES_PATH / f"botsettings_{self.name}.json"
             with open(settings_filename, "w") as f:
                 f.write(json.dumps(self.settings.model_dump()))
 
@@ -153,7 +153,7 @@ class tommybot(testing_echobot):
 
         # load settings from file
         try:
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            settings_filename = PREFERENCES_PATH / f"botsettings_{self.name}.json"
             with open(settings_filename, "r") as f:
                 settings = json.loads(f.read())
                 self.settings = echobot_settings(**settings)
@@ -173,7 +173,7 @@ class tommybot(testing_echobot):
             self.settings.__dict__[key] = new_value
             
             # save to file
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            settings_filename = PREFERENCES_PATH / f"botsettings_{self.name}.json"
             with open(settings_filename, "w") as f:
                 f.write(json.dumps(self.settings.model_dump()))
 

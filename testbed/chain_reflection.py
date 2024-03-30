@@ -69,7 +69,7 @@ class ChainReflectionBot(LangChainConstruct):
         self._is_setup = True # TODO - deprecate this.
 
         try:
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            settings_filename = PREFERENCES_PATH / f"botsettings_{self.name}.json"
             with open(settings_filename, "r") as f:
                 settings = json.loads(f.read())
                 # TODO - can I move this boilerplate function into the base class?
@@ -80,7 +80,7 @@ class ChainReflectionBot(LangChainConstruct):
 
         
         try:
-            workflows_filename = PREFERENCES_PATH / f"{get('username')}_workflows_{self.name}.json"
+            workflows_filename = PREFERENCES_PATH / f"workflows_{self.name}.json"
             with open(workflows_filename, "r") as f:
                 all_workflows = json.loads(f.read())
                 # TODO - can I move this boilerplate function into the base class?
@@ -118,7 +118,7 @@ class ChainReflectionBot(LangChainConstruct):
             self.settings.__dict__[key] = new_value
 
             # save to file
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            settings_filename = PREFERENCES_PATH / f"botsettings_{self.name}.json"
             with open(settings_filename, "w") as f:
                 f.write(json.dumps(self.settings.model_dump()))
 
@@ -159,7 +159,7 @@ class ChainReflectionBot(LangChainConstruct):
                     self.all_workflows.workflows[self.all_workflows.selected_workflow_index].__dict__[key] = f"{new_value}_{random.randint(100, 999)}"
 
             # save to file
-            workflows_filename = PREFERENCES_PATH / f"{get('username')}_workflows_{self.name}.json"
+            workflows_filename = PREFERENCES_PATH / f"workflows_{self.name}.json"
             with open(workflows_filename, "w") as f:
                 f.write(json.dumps(self.all_workflows.model_dump()))
 
@@ -179,7 +179,7 @@ class ChainReflectionBot(LangChainConstruct):
             self.all_workflows.workflows.append(current_wf)
             self.all_workflows.selected_workflow_index = len(self.all_workflows.workflows) - 1
 
-            workflows_filename = PREFERENCES_PATH / f"{get('username')}_workflows_{self.name}.json"
+            workflows_filename = PREFERENCES_PATH / f"workflows_{self.name}.json"
             with open(workflows_filename, "w") as f:
                 f.write(json.dumps(self.all_workflows.model_dump()))
 
@@ -194,7 +194,7 @@ class ChainReflectionBot(LangChainConstruct):
             if len(self.all_workflows.workflows) == 0:
                 self.all_workflows.workflows.append(SingleWorkflowConfig())
 
-            workflows_filename = PREFERENCES_PATH / f"{get('username')}_workflows_{self.name}.json"
+            workflows_filename = PREFERENCES_PATH / f"workflows_{self.name}.json"
             with open(workflows_filename, "w") as f:
                 f.write(json.dumps(self.all_workflows.model_dump()))
 

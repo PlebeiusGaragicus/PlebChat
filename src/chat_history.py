@@ -27,8 +27,8 @@ def load_convo(runlog):
     st.toast(f"Loading {runlog}...")
 
     # load the runlog file
-    # os.path.join(os.getcwd(), "runlog", st.session_state.username)
-    dir = os.path.join(os.getcwd(), "runlog", st.session_state.username, get('construct').name)
+    # dir = os.path.join(os.getcwd(), "runlog", st.session_state.username, get('construct').name)
+    dir = os.path.join(os.getcwd(), "runlog", get('construct').name)
     with open(os.path.join(dir, runlog), "r") as f:
         file_contents = json.load(f)
 

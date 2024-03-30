@@ -137,9 +137,7 @@ def settings_stt():
             key="assemblyai_api_key",
             value=st.session_state.user_preferences["assemblyai_api_key"],
             on_change=save_user_preferences,
-            kwargs={"update_key": "assemblyai_api_key"},
-            disabled=(st.session_state.username == 'demo'),
-            type='password' if st.session_state.username == 'demo' else 'default'
+            kwargs={"update_key": "assemblyai_api_key"}
         )
     
     #NOTE: This has to be high in the flow as it is used for speech generation
@@ -197,9 +195,7 @@ def settings_tts():
                 key="openai_api_key",
                 value=st.session_state.user_preferences["openai_api_key"],
                 on_change=save_user_preferences,
-                kwargs={"update_key": "openai_api_key"},
-                disabled=(st.session_state.username == 'demo'),
-                type='password' if st.session_state.username == 'demo' else 'default'
+                kwargs={"update_key": "openai_api_key"}
             )
 
 

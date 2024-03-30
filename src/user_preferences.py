@@ -41,7 +41,7 @@ def load_settings():
 
     if 'user_preferences' not in st.session_state:
         try:
-            preferences_file = PREFERENCES_PATH / f"{appstate.username}.yaml"
+            preferences_file = PREFERENCES_PATH / "settings.yaml"
             appstate.user_preferences = yaml.load(open(preferences_file), Loader=yaml.loader.SafeLoader)
 
         except FileNotFoundError:
@@ -73,7 +73,7 @@ def save_user_preferences(update_key=None, toggle_key=None):
     if update_key is not None:
         st.session_state.user_preferences[update_key] = st.session_state[update_key]
 
-    preferences_file = PREFERENCES_PATH / f"{st.session_state.username}.yaml"
+    preferences_file = PREFERENCES_PATH / "settings.yaml"
     with open(preferences_file, "w") as f:
         yaml.dump(st.session_state.user_preferences, f)
 

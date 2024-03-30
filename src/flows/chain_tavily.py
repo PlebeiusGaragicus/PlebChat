@@ -52,7 +52,7 @@ class TavilyBot(LangChainConstruct):
 
         # load settings from file
         try:
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            settings_filename = PREFERENCES_PATH / f"botsettings_{self.name}.json"
             with open(settings_filename, "r") as f:
                 settings = json.loads(f.read())
                 self.settings = TavilyBotSettings(**settings)
@@ -68,7 +68,7 @@ class TavilyBot(LangChainConstruct):
             self.settings.__dict__[key] = new_value
 
             # save to file
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            settings_filename = PREFERENCES_PATH / f"botsettings_{self.name}.json"
             with open(settings_filename, "w") as f:
                 f.write(json.dumps(self.settings.model_dump()))
 
