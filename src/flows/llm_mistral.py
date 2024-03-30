@@ -162,9 +162,9 @@ class LLM_MISTRAL(StreamingLLM):
             # st.selectbox("Model", options=self.model_list, key="model", index=self.model_list.index(self.settings.model), on_change=update, args=("model",))
             # st.slider("Temperature", min_value=0.0, max_value=1.0, key="temperature", value=self.settings.temperature, on_change=update, args=("temperature",))
 
-            if get("username") == "satoshi": # TODO - don't hardcode... also, this is just a temp workaround
-                with st.expander(":blue[API KEYS]", expanded=False):
-                    st.text_input(":blue[MISTRAL_API_KEY]", key="api_key", value=self.settings.api_key, on_change=update, args=("api_key",))
+            # if get("username") == "satoshi": # TODO - don't hardcode... also, this is just a temp workaround
+            with st.expander(":blue[API KEYS]", expanded=False):
+                st.text_input(":blue[MISTRAL_API_KEY]", key="api_key", value=self.settings.api_key, on_change=update, args=("api_key",))
         except ValueError:
             self.settings = LLM_SETTINGS_MISTRAL()
             save_settings() # might this cause endless recursion?

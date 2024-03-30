@@ -285,7 +285,7 @@ def login_router_page():
         config["cookie"]["name"],
         config["cookie"]["key"],
         config["cookie"]["expiry_days"],
-        # config["preauthorized"],
+        config["pre-authorized"],
     )
     # https://blog.streamlit.io/streamlit-authenticator-part-1-adding-an-authentication-component-to-your-app/
     # https://github.com/mkhorasani/Streamlit-Authenticator?ref=blog.streamlit.io

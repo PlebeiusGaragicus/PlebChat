@@ -1,18 +1,11 @@
 __pycache__
 venv/
 
-.env*
-*.env
+.env
 *.yaml
 
 .DS_Store
 
 runlog/
 
-.shh
-
 preferences/*
-
-# *.invoice*
-
-invoices/

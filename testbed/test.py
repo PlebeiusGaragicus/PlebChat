@@ -58,10 +58,13 @@ def main_page():
     #### TODO init construct here, if not
     init()
 
-    with st.expander("message history", expanded=False):
-        st.write(get('thread').messages)
-    with st.expander("debug", expanded=False):
-        st.write(get('construct').settings)
+    cols2 = st.columns((1, 1))
+    with cols2[0]:
+        with st.popover("message history"):
+            st.write(get('thread').messages)
+    with cols2[1]:
+        with st.popover("debug"):
+            st.write(get('construct').settings)
 
     if get('construct').agentic:
         with st.container(border=True):
@@ -270,6 +273,5 @@ def invoke_graph(prompt, bots_reply_placeholder):
 
 
 def main():
-    # st.write("main()")
     cprint("\n\nRERUN!!!!!!\n", Colors.RED)
     main_page()

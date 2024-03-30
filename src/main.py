@@ -180,6 +180,8 @@ def main_page(authenticator):
     column_fix()
     center_text("p", "🗣️🤖💬", size=60) # or h1, whichever
 
+    return
+
     construct_names = [c.name for c in ALL_CONSTRUCTS]
     construct_icons = [c.emoji for c in ALL_CONSTRUCTS]
     pill_index = get("persistance")['chosen_pill']
@@ -223,7 +225,8 @@ def main_page(authenticator):
 
 
     if os.getenv("DEBUG", False):
-        with st.expander(":red[Debug] ❤️‍🩹", expanded=False):
+        # with st.expander(":red[Debug] ❤️‍🩹", expanded=False):
+        with st.popover("🔧 :red[Debug]"):
             debug_placeholder = st.container()
             debug_placeholder.write(get("construct"))
             debug_placeholder.write(st.session_state.appstate.chat.messages)
@@ -383,7 +386,7 @@ def main_page(authenticator):
     with st.sidebar:
         st.header("", divider="rainbow")
         # st.write("## :rainbow[Past Conversations]")
-        st.write("## :orange[Past Conversations]")
+        st.write("## :orange[Conversation History]")
 
         if len(appstate.chat.messages) > 0:
             sidebar_new_button_placeholder = st.columns((1, 1))
@@ -420,9 +423,6 @@ def main_page(authenticator):
         caption += "by PlebbyG 🧑🏻‍💻"
         st.caption(caption)
 
-
-        with st.expander("API Keys"):
-            st.write("here")
 
 
     # we don't use an expander becuase the construct settings may need to have one

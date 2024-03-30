@@ -205,7 +205,7 @@ class ChainReflectionBot(LangChainConstruct):
 
         cols2 = st.columns((1, 1))
         with cols2[0]:
-            st.button(":green[Copy this Workflow]", on_click=save_as_new)
+            st.button(":green[Duplicate Workflow]", on_click=save_as_new)
         with cols2[1]:
             st.button(":red[Delete Workflow]", on_click=delete_workflow)
         st.divider()
