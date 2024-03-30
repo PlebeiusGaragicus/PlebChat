@@ -14,10 +14,6 @@ from langchain_core.messages.ai import AIMessage
 from langchain_core.messages.function import FunctionMessage
 
 
-import logging
-log = logging.getLogger(__file__)
-
-
 from src.VERSION import VERSION
 from src.common import (
     ASSETS_PATH,
