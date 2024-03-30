@@ -20,7 +20,8 @@ if __name__ == "__main__":
     # logging.getLogger("httpcore.connection").setLevel(logging.WARNING)
 
 
-    from src.main import init_if_needed, main_page
+    # from src.main import init_if_needed, main_page
+    # init_if_needed()
 
-    init_if_needed()
+    from src.main import main_page
     main_page()
