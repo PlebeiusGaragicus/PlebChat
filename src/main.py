@@ -174,6 +174,8 @@ def main_page():
     column_fix()
     center_text("p", "🗣️🤖💬", size=60) # or h1, whichever
 
+    pills("always here", ["always", "here"])
+
     # return
 
     construct_names = [c.name for c in ALL_CONSTRUCTS]
