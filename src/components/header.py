@@ -24,6 +24,18 @@ from src.common import (
 
 
 
+
+def cmp_intro():
+    if is_init("construct"):
+        return
+
+    st.markdown("## Welcome to :rainbow[PlebChat!]")
+    # with centered_button_trick():
+        # st.image(f"{ASSETS_PATH}/" + "assistant2sm.png")
+
+
+
+
 def cmp_header():
     st.set_page_config(
         # page_title="DEBUG!" if os.getenv("DEBUG", False) else "NOS4A2",
@@ -39,13 +51,9 @@ def cmp_header():
 
 
 
-
-
 def cmp_pills():
     construct_names = [c.name for c in ALL_CONSTRUCTS]
     construct_icons = [c.emoji for c in ALL_CONSTRUCTS]
-    # pill_index = get("persistance")['chosen_pill']
-    # if we play around in debug and switch to production, we need to make sure we don't go out of bounds
 
     if not_init("selected_construct"):
         set("selected_construct", None)
@@ -55,8 +63,10 @@ def cmp_pills():
                     icons=construct_icons,
                     clearable=True,
                     index=None,
-                    # key="pill_key"
                 )
+
+    st.header("", divider="rainbow")
+
 
     if selected is None:
         st.toast("Select a construct workflow to continue")
@@ -69,9 +79,16 @@ def cmp_pills():
         return
 
 
+    # selected pill is same as last run... return
+    if selected == get("selected_construct"):
+        return
 
-    if selected != get("selected_construct"):
-        st.session_state.selected_construct = selected
-        st.toast("New selected construct!")
-        
-        st.session_state.construct = selected
+    st.session_state.selected_construct = selected
+    st.toast("New selected construct!")
+
+    for Construct in ALL_CONSTRUCTS:
+        if Construct.name == selected:
+            st.session_state["construct"] = Construct()
+            st.rerun() # we need this to reload the page with the new construct
+    else:
+        raise Exception(f"Unknown construct: {selected} - fix this!")
