@@ -66,7 +66,7 @@ class LLM_OLLAMA(StreamingLLM):
         # TODO put a loading bar here... it might take a long time!!!
         ollama.pull(self.settings.model)
 
-        smsg = [serialize_messages(m) for m in st.session_state.appstate.chat.messages]
+        smsg = [serialize_messages(m) for m in st.session_state.thread.messages]
         client = ollama.chat(
                 model=self.settings.model,
                 messages=smsg,

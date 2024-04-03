@@ -12,11 +12,9 @@ from src.common import (
     not_init,
     get,
     set,
-    cprint,
+    cprint, 
     Colors,
 )
-
-from src.appstate import ChatAppVars
 
 from src.components.header import cmp_header, cmp_pills, cmp_intro
 from src.components.construct_settings import cmp_construct_settings
@@ -35,8 +33,10 @@ def cmp_debug():
             debug_placeholder = st.container()
             st.write(st.session_state)
             if is_init("construct"):
-                debug_placeholder.write(get("construct"))
-            debug_placeholder.write(st.session_state.appstate.chat.messages)
+                with st.popover("Construct"):
+                    st.write(get("construct"))
+            if is_init("thread"):
+                debug_placeholder.write(st.session_state.thread.messages)
 
 
 
@@ -45,8 +45,8 @@ def cmp_debug():
 def main_page():
     cprint("\n\nRERUN!!!!!!\n", Colors.YELLOW)
 
-    if not_init('appstate'):
-        st.session_state.appstate: ChatAppVars = ChatAppVars()
+    # if not_init('appstate'):
+        # st.session_state.appstate: ChatAppVars = ChatAppVars()
 
     cmp_header()
     cmp_pills()

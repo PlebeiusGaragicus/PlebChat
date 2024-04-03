@@ -82,7 +82,7 @@ class LLM_OPENAI_GPT(StreamingLLM):
         try:
             generator = client.chat.completions.create(
                 model=self.settings.model,
-                messages=st.session_state.appstate.chat.messages,
+                messages=st.session_state.thread.messages,
                 stream=True,
             )
         # except openai._exceptions.OpenAIError:

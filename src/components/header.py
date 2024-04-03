@@ -89,6 +89,7 @@ def cmp_pills():
     for Construct in ALL_CONSTRUCTS:
         if Construct.name == selected:
             st.session_state["construct"] = Construct()
-            st.rerun() # we need this to reload the page with the new construct
-    else:
+            # st.rerun() # we need this to reload the page with the new construct
+
+    if get("construct") is None:
         raise Exception(f"Unknown construct: {selected} - fix this!")

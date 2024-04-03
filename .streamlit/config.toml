@@ -44,7 +44,10 @@ showErrorDetails = true
 base = "dark"
 
 # Primary accent color for interactive elements.
-primaryColor = "orange"
+primaryColor = "#FF7F50"
+# TODO
+# https://htmlcolorcodes.com/colors/shades-of-orange/
+#FFAC1C
 
 # Background color for the main content area.
 # backgroundColor = "blue"

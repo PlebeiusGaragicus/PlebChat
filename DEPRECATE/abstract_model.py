@@ -40,7 +40,7 @@ class Echobot(AbstractModel):
 
     def get_client(self):
         time.sleep(0.5)
-        echo = st.session_state.appstate.chat.messages[-1].content
+        echo = st.session_state.thread.messages[-1].content
 
         # split the message into words
         echo = echo.split(" ")
@@ -56,7 +56,7 @@ class Echobot(AbstractModel):
             yield f"{c} "
 
     def get_description(self):
-        content = st.session_state.appstate.chat.messages[0].content
+        content = st.session_state.thread.messages[0].content
         # return first 3 words, at most
         return " ".join(content.split(" ")[:4])
 
@@ -82,7 +82,7 @@ class MistralAPI(AbstractModel):
     def get_client(self):
         return self.client.chat_stream(
             model=st.session_state.user_preferences['mistral_model'],
-            messages=st.session_state.appstate.chat.messages,
+            messages=st.session_state.thread.messages,
             safe_mode=st.session_state.user_preferences['mistral_safemode']
         )
 
@@ -95,7 +95,7 @@ class MistralAPI(AbstractModel):
         messages = [
             ChatMessage(
                 role="user",
-                content=f"Reduce the following user query into 3 to 4 key words: `{st.session_state.appstate.chat.messages[0].content}`\nDo not answer questions. Your reply MUST be no more than 4 words!"
+                content=f"Reduce the following user query into 3 to 4 key words: `{st.session_state.thread.messages[0].content}`\nDo not answer questions. Your reply MUST be no more than 4 words!"
             )
         ]
 
@@ -114,7 +114,7 @@ class MistralLocal(AbstractModel):
 
     def get_client(self):
         import ollama
-        smsg = [serialize_messages(m) for m in st.session_state.appstate.chat.messages]
+        smsg = [serialize_messages(m) for m in st.session_state.thread.messages]
         return ollama.chat(
                 model='mistral',
                 messages=smsg,
@@ -127,7 +127,7 @@ class MistralLocal(AbstractModel):
             yield c['message']['content']
 
     def get_description(self):
-        content = st.session_state.appstate.chat.messages[0].content
+        content = st.session_state.thread.messages[0].content
         return " ".join(content.split(" ")[:4])
 
 
@@ -150,7 +150,7 @@ class OpenAIAPI(AbstractModel):
     def get_client(self):
         return self.client.chat.completions.create(
             model="gpt-4",
-            messages=st.session_state.appstate.chat.messages,
+            messages=st.session_state.thread.messages,
             stream=True,
         )
 
@@ -162,7 +162,7 @@ class OpenAIAPI(AbstractModel):
 
 
     def get_description(self):
-        content = st.session_state.appstate.chat.messages[0].content
+        content = st.session_state.thread.messages[0].content
         # return first 3 words, at most
         return " ".join(content.split(" ")[:4])
 

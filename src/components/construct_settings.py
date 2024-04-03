@@ -22,6 +22,7 @@ from src.common import (
 )
 
 
+# https://stackoverflow.com/questions/69492406/streamlit-how-to-display-buttons-in-a-single-line
 def cmp_construct_settings():
     if not_init("construct"):
         return

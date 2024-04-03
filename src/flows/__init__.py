@@ -20,10 +20,7 @@ class ChatThread:
 
 
 class AIWorkflowAbsctractConstruct:
-    # name: str = "unnamed"
-    # emoji: str = "🤖"
     avatar_filename: str = "assistant.png"
-    # preamble: str = "I'm a bot!"
 
     def __init__(self):
         self._is_setup = False

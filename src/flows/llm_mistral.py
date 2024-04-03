@@ -109,7 +109,7 @@ class LLM_MISTRAL(StreamingLLM):
         # try:
         #     generator = client.chat.completions.create(
         #         model=self.settings.model,
-        #         messages=st.session_state.appstate.chat.messages,
+        #         messages=st.session_state.thread.messages,
         #         stream=True,
         #     )
         # # except openai._exceptions.OpenAIError:
@@ -138,7 +138,7 @@ class LLM_MISTRAL(StreamingLLM):
         try:
             for chunk in self.client.chat_stream(
                 model=self.settings.model,
-                messages=st.session_state.appstate.chat.messages,
+                messages=st.session_state.thread.messages,
                 # safe_mode=st.session_state.user_preferences['mistral_safemode']
                 safe_mode=False
             ):
