@@ -4,7 +4,6 @@ import random
 import math
 
 import streamlit as st
-from streamlit_pills import pills
 
 from mistralai.models.chat_completion import ChatMessage
 
@@ -44,19 +43,7 @@ from src.user_preferences import (
     load_settings,
 )
 
-from src.interface import (
-    column_fix,
-    center_text,
-    centered_button_trick,
-)
-
-# from DEPRECATED.sats import (
-#     load_sats_balance,
-#     TOKENS_PER_SAT,
-#     display_invoice_pane
-# )
-
-from src.speech import TTS
+from src.interface import centered_button_trick
 
 from src.persist import load_persistance, update_persistance
 
@@ -64,10 +51,8 @@ from src.flows import ChatThread
 
 
 
-# TODO
-# CONSTRUCTS = ["echobot", "tommybot", "dummybot", "tavily"]
-from src.flows.constructs import ALL_CONSTRUCTS
-
+from src.components.header import cmp_header, cmp_pills
+from src.components.settings import cmp_construct_settings
 
 
 
@@ -119,39 +104,9 @@ class ChatAppVars:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-def the_rest():
-    ### info card
-    with st.expander("Information about this AI workflow", expanded=False):
-        # if construct:
-        get('construct').display_model_card()
-
-    st.header("", divider="rainbow")
-
-
-
-    if os.getenv("DEBUG", False):
-        # with st.expander(":red[Debug] ❤️‍🩹", expanded=False):
-        with st.popover("🔧 :red[Debug]"):
-            debug_placeholder = st.container()
-            # if construct:
-            debug_placeholder.write(get("construct"))
-            debug_placeholder.write(st.session_state.appstate.chat.messages)
-
-
-
+def cmp_chat():
+    if not_init("construct"):
+        return
 
     human_avatar = f"{AVATAR_PATH}/user0.png"
     ai_avatar = f"{AVATAR_PATH}/{get('construct').avatar_filename}"
@@ -170,23 +125,38 @@ def the_rest():
 
 
 
+def cmp_intro():
+    if is_init("construct"):
+        return
+
+    st.markdown("## Welcome to :rainbow[PlebChat!]")
+    # with centered_button_trick():
+        # st.image(f"{ASSETS_PATH}/" + "assistant2sm.png")
 
 
 
 
+def cmp_debug():
+    # if os.getenv("DEBUG", False):
 
-
+    with st.sidebar:
+        # with st.popover("🔧 :red[Debug]"):
+        with st.expander("debug", expanded=True):
+            debug_placeholder = st.container()
+            st.write(st.session_state)
+            if is_init("construct"):
+                debug_placeholder.write(get("construct"))
+            debug_placeholder.write(st.session_state.appstate.chat.messages)
 
 
 
 
 
 def main_page():
-    # print("\n\n\nRERUN!!!!!!\n")
     cprint("\n\nRERUN!!!!!!\n", Colors.YELLOW)
 
-    load_persistance()
-    load_settings()
+    # load_persistance()
+    # load_settings()
 
     if not_init('appstate'):
         st.session_state.appstate: ChatAppVars = ChatAppVars()
@@ -194,41 +164,15 @@ def main_page():
     appstate = st.session_state.appstate
 
 
+    cmp_header()
 
-    ################### TOP OF MAIN CHAT ###################
-    column_fix()
-    center_text("p", "🗣️🤖💬", size=60) # or h1, whichever
+    cmp_pills()
+    st.header("", divider="rainbow")
 
-    pills("always here", ["always", "here"])
-
-    # return
-
-    construct_names = [c.name for c in ALL_CONSTRUCTS]
-    construct_icons = [c.emoji for c in ALL_CONSTRUCTS]
-    # pill_index = get("persistance")['chosen_pill']
-    # if we play around in debug and switch to production, we need to make sure we don't go out of bounds
-
-    construct = pills(label="Choose an AI workflow:",
-                    options=construct_names,
-                    icons=construct_icons,
-                    # clearable=True,
-                    # index=None,
-                    key="selected_construct"
-                )
+    cmp_construct_settings()
 
 
-    st.caption(f"Construct: {construct}")
+    cmp_intro()
+    cmp_chat()
 
-    if get("selected_construct"):
-
-
-    # if construct:
-        st.caption(f"Construct: {construct}")
-
-    # if construct:
-        # load_proper_flow(construct)
-
-
-        the_rest()
-
-
+    cmp_debug()
