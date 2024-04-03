@@ -30,13 +30,8 @@ def cmp_construct_settings():
     cols = st.columns((1, 1, 1, 2))
 
     with cols[0].popover(":orange[𝚯] Hyperparameters"):
-        st.write("...go here")
+        # st.write("...go here")
+        get('construct').display_settings()
 
-    # with cols[1].popover("Construct Info"):
-    #     st.write("yes")
-
-
-    ### info card
-    # with st.expander("Information about this AI workflow", expanded=False):
-        # if construct:
-        # get('construct').display_model_card()
+    with cols[1].popover(":green[✔️] Model"):
+        get('construct').display_model_card()

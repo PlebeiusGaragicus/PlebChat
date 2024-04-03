@@ -49,49 +49,8 @@ def main_page():
 
 
 
-    # TODO - turn this into a settings
-    if os.getenv("DEBUG", False):
-        human_avatar = f"{AVATAR_PATH}/user69.png"
-    else:
-        human_avatar = f"{AVATAR_PATH}/user0.png"
 
-    # ai_avatar = f"{AVATAR_PATH}/assistant.png"
-    ai_avatar = f"{AVATAR_PATH}/{get('construct').avatar_filename}"
-
-    for message in appstate.chat.messages:
-        with st.chat_message(message.role, avatar=ai_avatar if message.role == "assistant" else human_avatar):
-            st.markdown(message.content)
-
-    # This is so that we can later populate with the users' next prompt
-    # and the bots reply and allows the input field (or start recording button)
-    # to be at the bottom of the page
-    my_next_prompt_placeholder = st.empty()
-    cols2 = st.columns((1, 1))
-    with cols2[0]:
-        interrupt_button_placeholder = st.empty()
-    with cols2[1]:
-        sats_left_placeholder = st.empty()
-    # thinking_placeholder = st.empty()
-    bots_reply_placeholder = st.empty()
-    before_speech_placeholder = st.empty()
-
-    # if len(appstate.chat.messages) > 0:
-    #     st.header("", divider="rainbow")
-
-
-
-
-
-
-    ################### TOP OF SIDEBAR ###################
-    construct_settings_placeholder = st.sidebar.empty()
-
-
-    #### USER PROMPT AND ASSOCIATED LOGIC
-    prompt = None
-    if 'speech_draft' not in st.session_state:
-        st.session_state.speech_draft = None
-        st.session_state.speech_confirmed = False
+    
 
 
     prompt = st.chat_input("Ask a question.")
@@ -150,26 +109,6 @@ def main_page():
 
 
 
-
-
-def run_prompt(prompt, bots_reply_placeholder, sats_left_placeholder):
-
-    avatar_filename = f"{AVATAR_PATH}/{get('construct').avatar_filename}"
-    with bots_reply_placeholder.chat_message("assistant", avatar=avatar_filename):
-
-        st.session_state.incomplete_stream = ""
-        place_holder = st.empty()
-
-        # we don't want to use write_stream because we need to keep track of the cost (and other things), as we go.
-        # reply = st.write_stream(get('construct').run(prompt))
-        for chunk in get('construct').run(prompt):
-
-            st.session_state.incomplete_stream += chunk
-            place_holder.markdown(st.session_state.incomplete_stream)
-
-        reply = st.session_state.incomplete_stream
-        st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=reply))
-        return reply
 
 
 

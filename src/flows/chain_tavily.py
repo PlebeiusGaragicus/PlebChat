@@ -108,13 +108,13 @@ class TavilyBot(LangChainConstruct):
 
 def compile_runnable(settings: TavilyBotSettings):
     # check the settings to ensure that all needed API keys are set
-    if not settings.TAVILY_API_KEY:
-        st.error("TAVILY_API_KEY is not set!")
-        return None
-        # raise ValueError("TAVILY_API_KEY is not set!")
-    if not settings.OPENAI_API_KEY:
-        st.error("OPENAI_API_KEY is not set!")
-        return None
+    # if not settings.TAVILY_API_KEY:
+    #     st.error("TAVILY_API_KEY is not set!")
+    #     return None
+    #     # raise ValueError("TAVILY_API_KEY is not set!")
+    # if not settings.OPENAI_API_KEY:
+    #     st.error("OPENAI_API_KEY is not set!")
+    #     return None
         # raise ValueError("OPENAI_API_KEY is not set!")
 
 
