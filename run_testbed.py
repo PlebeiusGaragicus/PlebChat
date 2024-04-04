@@ -2,6 +2,8 @@ if __name__ == "__main__":
     import dotenv
     dotenv.load_dotenv()
 
+    import streamlit as st
+
     import os
     os.environ["LANGCHAIN_TRACING_V2"] = "true"
     os.environ["LANGCHAIN_PROJECT"] = "PlebChat testbed"

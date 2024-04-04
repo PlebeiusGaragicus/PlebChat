@@ -4,7 +4,7 @@ import pathlib
 ASSETS_PATH = pathlib.Path(__file__).parent.parent / "assets"
 AVATAR_PATH = pathlib.Path(__file__).parent.parent / "assets" / "avatars"
 PREFERENCES_PATH = pathlib.Path(__file__).parent.parent / "preferences"
-INVOICES_PATH = pathlib.Path(__file__).parent.parent / "invoices"
+# INVOICES_PATH = pathlib.Path(__file__).parent.parent / "invoices"
 
 
 import streamlit as st

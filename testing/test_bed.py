@@ -239,9 +239,3 @@ def invoke_graph(prompt, bots_reply_placeholder):
 #         return message.content
 #     except AttributeError:
 #         return message
-
-
-
-
-cprint("\n\nRERUN!!!!!!\n", Colors.RED)
-main_page()
