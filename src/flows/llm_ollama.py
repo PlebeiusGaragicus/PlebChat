@@ -102,52 +102,54 @@ class LLM_OLLAMA(StreamingLLM):
             st.selectbox("Available Models", options=available_models, key="model", index=selected_model_index, on_change=update, args=("model",))
             st.slider("Temperature", min_value=0.0, max_value=1.0, key="temperature", value=self.settings.temperature, on_change=update, args=("temperature",))
 
+
+    def display_model_card(self):
         # st.write('---')
-        with st.expander("Model management", expanded=False):
-            st.text_input("Download model", key="model_to_download", value="")
-            if st.button("Download"):
-                if st.session_state.model_to_download is "":
-                    st.warning("Enter a model name to download!")
-                else:
-                    status_placeholder = st.empty()
-                    try:
-                        generator = ollama.pull(st.session_state.model_to_download, stream=True)
-                        for chunk in generator:
-                            with status_placeholder.status(f"{chunk['status']}", expanded=True, state="running"):
-                                st.write(chunk)
+        # with st.expander("Model management", expanded=False):
+        st.text_input("Download model", key="model_to_download", value="")
+        if st.button("Download"):
+            if st.session_state.model_to_download is "":
+                st.warning("Enter a model name to download!")
+            else:
+                status_placeholder = st.empty()
+                try:
+                    generator = ollama.pull(st.session_state.model_to_download, stream=True)
+                    for chunk in generator:
+                        with status_placeholder.status(f"{chunk['status']}", expanded=True, state="running"):
+                            st.write(chunk)
 
-                        # status_placeholder.status(f"{chunk['status']}", state="complete")
-                        st.rerun() # so that it shows the new model in the dropdown
-                    except ollama.ResponseError:
-                        status_placeholder.status(f"{chunk['status']}", state="error")
-                        st.toast("Could not pull model!", icon='💥')
-
-
-            st.write("Available models: https://ollama.com/library")
+                    # status_placeholder.status(f"{chunk['status']}", state="complete")
+                    st.rerun() # so that it shows the new model in the dropdown
+                except ollama.ResponseError:
+                    status_placeholder.status(f"{chunk['status']}", state="error")
+                    st.toast("Could not pull model!", icon='💥')
 
 
-            # modal = Modal("Demo Modal", key="demo-modal")
-            # open_modal = st.button(":green[model info card]", key="model_info")
-            # if open_modal:
-            #     modal.open()
+        st.write("Available models: https://ollama.com/library")
 
-            # if modal.is_open():
-            #     with modal.container():
-            #         info = ollama.show(self.settings.model)
 
-            #         # format the info JSON
-            #         info = json.dumps(info, indent=4)
-            #         # st.markdown(info)
-            #         st.write(info)
+        # modal = Modal("Demo Modal", key="demo-modal")
+        # open_modal = st.button(":green[model info card]", key="model_info")
+        # if open_modal:
+        #     modal.open()
 
-            st.write("---")
+        # if modal.is_open():
+        #     with modal.container():
+        #         info = ollama.show(self.settings.model)
 
-            if st.button(":red[Delete loaded model]"):
-                with st.spinner(f"Deleting model: {self.settings.model}..."):
-                    ollama.delete(self.settings.model)
-                    st.toast(f"Deleted model: {self.settings.model}!", icon='🗑️')
-                    st.write(f"Deleted: {self.settings.model}")
-                    # st.rerun()
+        #         # format the info JSON
+        #         info = json.dumps(info, indent=4)
+        #         # st.markdown(info)
+        #         st.write(info)
+
+        st.write("---")
+
+        if st.button(":red[Delete loaded model]"):
+            with st.spinner(f"Deleting model: {self.settings.model}..."):
+                ollama.delete(self.settings.model)
+                st.toast(f"Deleted model: {self.settings.model}!", icon='🗑️')
+                st.write(f"Deleted: {self.settings.model}")
+                # st.rerun()
 
 
 

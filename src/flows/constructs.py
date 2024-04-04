@@ -12,6 +12,7 @@ from src.flows.custom_langflow import CustomLangFlow
 
 if os.getenv("DEBUG", False):
     ALL_CONSTRUCTS = [echobot, LLM_GOOGLE_GEMINI, LLM_OPENAI_GPT, LLM_MISTRAL, LLM_OLLAMA, ChainReflectionBot, TavilyBot, CustomLangFlow]
+    # ALL_CONSTRUCTS = [echobot, LLM_OPENAI_GPT, LLM_MISTRAL, LLM_OLLAMA, TavilyBot]
 else:
     # NOTE: only include the bots that are ready for production!
     # ALL_CONSTRUCTS = [LLM_OPENAI_GPT, TavilyBot]

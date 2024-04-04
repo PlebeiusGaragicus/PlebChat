@@ -45,18 +45,14 @@ def cmp_debug():
 def main_page():
     cprint("\n\nRERUN!!!!!!\n", Colors.YELLOW)
 
-    # if not_init('appstate'):
-        # st.session_state.appstate: ChatAppVars = ChatAppVars()
-
     cmp_header()
     cmp_pills()
-
     cmp_construct_settings()
 
-
-    cmp_intro()
+    # cmp_intro()
     cmp_chat_window()
+    cmp_chat_history()
 
-    # cmp_chat_history()
+    st.sidebar.header("", divider="rainbow")
     cmp_tail()
     cmp_debug()

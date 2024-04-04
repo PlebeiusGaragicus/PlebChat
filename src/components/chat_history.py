@@ -15,12 +15,19 @@ from src.chat_history import (
 
 
 def cmp_chat_history():
+    # return
 
     with st.sidebar:
         st.header("", divider="rainbow")
         # st.write("## :rainbow[Past Conversations]")
         st.write("## :orange[Conversation History]")
 
+        with st.container(border=True):
+            st.button("Nothing yet", use_container_width=True)
+            st.button("Something", use_container_width=True)
+            st.button("Nope, nothing", use_container_width=True)
+
+        return
         if len(st.session_state.thread.messages) > 0:
             sidebar_new_button_placeholder = st.columns((1, 1))
             sidebar_new_button_placeholder[0].button("🗑️ :red[Delete]", on_click=delete_this_chat, key="delbutton2", use_container_width=True)

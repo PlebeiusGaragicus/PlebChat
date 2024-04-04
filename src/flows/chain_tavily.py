@@ -1,3 +1,4 @@
+import os
 from typing import TypedDict, Annotated, Sequence
 import operator
 import json
@@ -31,8 +32,6 @@ class AgentState(TypedDict):
 class TavilyBotSettings(BaseModel):
     max_results: int = 3
     temperature: float = 0.7
-    TAVILY_API_KEY: str = ""
-    OPENAI_API_KEY: str = ""
 
 
 # TODO which OpenAI model do I want to use for this chain?  I should hardcode this, right?
@@ -79,9 +78,9 @@ class TavilyBot(LangChainConstruct):
 
         # TODO if temperature is very high, we could display a warning here!
 
-        with st.expander(":blue[API KEYS]", expanded=False):
-            st.text_input(":blue[TAVILY_API_KEY]", key="TAVILY_API_KEY", value=self.settings.TAVILY_API_KEY, on_change=update, args=("TAVILY_API_KEY",))
-            st.text_input(":blue[OPENAI_API_KEY]", key="OPENAI_API_KEY", value=self.settings.OPENAI_API_KEY, on_change=update, args=("OPENAI_API_KEY",))
+        # with st.expander(":blue[API KEYS]", expanded=False):
+            # st.text_input(":blue[TAVILY_API_KEY]", key="TAVILY_API_KEY", value=self.settings.TAVILY_API_KEY, on_change=update, args=("TAVILY_API_KEY",))
+            # st.text_input(":blue[OPENAI_API_KEY]", key="OPENAI_API_KEY", value=self.settings.OPENAI_API_KEY, on_change=update, args=("OPENAI_API_KEY",))
 
 
     def display_model_card(self):
@@ -117,12 +116,20 @@ def compile_runnable(settings: TavilyBotSettings):
     #     return None
         # raise ValueError("OPENAI_API_KEY is not set!")
 
+    tavily_api_key = os.getenv("TAVILY_API_KEY", None)
+    openai_api_key = os.getenv("OPENAI_API_KEY", None)
 
-    tavily_basetool = TavilySearchAPIWrapper(tavily_api_key=settings.TAVILY_API_KEY)
+    if not tavily_api_key or not openai_api_key:
+        st.error("API keys are not set!")
+        return None
+
+    # tavily_basetool = TavilySearchAPIWrapper(tavily_api_key=settings.TAVILY_API_KEY)
+    tavily_basetool = TavilySearchAPIWrapper(tavily_api_key=tavily_api_key)
+
     tools = [TavilySearchResults(max_results=settings.max_results, api_wrapper=tavily_basetool)]
     tool_executor = ToolExecutor(tools)
 
-    model = ChatOpenAI(temperature=settings.temperature, streaming=True, api_key=settings.OPENAI_API_KEY)
+    model = ChatOpenAI(temperature=settings.temperature, streaming=True, api_key=openai_api_key)
 
     # TODO use this instead langchain_core.utils.function_calling.convert_to_openai_function
     functions = [format_tool_to_openai_function(t) for t in tools]

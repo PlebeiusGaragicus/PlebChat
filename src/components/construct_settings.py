@@ -27,11 +27,16 @@ def cmp_construct_settings():
     if not_init("construct"):
         return
 
+    construct = get('construct')
+
     cols = st.columns((1, 1, 1, 2))
 
     with cols[0].popover(":orange[𝚯] Hyperparameters"):
-        # st.write("...go here")
-        get('construct').display_settings()
+    # with cols[0].popover(":orange[𝚯]", use_container_width=True):
+        construct.display_settings()
 
-    with cols[1].popover(":green[✔️] Model"):
-        get('construct').display_model_card()
+    # with cols[1].popover(":green[✔️] Model"):
+    # with cols[1].expander("🧠 :blue[Model]"):
+    with st.sidebar:
+        st.markdown(f"# :orange[{construct.name}]")
+        construct.display_model_card()

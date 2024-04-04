@@ -57,13 +57,18 @@ def cmp_pills():
 
     if not_init("selected_construct"):
         set("selected_construct", None)
+    
+    # selected_index = construct_names.index(get("selected_construct")) if get("selected_construct") in construct_names else None
 
-    selected = pills(label="Choose an AI workflow:",
-                    options=construct_names,
-                    icons=construct_icons,
-                    clearable=True,
-                    index=None,
-                )
+    # selected = pills(label="Choose an AI workflow:",
+    #                 options=construct_names,
+    #                 icons=construct_icons,
+    #                 clearable=True,
+    #                 index=None,
+    #             )
+
+    # with st.popover("🧠 :blue[AI Workflows]"):
+    selected = st.radio("Choose an AI workflow:", construct_names, index=0, horizontal=True, label_visibility="collapsed")
 
     st.header("", divider="rainbow")
 
@@ -83,8 +88,14 @@ def cmp_pills():
     if selected == get("selected_construct"):
         return
 
+
+    ### We are switching to a new construct
     st.session_state.selected_construct = selected
     st.toast("New selected construct!")
+
+    if is_init("thread"):
+        st.toast("New chat thread!!")
+        del st.session_state.thread
 
     for Construct in ALL_CONSTRUCTS:
         if Construct.name == selected:
