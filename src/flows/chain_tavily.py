@@ -37,8 +37,7 @@ class TavilyBotSettings(BaseModel):
 # TODO which OpenAI model do I want to use for this chain?  I should hardcode this, right?
 
 class TavilyBot(LangChainConstruct):
-    emoji = "🔍"
-    name = "Tavily Web Search"
+    name = "🔍 :blue[Tavily Web Search]"
     avatar_filename = "assistant.png" # should I place this into the base class and overload it here?  Is that possible?
     preamble = "OpenAI GPT-4 equipped with a Tavily internet search tool."
 

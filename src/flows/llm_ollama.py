@@ -36,8 +36,7 @@ class LLM_SETTINGS_OLLAMA(BaseModel):
 
 
 class LLM_OLLAMA(StreamingLLM):
-    emoji = "🦙"
-    name = "Ollama"
+    name = "🦙 :orange[Ollama]"
     avatar_filename = "ollama.png"
     preamble = "What does the LLaMA say? 🎤🦙"
 

@@ -23,8 +23,7 @@ class CustomLangFlowSETTINGS(BaseModel):
 
 
 class CustomLangFlow(AIWorkflowAbsctractConstruct):
-    emoji = "⛓️"
-    name = "Custom LangFlow"
+    name = "⛓️ :grey[Custom LangFlow]"
     avatar_filename = "langflow.png"
     preamble = "Your custom LangFlow endpoints. 🪢"
 

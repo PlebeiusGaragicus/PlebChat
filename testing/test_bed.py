@@ -2,17 +2,11 @@ import asyncio
 
 import streamlit as st
 
-
 from mistralai.models.chat_completion import ChatMessage
-
-from langchain_core.messages.human import HumanMessage
-from langchain_core.messages.ai import AIMessage
 from langchain_core.messages.function import FunctionMessage
 
 
-
-from testbed.chain_reflection import ChainReflectionBot
-
+from testing.chain_reflection import ChainReflectionBot
 
 
 from src.common import (
@@ -27,33 +21,15 @@ from src.common import (
 )
 
 
-from src.interface.interface import (
-    column_fix,
-    center_text,
-    centered_button_trick,
-)
-
 from src.flows import ChatThread
 
 
-def init():
+def main_page():
     if not_init('thread'):
         st.session_state.thread = ChatThread()
     
     if not_init('construct'):
         st.session_state.construct = ChainReflectionBot()
-
-
-
-def main_page():
-
-    ################### TOP OF MAIN CHAT ###################
-    column_fix()
-    center_text("p", "🔬🧪", size=60)
-
-
-    #### TODO init construct here, if not
-    init()
 
     cols2 = st.columns((1, 1))
     with cols2[0]:
@@ -86,7 +62,6 @@ def main_page():
 
 
     my_next_prompt_placeholder = st.empty()
-    interrupt_button_placeholder = st.empty()
     bots_reply_placeholder = st.empty()
     before_speech_placeholder = st.empty()
 
@@ -97,9 +72,7 @@ def main_page():
     ################### TOP OF SIDEBAR ###################
     construct_settings_placeholder = st.sidebar.empty()
 
-
     prompt = None
-    
     prompt = st.chat_input("Ask a question.")
 
     if prompt:
@@ -269,6 +242,6 @@ def invoke_graph(prompt, bots_reply_placeholder):
 
 
 
-def main():
-    cprint("\n\nRERUN!!!!!!\n", Colors.RED)
-    main_page()
+
+cprint("\n\nRERUN!!!!!!\n", Colors.RED)
+main_page()

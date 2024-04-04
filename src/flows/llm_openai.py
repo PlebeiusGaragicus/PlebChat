@@ -44,8 +44,7 @@ class LLM_OPENAI_GPT(StreamingLLM):
         https://platform.openai.com/docs/api-reference/chat
     """
 
-    emoji = "💫"
-    name = "OpenAI"
+    name = "💫 :green[OpenAI]"
     avatar_filename = "chatgpt.png"
     preamble = "Closed source and ready to take your money."
 

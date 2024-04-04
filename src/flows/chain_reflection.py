@@ -33,13 +33,11 @@ class WorkflowVariables(BaseModel):
 
 class ChainReflectionBotSETTINGS(BaseModel):
     max_iterations: int = 3
-    OPENAI_API_KEY: str = ""
 
 
 
 class ChainReflectionBot(LangChainConstruct):
-    emoji = "🧠"
-    name = "Reflection"
+    name = "🧠 :red[Reflection]"
     avatar_filename = "reflection.png"
     preamble = "Let's reflect on this for a moment... 🤔"
 

@@ -48,8 +48,7 @@ class LLM_SETTINGS_MISTRAL(BaseModel):
 
 
 class LLM_MISTRAL(StreamingLLM):
-    emoji = "🇫🇷"
-    name = "Mistral"
+    name = "🇫🇷 :blue[Mistral]"
     avatar_filename = "mistral0.png"
     preamble = "Jui un modèle de langage de génération de texte développé par ... uhhh... je ne sais pas.  Mais je suis très bon!"
 

@@ -53,11 +53,11 @@ def cmp_header():
 
 def cmp_pills():
     construct_names = [c.name for c in ALL_CONSTRUCTS]
-    construct_icons = [c.emoji for c in ALL_CONSTRUCTS]
+    # construct_icons = [c.emoji for c in ALL_CONSTRUCTS]
 
     if not_init("selected_construct"):
         set("selected_construct", None)
-    
+
     # selected_index = construct_names.index(get("selected_construct")) if get("selected_construct") in construct_names else None
 
     # selected = pills(label="Choose an AI workflow:",

@@ -40,8 +40,7 @@ class LLM_SETTINGS_GOOGLE_GEMINI(BaseModel):
 
 
 class LLM_GOOGLE_GEMINI(StreamingLLM):
-    emoji = "🔮"
-    name = "Google Gemini"
+    name = "🔮 :violet[Gemini]"
     avatar_filename = "gemini0.png"
     preamble = "Closed source and ready to take your money!"
 
