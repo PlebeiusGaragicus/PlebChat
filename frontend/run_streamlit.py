@@ -9,11 +9,11 @@ if __name__ == "__main__":
     # logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
     # logging.getLogger("httpcore.connection").setLevel(logging.WARNING)
 
-    import time
-    start_time = time.time()
+    # import time
+    # start_time = time.time()
 
     from src.main import main_page
     main_page()
 
-    end_time = time.time()
-    print(f">>> Execution time: {end_time - start_time:.2f} seconds")
+    # end_time = time.time()
+    # print(f">>> Execution time: {end_time - start_time:.2f} seconds")
