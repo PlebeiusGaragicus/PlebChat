@@ -8,11 +8,11 @@ RUN apt-get update && apt-get install -y \
     software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt requirements.txt
+COPY server/requirements.txt requirements.txt
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 COPY .env .env
-COPY src src
+COPY server/src src
 
 EXPOSE 8000
 

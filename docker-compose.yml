@@ -43,8 +43,8 @@ services:
     container_name: fastapi_backend
 
     build:
-      context: ./server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: server/Dockerfile
 
     # ports:
     #   - "${FASTAPI_PORT:-8000}:8000"
