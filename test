@@ -1,0 +1,22 @@
+#!/bin/bash
+# docker compose -f docker-compose.yml --env-file .env up --build
+
+
+# Trap SIGINT (Ctrl-C) to bring down the container when exiting
+trap cleanup INT
+
+cleanup() {
+  docker compose -f docker-compose.yml --env-file .env down
+  exit 0
+}
+
+echo "Starting and building Docker containers..."
+docker compose -f docker-compose.yml --env-file .env up --build -d
+
+# Display logs
+echo
+echo
+echo "--> Press Ctrl-C to stop and bring down containers <--"
+docker compose -f docker-compose.yml logs --follow
+
+# When Control-C is pressed, the trap command invokes `cleanup`

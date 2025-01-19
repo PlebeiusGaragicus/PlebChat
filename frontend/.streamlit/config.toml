@@ -1,0 +1,54 @@
+# https://docs.streamlit.io/library/advanced-features/configuration
+
+[browser]
+# gatherUsageStats = true
+gatherUsageStats = false
+
+[client]
+# Default: true
+showErrorDetails = true
+
+# Change the visibility of items in the toolbar, options menu,
+# and settings dialog (top right of the app).
+# Allowed values:
+# * "auto"      : Show the developer options if the app is accessed through
+#                 localhost or through Streamlit Community Cloud as a developer.
+#                 Hide them otherwise.
+# * "developer" : Show the developer options.
+# * "viewer"    : Hide the developer options.
+# * "minimal"   : Show only options set externally (e.g. through
+#                 Streamlit Community Cloud) or through st.set_page_config.
+#                 If there are no options left, hide the menu.
+# Default: "auto"
+# toolbarMode = "auto"
+# toolbarMode = "viewer"
+toolbarMode = "minimal"
+
+
+[theme]
+# base = "light"
+base = "dark"
+
+
+# https://htmlcolorcodes.com/colors/shades-of-orange/
+# FFAC1C
+
+# Primary accent color for interactive elements.
+primaryColor = "#FF7F50"
+
+# Background color for the main content area.
+# backgroundColor = "blue"
+
+# Background color used for the sidebar and most interactive widgets.
+# secondaryBackgroundColor = "#1E1E1E"
+
+# Color used for almost all text.
+# textColor = ""
+
+# Font family for all text in the app, except code blocks. One of "sans serif",
+# "serif", or "monospace".
+# font = "sans serif"
+
+
+[server]
+enableStaticServing = true

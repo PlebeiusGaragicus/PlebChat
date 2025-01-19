@@ -1,0 +1,69 @@
+services:
+
+  frontend:
+    container_name: streamlit_frontend
+
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    ports:
+      - "${STREAMLIT_PORT:?Your .env file must have a STREAMLIT_PORT variable}:8501"
+
+    volumes:
+      # Map local files to the container for live updates (useful for development)
+      # TODO: should this be removed for production?  Likely...
+      - ./frontend/src:/app/src
+      - ./auth.yaml:/app/auth.yaml
+
+    environment:
+      # Avoid output buffering; this line ensures that print() statements are sent directly to the terminal
+      - PYTHONUNBUFFERED=1
+      # Set DEBUG to 1 (in your .env file) if you want to see the logs
+      - DEBUG=${DEBUG:-0}
+      - API_URL=http://backend:${FASTAPI_PORT:-8000}
+
+    depends_on:
+      - backend
+
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:${STREAMLIT_PORT}/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+    restart: unless-stopped
+
+    command: ["streamlit", "run", "run_streamlit.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]
+    # command: ["streamlit", "run", "run_streamlit.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true", "--logger.level=debug"]
+
+
+
+  backend:
+    container_name: fastapi_backend
+
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+
+    # ports:
+    #   - "${FASTAPI_PORT:-8000}:8000"
+
+    volumes:
+      # Map local files to the container for live updates (useful for development)
+      # TODO: should this be removed for production?  Likely...
+      - ./server/src:/app/src
+
+    environment:
+      # Avoid output buffering; this line ensures that print() statements are sent directly to the terminal
+      - PYTHONUNBUFFERED=1
+      # Set DEBUG to 1 (in your .env file) if you want to see the logs
+      - DEBUG=${DEBUG:-0}
+
+    # healthcheck:
+    #   test: ["CMD", "curl", "--fail", "http://localhost:8000/health"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+
+    restart: unless-stopped
