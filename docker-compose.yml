@@ -20,7 +20,7 @@ services:
       # Avoid output buffering; this line ensures that print() statements are sent directly to the terminal
       - PYTHONUNBUFFERED=1
       # Set DEBUG to 1 (in your .env file) if you want to see the logs
-      - DEBUG=${DEBUG:-0}
+      - DEBUG=${DEBUG}
       - API_URL=http://backend:${FASTAPI_PORT:-8000}
 
     depends_on:
@@ -58,7 +58,7 @@ services:
       # Avoid output buffering; this line ensures that print() statements are sent directly to the terminal
       - PYTHONUNBUFFERED=1
       # Set DEBUG to 1 (in your .env file) if you want to see the logs
-      - DEBUG=${DEBUG:-0}
+      - DEBUG=${DEBUG}
 
     # healthcheck:
     #   test: ["CMD", "curl", "--fail", "http://localhost:8000/health"]

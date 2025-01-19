@@ -155,7 +155,7 @@ def cmp_options():
 
 ################################################################################################
 def main_page():
-    if os.getenv("DEBUG", False): # should be the only time we call this
+    if os.getenv("DEBUG", None): # should be the only time we call this
         st.session_state.debug = True
     else:
         st.session_state.debug = False
