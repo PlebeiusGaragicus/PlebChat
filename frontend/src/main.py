@@ -281,7 +281,6 @@ def main_page():
                                     print(line)
                                     continue
 
-
                                 ###### NODE
                                 node_name = j.get('name', None)
                                 if node_name:
@@ -289,11 +288,13 @@ def main_page():
                                         current_node = node_name
                                         status.update(label=f"{current_node}", state="running", expanded=True)
 
-
                                 ###### TAGS
-                                # tags = j.get('tags', None)
-                                # if tags:
-                                #     print(tags)
+                                tags = j.get('tags', None)
+                                if tags:
+                                    if 'langsmith:hidden' in tags:
+                                        print(f" >> SKIPPING A HIDDEN UPDATE STEP for Node: {current_node}")
+                                        continue
+
 
                                 ###### DATA
                                 data = j.get('data', None)
