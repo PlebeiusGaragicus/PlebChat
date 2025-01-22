@@ -2,6 +2,7 @@ import os
 import enum
 import requests
 from PIL import Image
+import json
 # from pathlib import Path
 # import base64
 from functools import partial
@@ -130,7 +131,7 @@ def cmp_options():
         #         pass
         # with bcols2[1]:
         #     st.session_state.authenticator.logout(":red[Logout]")
-        st.session_state.authenticator.logout(":red[Logout]")
+        st.session_state.authenticator.logout(f":red[Logout] `{st.session_state.name}`")
 
 ################################################################################################
 # END OF SETTINGS POPUP
@@ -256,48 +257,157 @@ def main_page():
                 full_response = ""
 
                 # Create a status container
+                # with st.status("🧠 Agent at work...", expanded=True) as status:
+                # status_updater = st.empty()
+                # status_updater.status("🧠 Agent at work...", expanded=True)
+
+                current_node = None
+
+                # with st.spinner("🧠 Thinking"):
                 with st.status("🧠 Agent at work...", expanded=True) as status:
                     try:
                         for line in response.iter_lines():
                             if line:
+                                # decode the SSE into a proper JSON object
                                 line = line.decode()
-                                # print("Received:", line)  # Debug line
+                                line = line[6:]
+                                # line = line.replace('\\n', '\n')
 
+                                try:
+                                    j = json.loads(line)
 
-                                ####### Handle status events
-                                if line.startswith("event: status"):
-                                    continue  # Skip the event line
-
-                                elif line.startswith("data: ") and "status" in line:
-                                    status_data = line[6:]  # Remove "data: " prefix
-
-                                    if "model_start" in status_data:
-                                        status.update(label="🤖 Model thinking...", state="running")
-
-                                    if "on_chat_model_start" in status_data:
-                                        message_placeholder = st.empty()
-
-                                    elif "on_tool_start" in status_data:
-                                        status.update(label="🔧 Using tools...", state="running")
-
-                                    elif "on_chain_start" in status_data:
-                                        status.update(label="⚡ Processing chain...", state="running")
-
+                                except json.JSONDecodeError as e:
+                                    print(f"Error decoding JSON: {e}")
+                                    print(line)
                                     continue
 
 
-                                ####### Handle regular content
-                                elif line.startswith("data: "):
-                                    chunk = line[6:]  # Remove "data: " prefix
-                                    # Decode escaped newlines
-                                    chunk = chunk.replace('\\n', '\n')
-                                    full_response += chunk
-                                    message_placeholder.markdown(full_response + "▌")
+                                ###### NODE
+                                node_name = j.get('name', None)
+                                if node_name:
+                                    if current_node != node_name:
+                                        current_node = node_name
+                                        status.update(label=f"{current_node}", state="running", expanded=True)
+
+
+                                ###### TAGS
+                                # tags = j.get('tags', None)
+                                # if tags:
+                                #     print(tags)
+
+                                ###### DATA
+                                data = j.get('data', None)
+                                if data:
+                                    chunk = data.get('chunk', None)
+
+                                    if chunk:
+                                        content = chunk.get('content', None)
+
+                                        if content:
+                                            full_response += content
+
+
+
+                                ###### EVENT
+                                # event = j.get('event', None)
+                                # if current_node != event:
+                                #     current_node = event
+                                #     status_name = f"{event}"
+
+                                #     if event == "on_chat_model_stream":
+                                #         status_name = "🧠 Generating response..."
+
+                                #     # status.update(label=status_name, state="running", expanded=True)
+                                #     with status:
+                                #         st.write(status_name)
+                                #         status.update(label=status_name, state="running", expanded=True)
+
+                                    # match event_type:
+                                    #     case 'on_chain_start':
+                                    #         status.update(label="Starting chain...", state="running")
+                                    #     case 'on_chat_model_start':
+                                    #         status.update(label="Model thinking...", state="running")
+                                    #     case 'on_llm_new_token':
+                                    #         if 'data' in j and 'token' in j['data']:
+                                    #             content = j['data']['token']
+                                    #             full_response += content
+                                    #             message_placeholder.markdown(full_response + "▌")
+                                    #     case 'on_chain_end':
+                                    #         status.update(label="Chain complete", state="complete")
+                                    #     case _:
+                                    #         # Handle other event types or unknown events
+                                    #         pass
+
+
+
+# {
+#     'event': 'on_chain_end',
+#     'data':
+#         {
+#             'output':
+#                 {
+#                     'messages': [{'role': 'user', 'content': 'asdfasdf'}]
+#                 },
+#             'input':
+#                 {
+#                     'messages': [{'role': 'user', 'content': 'asdfasdf'}]
+#                 }
+#         },
+#     'run_id': 'c7ef8f48-7006-4972-9987-6984ed414250',
+#     'name': '_write',
+#     'tags': ['seq:step:3', 'langsmith:hidden', 'langsmith:hidden'],
+#     'metadata':
+#         {
+#             'langgraph_step': 0,
+#             'langgraph_node': '__start__',
+#             'langgraph_triggers': ['__start__'],
+#             'langgraph_path': ('__pregel_pull', '__start__'),
+#             'langgraph_checkpoint_ns': '__start__:e50a3d9d-8a95-5331-0282-fe1c1d9172e7'
+#         },
+#     'parent_ids': ['2ffdf17d-0b9e-49e6-8bc2-38bf974abec2', '1b0ed343-bbbc-4dcf-9ac7-5b64156c22f7']
+# }
+
+
+# THESE ARE THE KINDS GENERATED FROM OUR LANDGRAPH AGENT
+# on_chat_model_start -> 
+# on_chat_model_stream
+# on_chat_model_end
+# on_llm_start
+# on_llm_stream
+# on_llm_end
+# on_chain_start
+# on_chain_stream
+# on_chain_end
+# on_tool_start
+# on_tool_stream
+# on_tool_end
+# on_retriever_start
+# on_retriever_chunk
+# on_retriever_end
+# on_prompt_start
+# on_prompt_end
+
+
+
+
+                                ###### WRITE IT OUT
+                                message_placeholder.markdown(full_response + "▌")
+
+
+                                # if line.startswith("data: "):
+                                #     chunk = line[6:]  # Remove "data: " prefix
+                                #     # Decode escaped newlines
+                                #     chunk = chunk.replace('\\n', '\n')
+                                #     full_response += chunk
+                                #     message_placeholder.markdown(full_response + "▌")
 
                         # Update final status
-                        status.update(label="✅ Response complete!", state="complete")
                         message_placeholder.markdown(full_response)
                         st.session_state.messages.append({"role": "assistant", "content": full_response})
+
+                        # with status_updater as status:
+                        #     status.update(label="✅ Response complete!", state="complete")
+
                     except (requests.exceptions.ChunkedEncodingError, requests.exceptions.RequestException) as e:
                         error_details = str(e)
                         try:

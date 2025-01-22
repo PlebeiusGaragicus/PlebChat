@@ -32,12 +32,17 @@ def login() -> bool:
             # config["pre-authorized"],
         )
 
-    st.session_state.authenticator.login(location="main", max_concurrent_users=1, fields={
-        "Form name": ":rainbow[PlebChat!]",
-        "Username": ":blue[Username]",
-        "Password": ":red[Password]",
-        "Login": ":green[Welcome!]",
-    })
+    try:
+        st.session_state.authenticator.login(location="main", max_concurrent_users=1, fields={
+            "Form name": ":rainbow[PlebChat!]",
+            "Username": ":blue[Username]",
+            "Password": ":red[Password]",
+            "Login": ":green[Welcome!]",
+        })
+    except stauth.LoginError as e:
+        st.write("unknown bad error - clear cookies and try again.")
+        st.error(e)
+        st.stop()
 
     if st.session_state["authentication_status"]:
         return True

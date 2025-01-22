@@ -1,0 +1,314 @@
+Error decoding JSON: Invalid control character at: line 1 column 199 (char 198)
+{"event": "on_chain_stream", "run_id": "08a895a2-0562-4617-a45f-1caad506d2bf", "name": "LangGraph", "tags": [], "metadata": {}, "data": {"chunk": {"finalize_summary": {"running_summary": "## Summary
+
+The US Supreme Court's decision upholding the law banning TikTok in the US unless its China-based parent company ByteDance sells the platform by this Sunday has sparked national security concerns regarding TikTok's data collection practices and relationship with China. The White House has stated that it will fall to the incoming President Donald Trump's administration to enforce the law, with Trump vowing to make a decision in the \"not too distant future\".
+
+According to cybersecurity expert Alan W. Silberberg, CEO of Digijaks Group, the risks associated with TikTok's data collection practices and its connection to Chinese government surveillance cannot be understated. Silberberg stated that because ByteDance is partially owned by China's government, all data collected through TikTok is routed through China's servers, and often combined with other sensitive information harvested through social media or high-profile hacks, leading to potential misinformation and disinformation campaigns.
+
+Silberberg also highlighted that TikTok actively scrapes a wide range of data from its users, particularly from vulnerable groups like teenagers. He emphasized that the app is not privacy-friendly, and its design makes it one of the worst apps in terms of actively scraping data from other apps within users' phones, raising significant cybersecurity concerns.
+
+The US government has long warned that the data collected by TikTok could be exploited for espionage, with Republican senators such as Tom Cotton and Pete Ricketts arguing that TikTok should only be allowed to continue operating in the US if ByteDance severs all ties to China's government.
+
+In addition to these concerns, ByteDance plans to spend a significant amount on AI chips in 2025. According to a report by Reuters, the company will invest $12 billion in AI chips in China and an additional $6.8 billion overseas. This investment is expected to help ByteDance ramp up its artificial intelligence capabilities and further integrate data collection from various sources.
+
+The outcome of this debate will have far-reaching consequences, not only for TikTok and its users but also for the broader landscape of technology and data privacy in the digital age. The ongoing discussions will likely shape the future of how governments regulate social media platforms and address the growing concerns about data security and disinformation risks.
+
+Cybersecurity experts warn that the app's vast user base and access to sensitive data could be exploited for espionage and disinformation campaigns, posing a significant threat to American interests. At the center of the controversy is ByteDance, the Chinese company that owns TikTok, and its alleged ties to the Chinese Communist Party.
+
+These concerns are echoed by US officials and politicians, who have long warned about the potential for TikTok to be used for espionage. Republican senators have called for a complete severing of ties between ByteDance and the Chinese government as a condition for the app's continued operation in the US. China, however, has pushed back against these accusations, insisting that companies should be free to operate independently according to market principles.
+
+The clashing perspectives highlight the complex geopolitical tensions underlying the TikTok debate. While national security concerns dominate the headlines, the economic implications of a potential TikTok ban are also significant. The app boasts over 170 million American users and has become a vital tool for marketing and business, particularly for small businesses and content creators. Many rely on the platform to reach their target audience and drive sales.
+
+The debate surrounding TikTok's national security implications and data harvesting practices is ongoing, with cybersecurity experts, government officials, and politicians weighing in on the issue. The outcome of this debate will have far-reaching consequences for the tech industry, data privacy, and the global economy.
+
+ ### Sources:
+* TikTok ban: US Supreme Court upholds law that prohibits the app - BBC : https://www.bbc.com/news/articles/c3e18qylq5do
+* TikTok And National Security: The Risks Of Data Harvesting And ... : https://ctnewsjunkie.com/2025/01/22/tiktok-and-national-security-the-risks-of-data-harvesting-and-disinformation/
+* TikTok's National Security Implications: Data Harvesting and ... : https://disa.org/tiktoks-national-security-implications-data-harvesting-and-disinformation-risks/
+* TikTok owner ByteDance plans to spend $12 bln on AI chips in 2025, FT ... : https://www.reuters.com/technology/artificial-intelligence/tiktok-owner-bytedance-plans-spend-12-bln-ai-chips-2025-ft-reports-2025-01-22/"}}}, "parent_ids": []}
+Error decoding JSON: Invalid control character at: line 1 column 354 (char 353)
+{"event": "on_chain_end", "data": {"output": {"research_topic": "tiktok ban news", "search_query": "What specific technologies or innovations will ByteDance be using with its $18.8 billion investment in AI chips in 2025, and how might these advancements affect the company's ability to collect and utilize user data?", "web_research_results": ["Sources:
+
+Source TikTok ban: US Supreme Court upholds law that prohibits the app - BBC:
+===
+URL: https://www.bbc.com/news/articles/c3e18qylq5do
+===
+Most relevant content from source: TikTok ban: US Supreme Court upholds law that prohibits the app US Supreme Court upholds TikTok ban law The US Supreme Court has upheld a law that bans TikTok in the US unless its China-based parent company ByteDance sells the platform by this Sunday. 10 January 2025: The Supreme Court's nine justices hear from lawyers representing TikTok and content creators that the ban would be a violation of free speech protections for the platform's more than 170 million users in the US. 17 January 2025: The US Supreme Court upholds the law that could lead to TikTok being banned within days over national security concerns.
+===
+Full source content limited to 1000 tokens: TikTok ban: US Supreme Court upholds law that prohibits the app
+Skip to content
+
+Watch Live
+
+
+Home
+
+
+News
+
+
+Sport
+
+
+Business
+
+
+Innovation
+
+
+Culture
+
+
+Arts
+
+
+Travel
+
+
+Earth
+
+
+Video
+
+
+Live
+
+
+Home
+News
+Sport
+Business
+Innovation
+Culture
+Arts
+Travel
+Earth
+Video
+Live
+Audio
+Weather
+Newsletters
+US Supreme Court upholds TikTok ban law
+Watch: TikTokers say goodbye to their 'Chinese spy' as they move to RedNote
+The US Supreme Court has upheld a law that bans TikTok in the US unless its China-based parent company ByteDance sells the platform by this Sunday.
+TikTok had challenged the law, arguing it would violate free speech protections for the more than 170 million users it says it has in the US.
+But that argument was rejected unanimously by the nation's highest court, meaning TikTok must now find an approved buyer for the US version of the app or face removal from app stores and web hosting services.
+The White House said it would fall to incoming President Donald Trump's administration, which takes office on Monday, to enforce the law. Trump vowed to make a decision in the \"not too distant future\".
+TikTok CEO Shou Zi Chew, who is expected to attend Trump's inauguration with other high-profile guests, said he wanted to thank the incoming president for his commitment to work with the app and keep it available in the US.
+Both Democratic and Republican lawmakers voted to ban the video-sharing app last year, over concerns about its links to the Chinese government. TikTok has repeatedly stated it does not share information with Beijing.
+Passed in April last year, the law allows TikTok owner ByteDance until 19 January 2025 to sell the US version of the platform to a neutral party to avert an outright ban.
+It would mean that from Sunday, Apple and Google will no longer offer the app to new users or provide any security updates to current users - which could kill it off eventually.
+ByteDance has vowed not to sell TikTok and said it planned to shut US operations of the app on Sunday unless there is a reprieve.
+
+TikTok ban upheld: What happens now?
+Ban will be first test for Trump as dealmaker-in-chief
+Influencers: 'We feel left out and powerless'
+
+The Supreme Court ruled without any dissenting opinion that the law did not violate the US Constitution's First Amendment protection of free speech.
+The justices affirmed a lower court's decision that upheld the statute after it was challenged by ByteDance.
+\"There is no doubt that, for more than 170 million Americans, TikTok offers a distinctive and expansive outlet for expression, means of engagement, and source of community,\" the Supreme Court said.
+\"But Congress has determined that divestiture is necessary to address its well-supported national security concerns regarding TikTok's data collection practices and relationship with a foreign adversary.\"
+TikTok influencers: 'We feel left out and powerless on ban'
+'Stay tuned!'
+Following the Supreme Court ruling, White House press secretary Karine Jean-Pierre said in a statement that President Joe Biden's position on TikTok had been clear for months: \"TikTok should remain available to Americans, but simply under American ownership or other ownership that addresses the national security concerns identified by Congress in developing this law.\"
+But due to the \"sheer fact of timing\", she added, the president recognised \"actions to implement the law simply must fall to the next administration, which takes office on Monday\".
+On Friday, Trump posted on his social media platform Truth Social: \"The Supreme Court decision was expected, and everyone must respect it.
+\"My decision on TikTok will be made in the not too distant future, but I must have time to review the situation. Stay tuned!\"
+He also revealed he had spoken to China's President Xi Jinping and discussed TikTok, among other issues.
+In December Trump said he had a \"warm spot\" for the app as it helped him with young voters in the 2024 election.
+Trump's comments mark a U-turn on his stance in his first term as... [truncated]", "Sources:
+
+Source TikTok And National Security: The Risks Of Data Harvesting And ...:
+===
+URL: https://ctnewsjunkie.com/2025/01/22/tiktok-and-national-security-the-risks-of-data-harvesting-and-disinformation/
+===
+Most relevant content from source: by Karla Ciaglo January 22, 2025, 5:00 am ... with TikTok's data collection practices and its connection to Chinese ... operating in the US if ByteDance severs all ties to China's government.
+===
+Full source content limited to 1000 tokens: Sign Up For Our Email Newsletters!
+View previous campaigns
+
+CT News Junkie
+
+\t\t\t\t\tConnecticut News from your locally owned & operated news source at the state Capitol since 2005.\t\t\t\t
+
+\t\t\tTikTok And National Security: The Risks Of Data Harvesting And Disinformation\t\t
+Share this:
+The debate over TikTok\u2019s presence in the US continues to stir up national security concerns, particularly regarding the potential misuse of American data by China\u2019s government, and one of America\u2019s top cybersecurity experts described the threat in dire terms.
+
+
+
+
+
+Alan W. Silberberg, CEO of Digijaks Group, a boutique cybersecurity and reputation incident management agency based in Los Angeles. Credit: Contributed / via LinkedIn
+According to Cybersecurity expert Alan W. Silberberg, CEO of Digijaks Group, the risks associated with TikTok\u2019s data collection practices and its connection to Chinese government surveillance cannot be understated.
+
+
+
+
+
+The app experienced an outage over the weekend, starting Saturday night, with services being restored late Sunday afternoon following a promise from President Trump to facilitate a deal allowing the app to remain operational in the country.
+
+
+Trump discussed TikTok during his pre-inauguration rally on Sunday.
+
+
+
+
+
+\u201cFrankly, we have no choice. We have to save it,\u201d he said.
+
+
+
+
+
+Trump has since signed an executive order to keep the app operational for an additional 75 days while more efforts are made to locate a US buyer.
+
+
+This decision to initially ban the app followed intense pressure over national security risks associated with TikTok\u2019s ownership by ByteDance, a company with significant ties to China\u2019s Communist Party.
+
+
+
+
+
+With TikTok\u2019s future in the US still uncertain, discussions about the company\u2019s data practices have taken on greater urgency.
+
+
+
+
+
+Silberberg, whose company Digijacks Groups is a boutique cybersecurity and reputation incident management agency based in Los Angeles, said that because ByteDance is partially owned by China\u2019s government, all data collected through TikTok is routed through China\u2019s servers. Worse, he said the data is often combined with other sensitive information harvested through social media or high-profile hacks, leading to potential misinformation and disinformation campaigns.
+
+
+Silberberg also said TikTok\u2019s platform actively scrapes a wide range of data from its users, particularly from vulnerable groups like teenagers.
+
+
+
+
+
+\u201cThe 13-year-old in Connecticut using the phone paid for by their parents is sharing ISP data, location, pictures, and videos often taken inside their homes,\u201d Silberberg said. \u201cThey\u2019re giving detailed telemetry on how they use TikTok, their financial information, passwords, and other private data.\u201d
+
+
+
+
+
+He also said that TikTok is not privacy-friendly; its design makes it one of the worst apps in terms of actively scraping data from other apps from within users\u2019 phones, raising significant cybersecurity concerns.
+
+
+Silberberg said China\u2019s government already employs tools like WeChat for domestic surveillance and control, and TikTok operates on a similar app framework.
+
+
+
+
+
+\u201cIf the Chinese government were not using TikTok for surveillance and propaganda, they would be interested in selling to the highest bidder,\u201d Silberberg said.
+
+
+
+
+
+However, despite offers from other companies, TikTok has refused to sell, highlighting the integral role that surveillance and data harvesting play in the platform\u2019s business model.
+
+
+Silberberg\u2019s concerns have been echoed in the political arena as well.
+
+
+
+
+
+US officials have long warned that the data collected by TikTok could be exploited for espionage. Republican senators such as Tom Cotton and Pete Ricketts argue that TikTok should only be allowed to continue operating in the US if ByteDance severs all ties to China\u2019s government.
+
+
+
+
+
+In response, China\u2019s foreign ministry emphasized that companies should have the autonomy to decide on their operations, urging the US to provide a fair and non-discriminatory business environ... [truncated]", "Sources:
+
+Source TikTok's National Security Implications: Data Harvesting and ...:
+===
+URL: https://disa.org/tiktoks-national-security-implications-data-harvesting-and-disinformation-risks/
+===
+Most relevant content from source: The outcome of this debate will have far-reaching consequences, not only for TikTok and its users but also for the broader landscape of technology and data privacy in the digital age. The ongoing discussions will likely shape the future of how governments regulate social media platforms and address the growing concerns about data security and
+===
+Full source content limited to 1000 tokens: TikTok's National Security Implications: Data Harvesting and Disinformation Risks | DISA
+Close Menu
+
+
+Home
+News
+Social Media
+Disinformation
+Fake Information
+Social Media Impact
+
+Trending Now
+
+Detecting Deception in the Misinformation Era
+January 22, 2025
+
+Social Media\u2019s Influence on Adolescent Mental Well-being
+January 22, 2025
+
+Berlin Calls on Technology Companies to Enhance Disinformation Mitigation Efforts Prior to Election
+January 22, 2025
+Facebook X (Twitter) Instagram
+Facebook X (Twitter) Instagram YouTube
+
+Newsletter
+
+Home
+News
+Social Media
+Disinformation
+Fake Information
+Social Media Impact
+
+
+
+
+
+Home\u00bbDisinformation\u00bbTikTok\u2019s National Security Implications: Data Harvesting and Disinformation Risks
+Disinformation
+TikTok\u2019s National Security Implications: Data Harvesting and Disinformation Risks
+By Press RoomJanuary 22, 2025
+Facebook Twitter Pinterest LinkedIn Tumblr Email
+
+TikTok\u2019s Data Practices Under Scrutiny Amid National Security Concerns
+The popular social media platform TikTok continues to face intense scrutiny over its data collection practices and potential links to the Chinese government, raising serious national security concerns for the United States. Cybersecurity experts and government officials warn that the app\u2019s vast user base and access to sensitive data could be exploited for espionage and disinformation campaigns, posing a significant threat to American interests. At the center of the controversy is ByteDance, the Chinese company that owns TikTok, and its alleged ties to the Chinese Communist Party. These concerns have led to calls for a ban on the app or a forced sale to a US-based company, igniting a fierce debate about the balance between national security and economic interests.
+Alan W. Silberberg, CEO of cybersecurity firm Digijaks Group, paints a stark picture of the potential risks associated with TikTok\u2019s data collection. He argues that because of ByteDance\u2019s partial ownership by the Chinese government, all data collected through TikTok, including user location, browsing history, and personal information, is routed through Chinese servers and potentially accessible to the government. This data, he contends, can be combined with information gleaned from other sources to create detailed profiles of individuals, which could be used for targeted misinformation and disinformation campaigns. Silberberg highlights the vulnerability of young users, particularly teenagers, who often share sensitive data on the platform without fully understanding the potential implications.
+Silberberg\u2019s concerns extend beyond data collection to the very architecture of the app. He asserts that TikTok\u2019s design makes it particularly adept at \"scraping\" data from other apps on users\u2019 phones, further amplifying the potential for surveillance. He draws parallels between TikTok and WeChat, a Chinese app used for domestic surveillance and control, suggesting that TikTok could be employed in a similar manner. Silberberg argues that ByteDance\u2019s refusal to sell TikTok, despite lucrative offers, underscores the importance of data harvesting to the company\u2019s business model.
+These concerns are echoed by US officials and politicians, who have long warned about the potential for TikTok to be used for espionage. Republican senators have called for a complete severing of ties between ByteDance and the Chinese government as a condition for the app\u2019s continued operation in the US. China, however, has pushed back against these accusations, insisting that companies should be free to operate independently according to market principles. The clashing perspectives highlight the complex geopolitical tensions underlying the TikTok debate.
+While national security concerns dominate the headlines, the economic implications of a potential TikTok ban are also significant. The app boasts over 170 million American users and has become a vital tool for marketing and business, particularly for small businesses and content creators. Many rely on the platfor... [truncated]", "Sources:
+
+Source TikTok owner ByteDance plans to spend $12 bln on AI chips in 2025, FT ...:
+===
+URL: https://www.reuters.com/technology/artificial-intelligence/tiktok-owner-bytedance-plans-spend-12-bln-ai-chips-2025-ft-reports-2025-01-22/
+===
+Most relevant content from source: ByteDance plans to spend 40 billion yuan ($5.50 billion) to acquire AI chips in China in 2025, the report said, adding that the company will invest about $6.8 billion overseas to ramp up its
+===
+Full source content limited to 1000 tokens:"], "sources_gathered": ["* TikTok ban: US Supreme Court upholds law that prohibits the app - BBC : https://www.bbc.com/news/articles/c3e18qylq5do", "* TikTok And National Security: The Risks Of Data Harvesting And ... : https://ctnewsjunkie.com/2025/01/22/tiktok-and-national-security-the-risks-of-data-harvesting-and-disinformation/", "* TikTok's National Security Implications: Data Harvesting and ... : https://disa.org/tiktoks-national-security-implications-data-harvesting-and-disinformation-risks/", "* TikTok owner ByteDance plans to spend $12 bln on AI chips in 2025, FT ... : https://www.reuters.com/technology/artificial-intelligence/tiktok-owner-bytedance-plans-spend-12-bln-ai-chips-2025-ft-reports-2025-01-22/"], "research_loop_count": 4, "running_summary": "## Summary
+
+The US Supreme Court's decision upholding the law banning TikTok in the US unless its China-based parent company ByteDance sells the platform by this Sunday has sparked national security concerns regarding TikTok's data collection practices and relationship with China. The White House has stated that it will fall to the incoming President Donald Trump's administration to enforce the law, with Trump vowing to make a decision in the \"not too distant future\".
+
+According to cybersecurity expert Alan W. Silberberg, CEO of Digijaks Group, the risks associated with TikTok's data collection practices and its connection to Chinese government surveillance cannot be understated. Silberberg stated that because ByteDance is partially owned by China's government, all data collected through TikTok is routed through China's servers, and often combined with other sensitive information harvested through social media or high-profile hacks, leading to potential misinformation and disinformation campaigns.
+
+Silberberg also highlighted that TikTok actively scrapes a wide range of data from its users, particularly from vulnerable groups like teenagers. He emphasized that the app is not privacy-friendly, and its design makes it one of the worst apps in terms of actively scraping data from other apps within users' phones, raising significant cybersecurity concerns.
+
+The US government has long warned that the data collected by TikTok could be exploited for espionage, with Republican senators such as Tom Cotton and Pete Ricketts arguing that TikTok should only be allowed to continue operating in the US if ByteDance severs all ties to China's government.
+
+In addition to these concerns, ByteDance plans to spend a significant amount on AI chips in 2025. According to a report by Reuters, the company will invest $12 billion in AI chips in China and an additional $6.8 billion overseas. This investment is expected to help ByteDance ramp up its artificial intelligence capabilities and further integrate data collection from various sources.
+
+The outcome of this debate will have far-reaching consequences, not only for TikTok and its users but also for the broader landscape of technology and data privacy in the digital age. The ongoing discussions will likely shape the future of how governments regulate social media platforms and address the growing concerns about data security and disinformation risks.
+
+Cybersecurity experts warn that the app's vast user base and access to sensitive data could be exploited for espionage and disinformation campaigns, posing a significant threat to American interests. At the center of the controversy is ByteDance, the Chinese company that owns TikTok, and its alleged ties to the Chinese Communist Party.
+
+These concerns are echoed by US officials and politicians, who have long warned about the potential for TikTok to be used for espionage. Republican senators have called for a complete severing of ties between ByteDance and the Chinese government as a condition for the app's continued operation in the US. China, however, has pushed back against these accusations, insisting that companies should be free to operate independently according to market principles.
+
+The clashing perspectives highlight the complex geopolitical tensions underlying the TikTok debate. While national security concerns dominate the headlines, the economic implications of a potential TikTok ban are also significant. The app boasts over 170 million American users and has become a vital tool for marketing and business, particularly for small businesses and content creators. Many rely on the platform to reach their target audience and drive sales.
+
+The debate surrounding TikTok's national security implications and data harvesting practices is ongoing, with cybersecurity experts, government officials, and politicians weighing in on the issue. The outcome of this debate will have far-reaching consequences for the tech industry, data privacy, and the global economy.
+
+ ### Sources:
+* TikTok ban: US Supreme Court upholds law that prohibits the app - BBC : https://www.bbc.com/news/articles/c3e18qylq5do
+* TikTok And National Security: The Risks Of Data Harvesting And ... : https://ctnewsjunkie.com/2025/01/22/tiktok-and-national-security-the-risks-of-data-harvesting-and-disinformation/
+* TikTok's National Security Implications: Data Harvesting and ... : https://disa.org/tiktoks-national-security-implications-data-harvesting-and-disinformation-risks/
+* TikTok owner ByteDance plans to spend $12 bln on AI chips in 2025, FT ... : https://www.reuters.com/technology/artificial-intelligence/tiktok-owner-bytedance-plans-spend-12-bln-ai-chips-2025-ft-reports-2025-01-22/"}}, "run_id": "08a895a2-0562-4617-a45f-1caad506d2bf", "name": "LangGraph", "tags": [], "metadata": {}, "parent_ids": []}

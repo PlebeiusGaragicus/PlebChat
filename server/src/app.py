@@ -28,7 +28,7 @@ from src.graphs.research.research_rabbit import graph as research_graph
 app.add_middleware(
     CORSMiddleware,
     # allow_origins=["*"], # USE FOR DEVELOPMENT
-    allow_origins=["http://localhost:8501"],
+    allow_origins=["http://localhost:8501"], #TODO Fix this for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -47,48 +47,89 @@ def create_sse_response(stream):
         }
     )
 
-# THESE ARE THE KINDS GENERATED FROM OUR LANDGRAPH AGENT
-# on_chat_model_start
-# on_chat_model_stream
-# on_chat_model_end
-# on_llm_start
-# on_llm_stream
-# on_llm_end
-# on_chain_start
-# on_chain_stream
-# on_chain_end
-# on_tool_start
-# on_tool_stream
-# on_tool_end
-# on_retriever_start
-# on_retriever_chunk
-# on_retriever_end
-# on_prompt_start
-# on_prompt_end
+from typing import Any
+def serialize_custom_objects(obj: Any) -> Any:
+    """Convert custom objects to plain dictionaries"""
+    if hasattr(obj, '__dict__'):
+        return obj.__dict__
+    if isinstance(obj, (set, frozenset)):
+        return list(obj)
+    return str(obj)
 
-async def stream_graph_events(graph, input_data):
+
+async def stream_llm_events(llm, input_data):
     """Stream events from a graph with standardized formatting."""
 
-    async for event in graph.astream_events(input=input_data, version="v2"):
-        # print(event, end='\n')
-
+    async for event in llm.astream_events(input=input_data, version="v2"):
         kind = event["event"]
-        print(kind, end='\n')
-
-        if kind == 'on_chat_model_start':
-            # Send a control event with type
-            yield f"event: status\ndata: {{'status': 'model_start'}}\n\n"
-
-        elif kind == "on_chat_model_stream":
+        if kind == "on_chat_model_stream":
             content = event["data"]["chunk"].content
             if content:
-                # Content events don't need special event type - they're default
+                # print("Sending:", content)
+                # Replace newlines with encoded form for SSE
                 content_encoded = content.replace('\n', '\\n')
                 yield f"data: {content_encoded}\n\n"
 
-        elif kind in ['on_tool_start', 'on_tool_end', 'on_chain_start', 'on_chain_end']:
-            # Send control events for tool/chain status
-            yield f"event: status\ndata: {{'status': '{kind}'}}\n\n"
+
+
+
+async def stream_graph_events(graph, input_data):
+    """
+    Stream events from a graph with standardized formatting.
+
+    THESE ARE THE KINDS GENERATED FROM OUR LANDGRAPH AGENT
+        on_chat_model_start
+        on_chat_model_stream
+        on_chat_model_end
+        on_llm_start
+        on_llm_stream
+        on_llm_end
+        on_chain_start
+        on_chain_stream
+        on_chain_end
+        on_tool_start
+        on_tool_stream
+        on_tool_end
+        on_retriever_start
+        on_retriever_chunk
+        on_retriever_end
+        on_prompt_start
+        on_prompt_end
+"""
+
+    # async for event in graph.astream_events(input=input_data, version="v2"):
+    #     # print(event, end='\n')
+
+    #     kind = event["event"]
+    #     print(kind, end='\n')
+
+    #     if kind == 'on_chat_model_start':
+    #         # Send a control event with type
+    #         yield f"event: status\ndata: {{'status': 'model_start'}}\n\n"
+
+    #     elif kind == "on_chat_model_stream":
+    #         content = event["data"]["chunk"].content
+    #         if content:
+    #             # Content events don't need special event type - they're default
+    #             content_encoded = content.replace('\n', '\\n')
+    #             yield f"data: {content_encoded}\n\n"
+
+    #     elif kind in ['on_tool_start', 'on_tool_end', 'on_chain_start', 'on_chain_end']:
+    #         # Send control events for tool/chain status
+    #         yield f"event: status\ndata: {{'status': '{kind}'}}\n\n"
+
+    async for event in graph.astream_events(input=input_data, version="v2"):
+        # print(event)
+        try:
+            # serialized_event = json.dumps(event, default=serialize_custom_objects)
+            serialized_event = json.dumps(
+                event, 
+                default=serialize_custom_objects
+            ).replace('\n', '\\n')
+
+            yield f"data: {serialized_event}\n\n"
+        except Exception as e:
+            print(f"Serialization error: {e}")
 
 
 async def stream_simple_response(message: str):
