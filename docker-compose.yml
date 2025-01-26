@@ -10,6 +10,10 @@ services:
     ports:
       - "${STREAMLIT_PORT:?Your .env file must have a STREAMLIT_PORT variable}:8501"
 
+    # Allow the container to reach the host machine.
+    # extra_hosts:
+      # - "host.docker.internal:host-gateway"
+
     volumes:
       # Map local files to the container for live updates (useful for development)
       # TODO: should this be removed for production?  Likely...

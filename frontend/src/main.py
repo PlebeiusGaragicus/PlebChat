@@ -6,23 +6,46 @@ import json
 # from pathlib import Path
 # import base64
 from functools import partial
+from pydantic import BaseModel, Field
+from enum import Enum
 
 import streamlit as st
+import streamlit_pydantic as sp
+# https://st-pydantic.streamlit.app
+
+# import ollama
+from ollama import Client
+
+models = Client("http://host.docker.internal:11434").list()
+
+print(type(models))
+print(models.__dict__['models'])
+
+for m in models.__dict__['models']:
+    print(m.__dict__.keys())
 
 
 # MATERIAL SYMBOLS
 # https://fonts.google.com/icons?icon.set=Material+Symbols&icon.style=Rounded
 
 
-
 ## TODO: get markdown to show local images
 # https://discuss.streamlit.io/t/local-image-button/5409/6
+#######################################################################################################################
 
 
+
+
+
+
+
+#######################################################################################################################
 
 from src.config import APP_NAME, LANGSERVE_ENDPOINT, PORT, STATIC_PATH
 from src.interface import Colors, cprint, center_text, hide_markdown_header_links, hide_stop_button, mobile_column_fix
 from src.login import login
+from src.agents import AGENTS, get_agent_by_endpoint
+
 
 AVATAR_HUMAN = f"{STATIC_PATH}/user2.png"
 AVATAR_AI = f"{STATIC_PATH}/assistant.png"
@@ -53,29 +76,21 @@ class Message:
 
 
 
-# Note: the string used below much match the approprate endpoint in our FastAPI server
-class AgentEndpoints(enum.Enum):
-    phi = "phi"
-    llama = "llama"
-    research = "research"
-
-
-
-def format_agents(arg):
-    if arg == AgentEndpoints.phi.value:
-        return "✨:red[Phi-4]"
-
-    elif arg == AgentEndpoints.llama.value:
-        return "🦙:green[Llama 3]"
-
-    elif arg == AgentEndpoints.research.value:
-        return "🌐:violet[Researcher]"
-
-
 def new_thread():
     st.session_state.messages = []
 
 
+
+# def edit_message():
+#     """Remove the last user and assistant messages and set the placeholder to the last user message."""
+#     if len(st.session_state.messages) >= 2:
+#         # Get the last user message before removing it
+#         last_user_message = st.session_state.messages[-2]["content"]
+#         # Remove last assistant and user messages
+#         st.session_state.messages = st.session_state.messages[:-2]
+#         # Set the placeholder to the last user message
+#         # st.session_state.placeholder = last_user_message
+#         # st.session_state.query = last_user_message
 
 
 
@@ -96,62 +111,39 @@ def cmp_options():
         # with st.container(border=False):
         # st.markdown("### :grey[Select Agent]")
         st.radio(
-            # ":blue[Choose your Agent]",
             "Choose your Agent",
-            (AgentEndpoints.phi.value, AgentEndpoints.llama.value, AgentEndpoints.research.value),
+            [agent_class().endpoint for agent_class in AGENTS],
             horizontal=True,
             index=0,
             key="model",
-            format_func=format_agents,
+            format_func=lambda x: get_agent_by_endpoint(x).display_name,
             on_change=new_thread,
             label_visibility="collapsed"
         )
 
-        if st.session_state.model == AgentEndpoints.phi.value:
-            # with st.container(height=200, border=True):
-            # with st.expander(":grey[Configure Agent]", icon=":material/settings:", expanded=False):
-            with st.expander(":grey[:material/settings: Configure]", expanded=False):
-                st.radio(
-                    ":blue[Choose your Voice]",
-                    ("👤 Human", "🤖 AI"),
-                    horizontal=True,
-                    index=0,
-                    key="voice",
-                )
-                st.text_input(":blue[examples examples]", value="Pleb")
-        else:
-            st.session_state.voice = None
+        st.session_state.selected_agent = get_agent_by_endpoint(st.session_state.model)
+        # with st.expander(":grey[:material/settings: Configure]", expanded=False):
+        with st.container(border=True):
 
+            if st.session_state.selected_agent.Config == None:
+                st.write("No configuration required for this agent")
+                st.session_state.config = {}
+                st.header("No config")
+                return
 
+            if data := sp.pydantic_input(key=f"config_{st.session_state.selected_agent.endpoint}", model=st.session_state.selected_agent.Config):
+                # st.session_state[f"config_{current_agent.endpoint}"] = data
 
-        st.divider()
-        # bcols2 = st.columns([1, 1], gap="small")
-        # with bcols2[0]:
-        #     if st.button(":green[Done]", on_click=new_thread):
-        #         pass
-        # with bcols2[1]:
-        #     st.session_state.authenticator.logout(":red[Logout]")
-        st.session_state.authenticator.logout(f":red[Logout] `{st.session_state.name}`")
+                st.session_state.config = data
 
-################################################################################################
-# END OF SETTINGS POPUP
+                # st.write(data)
+                st.divider()
+                st.write( st.session_state.config )
 ################################################################################################
 
 
 
 
-
-################################################################################################
-# def edit_message():
-#     """Remove the last user and assistant messages and set the placeholder to the last user message."""
-#     if len(st.session_state.messages) >= 2:
-#         # Get the last user message before removing it
-#         last_user_message = st.session_state.messages[-2]["content"]
-#         # Remove last assistant and user messages
-#         st.session_state.messages = st.session_state.messages[:-2]
-#         # Set the placeholder to the last user message
-#         # st.session_state.placeholder = last_user_message
-#         # st.session_state.query = last_user_message
 
 
 ################################################################################################
@@ -174,10 +166,18 @@ def main_page():
         page_icon=favicon,
         layout="wide",
         # initial_sidebar_state="auto",
-        initial_sidebar_state="collapsed",
+        initial_sidebar_state="expanded" if st.session_state.debug else "collapsed",
     )
 
-####################################################
+    mobile_column_fix()
+    hide_markdown_header_links()
+
+    # hide_stop_button()
+    if not st.session_state.debug:
+        hide_stop_button()
+
+
+############################################
     if not login():
         with st.container(border=True):
             cols2 = st.columns(2)
@@ -187,17 +187,16 @@ def main_page():
             st.markdown(HOME_SCREEN_TEXT)
 
         st.stop()
-####################################################
+############################################
 
 
-
+    # center_text("p", "🗣️🤖💬", size=60)
+    # cmp_options()
 
     header_placeholder = st.empty()
     cmp_options()
     with header_placeholder:
-        # cmp_header()
-        # st.header(":rainbow[PlebChat :] " + format_agents(st.session_state.model), divider="rainbow")
-        st.header("" + format_agents(st.session_state.model), divider="rainbow")
+        st.header("" + get_agent_by_endpoint(st.session_state.model).display_name, divider="rainbow")
 
         # image_base64 = img_to_bytes(MICROSOFT)
         # html = f"""<div style="display: flex; align-items: center;">
@@ -209,15 +208,11 @@ def main_page():
         # st.header("" + format_agents(st.session_state.model), divider="rainbow")
 
 
-    mobile_column_fix()
-    hide_markdown_header_links()
-    if not st.session_state.debug:
-        hide_stop_button()
 
 
 
 
-####################################################################################################################################
+########################################################################################################
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
@@ -230,11 +225,12 @@ def main_page():
             st.markdown(message["content"])
 
 
-    if st.session_state.get("placeholder", None) is None:
-        st.session_state.placeholder = "What do you want to learn?"
+    # if st.session_state.get("placeholder", None) is None:
+    #     st.session_state.placeholder = "What do you want to learn?"
 
-    # if prompt := st.chat_input(placeholder="What do you want to learn?"):
-    if prompt := st.chat_input(placeholder="What do you want to learn?", key="query"):
+    placeholder = st.session_state.selected_agent.placeholder
+
+    if prompt := st.chat_input(placeholder=placeholder, key="query"):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user", avatar=AVATAR_HUMAN):
             st.markdown(prompt)
@@ -271,13 +267,10 @@ def main_page():
                                 # decode the SSE into a proper JSON object
                                 line = line.decode()
                                 line = line[6:]
-                                # line = line.replace('\\n', '\n')
+                                line = line.replace('\\n', '\n')
 
                                 try:
                                     j = json.loads(line)
-
-                                    # print(j)
-                                    print(f"{json.dumps(j, indent=4)}")
 
                                 except json.JSONDecodeError as e:
                                     print(f"Error decoding JSON: {e}")
@@ -290,17 +283,11 @@ def main_page():
                                 tags = j.get('tags', None)
                                 if tags:
                                     if 'langsmith:hidden' in tags:
-                                        # print(f" >> SKIPPING A HIDDEN UPDATE STEP for Node: {current_node}")
+                                        print(f" >> SKIPPING A HIDDEN UPDATE STEP for Node: {current_node}")
                                         continue
 
 
                                 ###### NODE
-                                # node_name = j.get('name', None)
-                                # if node_name:
-                                #     if current_node != node_name:
-                                #         current_node = node_name
-                                #         status.update(label=f"{current_node}", state="running", expanded=True)
-                                node_name = None
                                 try:
                                     node_name = j.get("metadata", None).get('langgraph_node', None)
 
@@ -314,8 +301,7 @@ def main_page():
                                             message_placeholder.markdown(full_response + "▌")
 
                                 except:
-                                    pass
-
+                                    node_name = None
 
 
                                 ###### DATA
@@ -329,6 +315,8 @@ def main_page():
                                         if content:
                                             full_response += content
 
+
+                                print(f"{json.dumps(j, indent=4)}")
 
 
                                 ###### EVENT
@@ -361,68 +349,9 @@ def main_page():
                                     #         # Handle other event types or unknown events
                                     #         pass
 
-
-
-# {
-#     'event': 'on_chain_end',
-#     'data':
-#         {
-#             'output':
-#                 {
-#                     'messages': [{'role': 'user', 'content': 'asdfasdf'}]
-#                 },
-#             'input':
-#                 {
-#                     'messages': [{'role': 'user', 'content': 'asdfasdf'}]
-#                 }
-#         },
-#     'run_id': 'c7ef8f48-7006-4972-9987-6984ed414250',
-#     'name': '_write',
-#     'tags': ['seq:step:3', 'langsmith:hidden', 'langsmith:hidden'],
-#     'metadata':
-#         {
-#             'langgraph_step': 0,
-#             'langgraph_node': '__start__',
-#             'langgraph_triggers': ['__start__'],
-#             'langgraph_path': ('__pregel_pull', '__start__'),
-#             'langgraph_checkpoint_ns': '__start__:e50a3d9d-8a95-5331-0282-fe1c1d9172e7'
-#         },
-#     'parent_ids': ['2ffdf17d-0b9e-49e6-8bc2-38bf974abec2', '1b0ed343-bbbc-4dcf-9ac7-5b64156c22f7']
-# }
-
-
-# THESE ARE THE KINDS GENERATED FROM OUR LANDGRAPH AGENT
-# on_chat_model_start -> 
-# on_chat_model_stream
-# on_chat_model_end
-# on_llm_start
-# on_llm_stream
-# on_llm_end
-# on_chain_start
-# on_chain_stream
-# on_chain_end
-# on_tool_start
-# on_tool_stream
-# on_tool_end
-# on_retriever_start
-# on_retriever_chunk
-# on_retriever_end
-# on_prompt_start
-# on_prompt_end
-
-
-
-
                                 ###### WRITE IT OUT
                                 message_placeholder.markdown(full_response + "▌")
 
-
-                                # if line.startswith("data: "):
-                                #     chunk = line[6:]  # Remove "data: " prefix
-                                #     # Decode escaped newlines
-                                #     chunk = chunk.replace('\\n', '\n')
-                                #     full_response += chunk
-                                #     message_placeholder.markdown(full_response + "▌")
 
                         # Update final status
                         message_placeholder.markdown(full_response)
@@ -471,20 +400,81 @@ def main_page():
 
 
 
-####################################################################################################################################
     if st.session_state.debug:
         with st.sidebar:
-            st.write(st.secrets)
+            st.header("session state")
             st.write(st.session_state)
+            st.header("cookies")
             st.write(st.context.cookies)
+            st.header("headers")
             st.write(st.context.headers)
+            st.header("secrets")
+            st.write(st.secrets)
+
+    with st.sidebar:
+        st.divider()
+
+        st.session_state.authenticator.logout(f":red[Logout] `{st.session_state.name}`")
+###############################################################################################################
 
 
 
 
-class ActionButtons(enum.Enum):
-    Undo = ":red[:material/undo: Undo]"
-    Clear = ":grey[:material/clear: Clear]"
 
-    def __str__(self):
-        return self.value
+
+
+
+def run_prompt():
+    pass
+
+
+
+
+
+# THESE ARE THE KINDS GENERATED FROM OUR LANDGRAPH AGENT
+# on_chat_model_start -> 
+# on_chat_model_stream
+# on_chat_model_end
+# on_llm_start
+# on_llm_stream
+# on_llm_end
+# on_chain_start
+# on_chain_stream
+# on_chain_end
+# on_tool_start
+# on_tool_stream
+# on_tool_end
+# on_retriever_start
+# on_retriever_chunk
+# on_retriever_end
+# on_prompt_start
+# on_prompt_end
+
+
+
+# {
+#     'event': 'on_chain_end',
+#     'data':
+#         {
+#             'output':
+#                 {
+#                     'messages': [{'role': 'user', 'content': 'asdfasdf'}]
+#                 },
+#             'input':
+#                 {
+#                     'messages': [{'role': 'user', 'content': 'asdfasdf'}]
+#                 }
+#         },
+#     'run_id': 'c7ef8f48-7006-4972-9987-6984ed414250',
+#     'name': '_write',
+#     'tags': ['seq:step:3', 'langsmith:hidden', 'langsmith:hidden'],
+#     'metadata':
+#         {
+#             'langgraph_step': 0,
+#             'langgraph_node': '__start__',
+#             'langgraph_triggers': ['__start__'],
+#             'langgraph_path': ('__pregel_pull', '__start__'),
+#             'langgraph_checkpoint_ns': '__start__:e50a3d9d-8a95-5331-0282-fe1c1d9172e7'
+#         },
+#     'parent_ids': ['2ffdf17d-0b9e-49e6-8bc2-38bf974abec2', '1b0ed343-bbbc-4dcf-9ac7-5b64156c22f7']
+# }

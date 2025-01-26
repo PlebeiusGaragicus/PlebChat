@@ -1,3 +1,8 @@
+ollama
+pydantic
+
 streamlit
 streamlit_mic_recorder
 streamlit_authenticator
+# streamlit_pydantic
+git+https://github.com/LukasMasuch/streamlit-pydantic.git#egg=streamlit-pydantic
