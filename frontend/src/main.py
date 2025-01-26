@@ -276,24 +276,46 @@ def main_page():
                                 try:
                                     j = json.loads(line)
 
+                                    # print(j)
+                                    print(f"{json.dumps(j, indent=4)}")
+
                                 except json.JSONDecodeError as e:
                                     print(f"Error decoding JSON: {e}")
                                     print(line)
                                     continue
 
-                                ###### NODE
-                                node_name = j.get('name', None)
-                                if node_name:
-                                    if current_node != node_name:
-                                        current_node = node_name
-                                        status.update(label=f"{current_node}", state="running", expanded=True)
+
 
                                 ###### TAGS
                                 tags = j.get('tags', None)
                                 if tags:
                                     if 'langsmith:hidden' in tags:
-                                        print(f" >> SKIPPING A HIDDEN UPDATE STEP for Node: {current_node}")
+                                        # print(f" >> SKIPPING A HIDDEN UPDATE STEP for Node: {current_node}")
                                         continue
+
+
+                                ###### NODE
+                                # node_name = j.get('name', None)
+                                # if node_name:
+                                #     if current_node != node_name:
+                                #         current_node = node_name
+                                #         status.update(label=f"{current_node}", state="running", expanded=True)
+                                node_name = None
+                                try:
+                                    node_name = j.get("metadata", None).get('langgraph_node', None)
+
+                                    if node_name:
+                                        if current_node != node_name:
+                                            current_node = node_name
+                                            status.update(label=f"{current_node}", state="running", expanded=True)
+
+                                            # st.write("\n\n")
+                                            full_response += "\n\n---\n\n"
+                                            message_placeholder.markdown(full_response + "▌")
+
+                                except:
+                                    pass
+
 
 
                                 ###### DATA

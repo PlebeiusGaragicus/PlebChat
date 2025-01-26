@@ -7,3 +7,5 @@ auth.yaml
 secrets.toml
 
 output.md
+
+*.json
