@@ -17,6 +17,6 @@ docker compose -f docker-compose.yml --env-file .env up --build -d
 echo
 echo
 echo "--> Press Ctrl-C to stop and bring down containers <--"
-docker compose -f docker-compose.yml logs --follow
+docker compose -f docker-compose.yml logs --follow --no-log-prefix
 
 # When Control-C is pressed, the trap command invokes `cleanup`

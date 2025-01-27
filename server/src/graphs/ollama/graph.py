@@ -19,8 +19,8 @@ class State(BaseModel):
 
 ############################################################################
 
-def chatbot(state: State):
-    MODEL = "llama3.2:1b"
+def ollama_llm_call(state: State):
+    MODEL = "llama3.1:latest"
     llm = ChatOllama(
         model=MODEL,
         keep_alive="5m",  # Keep the model alive for 5 minutes
@@ -37,8 +37,8 @@ def chatbot(state: State):
 
 ############################################################################
 graph_builder = StateGraph(State)
-graph_builder.add_node("chatbot", chatbot)
-graph_builder.add_edge("__start__", "chatbot")
-graph_builder.add_edge("chatbot", "__end__")
+graph_builder.add_node("ollama_llm_call", ollama_llm_call)
+graph_builder.add_edge("__start__", "ollama_llm_call")
+graph_builder.add_edge("ollama_llm_call", "__end__")
 
 graph = graph_builder.compile()

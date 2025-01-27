@@ -1,28 +1,12 @@
-import os
-import enum
 import requests
-from PIL import Image
 import json
 # from pathlib import Path
 # import base64
-from functools import partial
-from pydantic import BaseModel, Field
-from enum import Enum
 
 import streamlit as st
 import streamlit_pydantic as sp
 # https://st-pydantic.streamlit.app
 
-# import ollama
-from ollama import Client
-
-models = Client("http://host.docker.internal:11434").list()
-
-print(type(models))
-print(models.__dict__['models'])
-
-for m in models.__dict__['models']:
-    print(m.__dict__.keys())
 
 
 # MATERIAL SYMBOLS
@@ -42,7 +26,6 @@ for m in models.__dict__['models']:
 #######################################################################################################################
 
 from src.config import APP_NAME, LANGSERVE_ENDPOINT, PORT, STATIC_PATH
-from src.interface import Colors, cprint, center_text, hide_markdown_header_links, hide_stop_button, mobile_column_fix
 from src.login import login
 from src.agents import AGENTS, get_agent_by_endpoint
 
@@ -132,13 +115,10 @@ def cmp_options():
                 return
 
             if data := sp.pydantic_input(key=f"config_{st.session_state.selected_agent.endpoint}", model=st.session_state.selected_agent.Config):
-                # st.session_state[f"config_{current_agent.endpoint}"] = data
-
+            # if data := sp.pydantic_input(key=f"agent_config", model=st.session_state.selected_agent.Config):
                 st.session_state.config = data
-
-                # st.write(data)
-                st.divider()
-                st.write( st.session_state.config )
+                # st.divider()
+                # st.write( st.session_state.config )
 ################################################################################################
 
 
@@ -148,33 +128,7 @@ def cmp_options():
 
 ################################################################################################
 def main_page():
-    if os.getenv("DEBUG", None): # should be the only time we call this
-        st.session_state.debug = True
-    else:
-        st.session_state.debug = False
 
-    ip_addr = st.context.headers.get('X-Forwarded-For', "?")
-    user_agent = st.context.headers.get('User-Agent', "?")
-    lang = st.context.headers.get('Accept-Language', "?")
-    cprint(f"RUNNING for: {ip_addr} - {lang} - {user_agent}", Colors.YELLOW)
-
-
-    #### PAGE SETUP
-    favicon = Image.open(os.path.join(STATIC_PATH, "favicon.ico"))
-    st.set_page_config(
-        page_title=APP_NAME,
-        page_icon=favicon,
-        layout="wide",
-        # initial_sidebar_state="auto",
-        initial_sidebar_state="expanded" if st.session_state.debug else "collapsed",
-    )
-
-    mobile_column_fix()
-    hide_markdown_header_links()
-
-    # hide_stop_button()
-    if not st.session_state.debug:
-        hide_stop_button()
 
 
 ############################################
@@ -197,6 +151,9 @@ def main_page():
     cmp_options()
     with header_placeholder:
         st.header("" + get_agent_by_endpoint(st.session_state.model).display_name, divider="rainbow")
+
+    st.write( st.session_state.config )
+    st.divider()
 
         # image_base64 = img_to_bytes(MICROSOFT)
         # html = f"""<div style="display: flex; align-items: center;">
@@ -230,14 +187,22 @@ def main_page():
 
     placeholder = st.session_state.selected_agent.placeholder
 
+
+
     if prompt := st.chat_input(placeholder=placeholder, key="query"):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user", avatar=AVATAR_HUMAN):
             st.markdown(prompt)
 
 
+        event_placeholder = st.empty()
+
+
         with st.chat_message("assistant", avatar=AVATAR_AI):
-        # with st.empty():
+
+
+            event_placeholder.status("event", state="running", expanded=True)
+
             try:
                 response = requests.post(
                     url=f"{LANGSERVE_ENDPOINT}:{PORT}/{st.session_state.model}",
@@ -258,6 +223,7 @@ def main_page():
                 # status_updater.status("🧠 Agent at work...", expanded=True)
 
                 current_node = None
+                current_event = None
 
                 # with st.spinner("🧠 Thinking"):
                 with st.status("🧠 Agent at work...", expanded=True) as status:
@@ -316,22 +282,23 @@ def main_page():
                                             full_response += content
 
 
-                                print(f"{json.dumps(j, indent=4)}")
+                                # print(f"{json.dumps(j, indent=4)}")
 
 
                                 ###### EVENT
-                                # event = j.get('event', None)
-                                # if current_node != event:
-                                #     current_node = event
-                                #     status_name = f"{event}"
+                                event = j.get('event', None)
+                                if current_event != event:
+                                    current_event = event
 
-                                #     if event == "on_chat_model_stream":
-                                #         status_name = "🧠 Generating response..."
+                                    if event_placeholder is not None:
+                                        with event_placeholder as e:
+                                            event_placeholder.update(label=f"{event}", state="running", expanded=True)
 
-                                #     # status.update(label=status_name, state="running", expanded=True)
-                                #     with status:
-                                #         st.write(status_name)
-                                #         status.update(label=status_name, state="running", expanded=True)
+                                    # if event == "on_llm_new_token":
+                                    #     print("+")
+                                    # else:
+                                    #     print(f"{json.dumps(j, indent=4)}")
+
 
                                     # match event_type:
                                     #     case 'on_chain_start':
@@ -386,6 +353,7 @@ def main_page():
                 st.error(f"Failed to connect to the server: {error_details}")
                 message_placeholder = st.empty()
                 message_placeholder.markdown("❌ Sorry, there was an error connecting to the server. Please try again later.")
+                message_placeholder.markdown(f"❌ {error_details}")
 
     if len(st.session_state.messages):
         # TODO: USE THIS WHEN WE ACTUALLY GET A FEW MORE ACTIONS

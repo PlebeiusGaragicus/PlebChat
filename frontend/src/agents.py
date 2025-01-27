@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field
 from enum import Enum
 
+import streamlit as st
+
 
 class Agent():
     @property
@@ -15,6 +17,51 @@ class Agent():
 
     class Config(BaseModel):
         pass
+
+
+
+
+@st.cache_resource(ttl=3600)
+def ollama_models():
+    from ollama import Client
+    # from ollama._types import ListResponse
+
+    models = Client("http://host.docker.internal:11434").list()
+
+    # print(type(models))
+    # print(models.__dict__['models'])
+
+    for m in models['models']:
+        print(m.model)
+
+    # Create enum dynamically
+    model_dict = {model.upper().replace(":", "_").replace(".", "_"): model for model in [m.model for m in models['models']]}
+
+    return Enum('OllamaModels', model_dict)
+
+OllamaModels = ollama_models()
+
+
+
+
+
+
+class Ollama(Agent):
+    @property
+    def endpoint(self):
+        return "ollama"
+    @property
+    def display_name(self):
+        return "🦙 :orange[Ollama]"
+    @property
+    def placeholder(self):
+        return "🗣️🤖💬 Let's chat!"
+
+    class Config(BaseModel):
+        ollama_model: OllamaModels = Field(
+            default=next(iter(OllamaModels)),  # Get first enum value as default
+            # description="The LLM model to use for Ollama.",
+        )
 
 
 class Phi(Agent):
@@ -44,30 +91,29 @@ class Phi(Agent):
         )
 
 
+# class Llama(Agent):
+#     class Config(BaseModel):
+#         pass
 
-class Llama(Agent):
-    class Config(BaseModel):
-        pass
+#     @property
+#     def endpoint(self):
+#         return "llama"
+#     @property
+#     def display_name(self):
+#         return "🦙 :green[Llama 3]"
 
-    @property
-    def endpoint(self):
-        return "llama"
-    @property
-    def display_name(self):
-        return "🦙 :green[Llama 3]"
-
-    @property
-    def placeholder(self):
-        return "How can this little Llama help you?"
+#     @property
+#     def placeholder(self):
+#         return "How can this little Llama help you?"
 
 
 class Researcher(Agent):
     @property
     def endpoint(self):
-        return "researcher"
+        return "research"
     @property
     def display_name(self):
-        return "🌐 :violet[Researcher]"
+        return "🌐 :violet[Research 'Precis']"
     @property
     def placeholder(self):
         return "What do you want to learn?"
@@ -82,14 +128,7 @@ class Researcher(Agent):
         )
 
 
-
-AGENTS = [Phi, Llama, Researcher]
-
-# AGENTS = {
-#     "phi": Phi,
-#     "llama": Llama,
-#     "researcher": Researcher
-# }
+AGENTS = [Ollama, Researcher, Phi]
 
 
 def get_agent_by_endpoint(endpoint: str) -> Agent:

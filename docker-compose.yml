@@ -1,6 +1,10 @@
 services:
 
   frontend:
+    # logging:
+    #   options:
+    #     prefix: ''
+
     container_name: streamlit_frontend
 
     build:
@@ -44,6 +48,10 @@ services:
 
 
   backend:
+    # logging:
+    #   options:
+    #     prefix: ''
+
     container_name: fastapi_backend
 
     build:

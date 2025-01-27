@@ -16,8 +16,8 @@ from src.graphs.phi.graph import graph as phi_graph
 from src.graphs.phi.commands import handle_commands as phi_handle_commands
 
 
-from src.graphs.llama.graph import graph as llama_graph
-from src.graphs.llama.commands import handle_commands as llama_handle_commands
+from src.graphs.ollama.graph import graph as ollama_graph
+from src.graphs.ollama.commands import handle_commands as ollama_handle_commands
 
 
 from src.graphs.research.research_rabbit import graph as research_graph
@@ -175,11 +175,11 @@ async def main(request: PostRequest):
 
 
 ##########################################################################################
-@app.post("/llama", response_class=StreamingResponse)
+@app.post("/ollama", response_class=StreamingResponse)
 async def main(request: PostRequest):
     query = request.user_message
     if query.startswith("/"):
-        return create_sse_response(llama_handle_commands(request))
+        return create_sse_response(ollama_handle_commands(request))
 
     # Create a default message from the user query if messages list is empty
     message = {"role": "user", "content": query}
@@ -190,7 +190,7 @@ async def main(request: PostRequest):
     
     return create_sse_response(
         stream_graph_events(
-            llama_graph, 
+            ollama_graph, 
             input_data
         )
     )
